@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="netzmacht/contao-dev-tools" default="build">
+    <!-- Not able to use the autoload-validation as we use the autoload type files -->
+    <!-- autoload-validation -->
+    <target
+            name="verify"
+            depends="
+                phplint,
+                composer-validate,
+                author-validation"
+            description="Verify the quality of the code"
+            />
+
+    <!-- import the main build system -->
+    <import file="vendor/netzmacht/contao-build-tools/netzmacht.main.xml" />
+</project>
