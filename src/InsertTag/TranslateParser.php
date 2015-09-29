@@ -11,6 +11,7 @@
 
 namespace Netzmacht\Contao\I18n\InsertTag;
 
+use Contao\InsertTags;
 use Contao\PageModel;
 use ContaoCommunityAlliance\Translator\TranslatorInterface;
 use Netzmacht\Contao\I18n\I18n;
@@ -57,17 +58,27 @@ class TranslateParser implements Parser
     private $page;
 
     /**
+     * Contao insert tag replacer.
+     *
+     * @var InsertTags
+     */
+    private $insertTags;
+
+    /**
      * TranslateParser constructor.
      *
      * @param I18n                $i18n       I18n service.
      * @param TranslatorInterface $translator Translator.
      * @param PageModel           $page       Current page.
+     * @param InsertTags          $insertTags Insert tags.
+     *
      */
-    public function __construct(I18n $i18n, TranslatorInterface $translator, PageModel $page)
+    public function __construct(I18n $i18n, TranslatorInterface $translator, PageModel $page, InsertTags $insertTags)
     {
         $this->i18n       = $i18n;
         $this->translator = $translator;
         $this->page       = $i18n->getBasePage($page) ?: $page;
+        $this->insertTags = $insertTags;
     }
 
     /**
@@ -117,9 +128,9 @@ class TranslateParser implements Parser
 
         // Fallback to global website domain.
         if ($domain !== 'website' && $result === $key) {
-            return $this->translator->translate($key, 'website');
+            $result = $this->translator->translate($key, 'website');
         }
 
-        return $result;
+        return $this->insertTags->replace($result, $cache);
     }
 }

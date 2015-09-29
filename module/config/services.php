@@ -13,6 +13,7 @@
 
 global $container;
 
+use Contao\InsertTags;
 use Netzmacht\Contao\I18n\I18n;
 use Netzmacht\Contao\I18n\InsertTag\Replacer;
 use Netzmacht\Contao\I18n\InsertTag\TranslateParser;
@@ -34,7 +35,7 @@ $container['i18n.insert-tags.parsers'][] = 'i18n.insert-tags.parsers.translate';
 $container['i18n.insert-tags.parsers.translate'] = function ($container) {
     $page = $container['page-provider']->getPage();
 
-    return new TranslateParser($container['i18n'], $container['translator'], $page);
+    return new TranslateParser($container['i18n'], $container['translator'], $page, new InsertTags());
 };
 
 $container['i18n.insert-tags.replacer'] = $container->share(
