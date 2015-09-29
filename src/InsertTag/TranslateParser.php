@@ -71,7 +71,6 @@ class TranslateParser implements Parser
      * @param TranslatorInterface $translator Translator.
      * @param PageModel           $page       Current page.
      * @param InsertTags          $insertTags Insert tags.
-     *
      */
     public function __construct(I18n $i18n, TranslatorInterface $translator, PageModel $page, InsertTags $insertTags)
     {

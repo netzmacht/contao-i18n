@@ -30,7 +30,9 @@ class I18n
     private $i18nPageTypes;
 
     /**
-     * I18n page cache for base pages..
+     * I18n page cache for base pages.
+     *
+     * For each language page the base page get cached at runtime.
      *
      * @var PageModel[]|null[]
      */
@@ -38,6 +40,8 @@ class I18n
 
     /**
      * I18n page cache for translated pages.
+     *
+     * Each translated page of a page get cached at runtime.
      *
      * @var PageModel[][]|null[][]
      */
@@ -112,7 +116,7 @@ class I18n
             return null;
         }
 
-        $language = $GLOBALS['TL_LANGUAGE'];
+        $language = $this->getCurrentLanguage();
 
         // Already got it.
         if ($language === $page->language) {
@@ -124,12 +128,8 @@ class I18n
             if (!$rootPage->fallback) {
                 $this->translatedPages[$language][$page->id] = null;
             }
-            $subQuery = '(SELECT id FROM tl_page WHERE type=? AND language=? AND dns=? LIMIT 0,1)';
 
-            $translatedPages = PageModel::findBy(
-                array('tl_page.languageMain=?'),
-                array($page->id, 'root', $GLOBALS['TL_LANGUAGE'], $rootPage->dns)
-            );
+            $translatedPages = PageModel::findBy(array('tl_page.languageMain=?'), array($page->id));
 
             $this->translatedPages[$language][$page->id] = null;
 
@@ -162,5 +162,17 @@ class I18n
         }
 
         return PageModel::findByPk($page->rootId);
+    }
+
+    /**
+     * Get the current language.
+     *
+     * @return string
+     *
+     * @SuppressWarnings(PHPMD.Superglobals)
+     */
+    public function getCurrentLanguage()
+    {
+        return $GLOBALS['TL_LANGUAGE'];
     }
 }

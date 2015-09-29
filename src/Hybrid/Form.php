@@ -26,7 +26,7 @@ class Form extends \Contao\Form
     use I18nTrait;
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     protected function compile()
     {

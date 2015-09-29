@@ -19,7 +19,6 @@ use Contao\PageModel;
 use Contao\PageRegular;
 use Netzmacht\Contao\I18n\I18nTrait;
 
-
 /**
  * Regular i18n page load the content of the base page.
  * 
@@ -30,7 +29,7 @@ class Regular extends PageRegular
     use I18nTrait;
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public static function getFrontendModule($moduleId, $column = 'main')
     {
@@ -94,7 +93,7 @@ class Regular extends PageRegular
      * Generate the frontend module.
      *
      * @param int    $moduleId Module id.
-     * @param string $column.
+     * @param string $column   Layout column.
      *
      * @return string
      *
@@ -192,7 +191,7 @@ class Regular extends PageRegular
     /**
      * Generate the article list.
      *
-     * @param PageModel $basePage Page model
+     * @param PageModel $basePage Page model.
      * @param string    $column   Section column.
      *
      * @return string
@@ -209,7 +208,7 @@ class Regular extends PageRegular
         $return    = '';
         $count     = 0;
         $multiMode = ($articles->count() > 1);
-        $last      = $articles->count() - 1;
+        $last      = ($articles->count() - 1);
 
         while ($articles->next()) {
             $articleModel = $articles->current();

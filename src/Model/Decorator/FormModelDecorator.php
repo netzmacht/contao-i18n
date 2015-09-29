@@ -20,6 +20,7 @@ use Contao\PageModel;
  * Class FormModelDecorator decorates the module model to inject a specific jumpToPage.
  *
  * @package Netzmacht\Contao\I18n\Model\Decorator
+ * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
 class FormModelDecorator extends FormModel
 {
@@ -36,9 +37,12 @@ class FormModelDecorator extends FormModel
      * @var PageModel
      */
     private $jumpToPage;
-    
+
     /**
      * Construct.
+     *
+     * @param FormModel $model      The model being decorated.
+     * @param PageModel $jumpToPage The injected jumpTo page.
      */
     public function __construct(FormModel $model, PageModel $jumpToPage)
     {
@@ -47,7 +51,7 @@ class FormModelDecorator extends FormModel
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function __clone()
     {
@@ -55,7 +59,7 @@ class FormModelDecorator extends FormModel
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function __set($strKey, $varValue)
     {
@@ -63,7 +67,7 @@ class FormModelDecorator extends FormModel
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function __get($strKey)
     {
@@ -75,7 +79,7 @@ class FormModelDecorator extends FormModel
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function __isset($strKey)
     {
@@ -83,7 +87,7 @@ class FormModelDecorator extends FormModel
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function row()
     {
@@ -91,7 +95,7 @@ class FormModelDecorator extends FormModel
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function isModified()
     {
@@ -99,7 +103,7 @@ class FormModelDecorator extends FormModel
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function setRow(array $arrData)
     {
@@ -107,7 +111,7 @@ class FormModelDecorator extends FormModel
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function mergeRow(array $arrData)
     {
@@ -115,7 +119,7 @@ class FormModelDecorator extends FormModel
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function markModified($strKey)
     {
@@ -123,7 +127,7 @@ class FormModelDecorator extends FormModel
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function current()
     {
@@ -131,7 +135,7 @@ class FormModelDecorator extends FormModel
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function save()
     {
@@ -139,7 +143,7 @@ class FormModelDecorator extends FormModel
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function delete()
     {
@@ -147,7 +151,7 @@ class FormModelDecorator extends FormModel
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function getRelated($strKey, array $arrOptions = array())
     {
@@ -159,7 +163,7 @@ class FormModelDecorator extends FormModel
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function refresh()
     {
@@ -167,7 +171,7 @@ class FormModelDecorator extends FormModel
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function detach()
     {
@@ -175,7 +179,7 @@ class FormModelDecorator extends FormModel
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function preventSaving()
     {

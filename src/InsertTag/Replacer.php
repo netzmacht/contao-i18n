@@ -28,7 +28,7 @@ class Replacer
     /**
      * Replacer constructor.
      *
-     * @param Parser[] $parsers Insert tag parsers.
+     * @param array|Parser[] $parsers Insert tag parsers.
      */
     public function __construct(array $parsers)
     {
