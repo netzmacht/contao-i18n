@@ -30,11 +30,18 @@ class I18n
     private $i18nPageTypes;
 
     /**
-     * I18n page cache.
+     * I18n page cache for base pages..
      *
      * @var PageModel[]|null[]
      */
-    private $pages = [];
+    private $basePages = [];
+
+    /**
+     * I18n page cache for translated pages.
+     *
+     * @var PageModel[][]|null[][]
+     */
+    private $translatedPages = [];
 
     /**
      * I18n constructor.
@@ -81,11 +88,11 @@ class I18n
             return $page;
         }
 
-        if (!array_key_exists($pageId, $this->pages)) {
-            $this->pages[$pageId] = PageModel::findByPk($page->languageMain);
+        if (!array_key_exists($pageId, $this->basePages)) {
+            $this->basePages[$pageId] = PageModel::findByPk($page->languageMain);
         }
 
-        return $this->pages[$pageId];
+        return $this->basePages[$pageId];
     }
 
     /**
@@ -105,24 +112,40 @@ class I18n
             return null;
         }
 
+        $language = $GLOBALS['TL_LANGUAGE'];
+
         // Already got it.
-        if ($GLOBALS['TL_LANGUAGE'] === $page->language) {
-            return $page;
+        if ($language === $page->language) {
+            $this->translatedPages[$language][$page->id] = $page;
+        } else {
+            $rootPage = $this->getRootPage($page);
+
+            // Current page is not in the fallback language tree. Not able to find the translated page.
+            if (!$rootPage->fallback) {
+                $this->translatedPages[$language][$page->id] = null;
+            }
+            $subQuery = '(SELECT id FROM tl_page WHERE type=? AND language=? AND dns=? LIMIT 0,1)';
+
+            $translatedPages = PageModel::findBy(
+                array('tl_page.languageMain=?'),
+                array($page->id, 'root', $GLOBALS['TL_LANGUAGE'], $rootPage->dns)
+            );
+
+            $this->translatedPages[$language][$page->id] = null;
+
+            if ($translatedPages) {
+                foreach ($translatedPages as $translatedPage) {
+                    $translatedPage->loadDetails();
+
+                    if ($translatedPage->language === $language) {
+                        $this->translatedPages[$language][$page->id] = $translatedPage;
+                        return $translatedPage;
+                    }
+                }
+            }
         }
 
-        $rootPage = $this->getRootPage($page);
-
-        // Current page is not in the fallback language tree. Not able to find the translated page.
-        if (!$rootPage->fallback) {
-            return null;
-        }
-
-        $subQuery = '(SELECT id FROM tl_page WHERE type=? AND language=? AND dns=? LIMIT 0,1)';
-
-        return PageModel::findOneBy(
-            array('tl_page.languageMain=?', 'tl_page.pid = ' . $subQuery),
-            array($page->id, 'root', $rootPage->language, $rootPage->dns)
-        );
+        return $this->translatedPages[$language][$page->id];
     }
 
     /**
