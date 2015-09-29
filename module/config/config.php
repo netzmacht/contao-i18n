@@ -17,3 +17,5 @@ $GLOBALS['FE_MOD']['i18n']['i18n_navigation'] = 'Netzmacht\Contao\I18n\Module\Na
 $GLOBALS['FE_MOD']['i18n']['i18n_form']       = 'Netzmacht\Contao\I18n\Hybrid\Form';
 
 $GLOBALS['TL_CTE']['includes']['i18n_form']   = 'Netzmacht\Contao\I18n\Hybrid\Form';
+
+$GLOBALS['TL_HOOKS']['replaceInsertTags'][] = array('Netzmacht\Contao\I18n\InsertTag\Replacer', 'replace');
