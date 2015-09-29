@@ -67,7 +67,7 @@ class TranslateParser implements Parser
     {
         $this->i18n       = $i18n;
         $this->translator = $translator;
-        $this->page       = $page;
+        $this->page       = $i18n->getBasePage($page) ?: $page;
     }
 
     /**
