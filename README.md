@@ -51,7 +51,7 @@ type is an i18n page type, the alias of the base page is used instead.
 
 If no page alias is given, the page id is used instead. Folder aliases get escaped to underscores.
 
-`{[t::domain:path.to.translation}}`
+`{{t::domain:path.to.translation}}`
 Translate from a given domain.
 
 Note: The dot syntax is used for the array structure of the language file.
