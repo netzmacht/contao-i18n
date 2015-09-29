@@ -34,13 +34,11 @@ class Form extends \Contao\Form
             $i18n = $this->getI18n();
             $page = $this->objModel->getRelated('jumpTo');
 
-            if ($page && $i18n->isI18nPage($page->type)) {
-                $jumpTo = $i18n->getBasePage($page);
+            $jumpTo = $i18n->getTranslatedPage($page);
 
-                if ($jumpTo) {
-                    $this->objModel = new ModuleModelDecorator($this->objModel, $jumpTo);
-                    $this->jumpTo   = $jumpTo->id;
-                }
+            if ($jumpTo && $jumpTo !== $page) {
+                $this->objModel = new ModuleModelDecorator($this->objModel, $jumpTo);
+                $this->jumpTo   = $jumpTo->id;
             }
         }
 

@@ -87,4 +87,57 @@ class I18n
 
         return $this->pages[$pageId];
     }
+
+    /**
+     * Get the translated page for a given page.
+     *
+     * @param PageModel|int $page The page as model or id.
+     *
+     * @return PageModel|null
+     */
+    public function getTranslatedPage($page)
+    {
+        if (!$page instanceof PageModel) {
+            $page = PageModel::findByPk($page);
+        }
+
+        if (!$page) {
+            return null;
+        }
+
+        // Already got it.
+        if ($GLOBALS['TL_LANGUAGE'] === $page->language) {
+            return $page;
+        }
+
+        $rootPage = $this->getRootPage($page);
+
+        // Current page is not in the fallback language tree. Not able to find the translated page.
+        if (!$rootPage->fallback) {
+            return null;
+        }
+
+        $subQuery = '(SELECT id FROM tl_page WHERE type=? AND language=? AND dns=? LIMIT 0,1)';
+
+        return PageModel::findOneBy(
+            array('tl_page.languageMain=?', 'tl_page.pid = ' . $subQuery),
+            array($page->id, 'root', $rootPage->language, $rootPage->dns)
+        );
+    }
+
+    /**
+     * Get the root page for a page.
+     *
+     * @param PageModel $page The page model.
+     *
+     * @return \Model|null
+     */
+    private function getRootPage(PageModel $page)
+    {
+        if (!$page->rootId) {
+            $page->loadDetails();
+        }
+
+        return PageModel::findByPk($page->rootId);
+    }
 }

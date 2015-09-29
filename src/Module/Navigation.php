@@ -27,11 +27,11 @@ class Navigation extends ModuleNavigation
     use I18nTrait;
 
     /**
-     * Base page is the base page of an i18n page.
+     * Translated page of the redirect page.
      *
      * @var PageModel|null
      */
-    private $basePage;
+    private $translatedPage;
 
     /**
      * Current page.
@@ -49,11 +49,11 @@ class Navigation extends ModuleNavigation
 
         $this->currentPage = $this->getServiceContainer()->getPageProvider()->getPage();
 
-        if ($i18n->isI18nPage($this->currentPage->type) && $this->defineRoot && $this->rootPage > 0) {
-            $this->basePage = $i18n->getBasePage($this->rootPage);
+        if ($this->defineRoot && $this->rootPage > 0) {
+            $this->translatedPage = $i18n->getTranslatedPage($this->rootPage);
 
-            if ($this->basePage) {
-                $this->rootPage = $this->basePage->id;
+            if ($this->translatedPage) {
+                $this->rootPage = $this->translatedPage->id;
             }
         }
 
@@ -66,12 +66,12 @@ class Navigation extends ModuleNavigation
     protected function renderNavigation($pid, $level = 1, $host = null, $language = null)
     {
         // We have to reset the host here.
-        if ($this->basePage) {
-            if ($this->basePage->rootId != $this->currentPage->rootId
-                && $this->basePage->domain != ''
-                && $this->basePage->domain != $this->currentPage->domain
+        if ($this->translatedPage) {
+            if ($this->translatedPage->rootId != $this->currentPage->rootId
+                && $this->translatedPage->domain != ''
+                && $this->translatedPage->domain != $this->currentPage->domain
             ) {
-                $host = $this->basePage->domain;
+                $host = $this->translatedPage->domain;
             }
         }
 
