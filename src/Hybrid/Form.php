@@ -14,7 +14,7 @@
 namespace Netzmacht\Contao\I18n\Hybrid;
 
 use Netzmacht\Contao\I18n\I18nTrait;
-use Netzmacht\Contao\I18n\Model\Decorator\ModuleModelDecorator;
+use Netzmacht\Contao\I18n\Model\Decorator\FormModelDecorator;
 
 /**
  * The I18n form redirects to the base page if defined.
@@ -37,7 +37,7 @@ class Form extends \Contao\Form
             $jumpTo = $i18n->getTranslatedPage($page);
 
             if ($jumpTo && $jumpTo !== $page) {
-                $this->objModel = new ModuleModelDecorator($this->objModel, $jumpTo);
+                $this->objModel = new FormModelDecorator($this->objModel, $jumpTo);
                 $this->jumpTo   = $jumpTo->id;
             }
         }

@@ -13,20 +13,20 @@
 
 namespace Netzmacht\Contao\I18n\Model\Decorator;
 
-use Contao\ModuleModel;
+use Contao\FormModel;
 use Contao\PageModel;
 
 /**
- * Class ModuleModelDecorator decorates the module model to inject a specific jumpToPage.
+ * Class FormModelDecorator decorates the module model to inject a specific jumpToPage.
  *
  * @package Netzmacht\Contao\I18n\Model\Decorator
  */
-class ModuleModelDecorator extends ModuleModel
+class FormModelDecorator extends FormModel
 {
     /**
-     * The module model.
+     * The form model.
      * 
-     * @var ModuleModel
+     * @var FormModel
      */
     private $model;
 
@@ -40,7 +40,7 @@ class ModuleModelDecorator extends ModuleModel
     /**
      * Construct.
      */
-    public function __construct(ModuleModel $model, PageModel $jumpToPage)
+    public function __construct(FormModel $model, PageModel $jumpToPage)
     {
         $this->model      = $model;
         $this->jumpToPage = $jumpToPage;
