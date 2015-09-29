@@ -22,3 +22,6 @@ $GLOBALS['TL_LANG']['FMD']['i18n_navigation'] = 'Erzeugt ein Navigationsmenü au
 
 $GLOBALS['TL_LANG']['FMD']['i18n_navigation'] = 'I18n Navigationmenü';
 $GLOBALS['TL_LANG']['FMD']['i18n_navigation'] = 'Erzeugt ein Navigationsmenü aus der Seitenstruktur mit Berücksichtigung der I18n Einstellungen';
+
+$GLOBALS['TL_LANG']['FMD']['i18n_form'][0] = 'I18n Formular';
+$GLOBALS['TL_LANG']['FMD']['i18n_form'][1] = 'Fügt ein Formular ein dessen Weiterleitungsseite auf den Sprachfallback verweiset.';

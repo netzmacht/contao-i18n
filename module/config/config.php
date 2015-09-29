@@ -14,3 +14,6 @@
 $GLOBALS['TL_PTY']['i18n_regular'] = 'Netzmacht\Contao\I18n\Page\Regular';
 
 $GLOBALS['FE_MOD']['i18n']['i18n_navigation'] = 'Netzmacht\Contao\I18n\Module\Navigation';
+$GLOBALS['FE_MOD']['i18n']['i18n_form']       = 'Netzmacht\Contao\I18n\Hybrid\Form';
+
+$GLOBALS['TL_CTE']['includes']['i18n_form']   = 'Netzmacht\Contao\I18n\Hybrid\Form';

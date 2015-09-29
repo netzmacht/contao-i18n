@@ -11,5 +11,4 @@
  *
  */
 
-$GLOBALS['TL_DCA']['tl_module']['palettes']['i18n_navigation'] =& $GLOBALS['TL_DCA']['tl_module']['palettes']['navigation'];
-$GLOBALS['TL_DCA']['tl_module']['palettes']['i18n_form']       =& $GLOBALS['TL_DCA']['tl_module']['palettes']['form'];
+$GLOBALS['TL_DCA']['tl_content']['palettes']['i18n_form'] =& $GLOBALS['TL_DCA']['tl_content']['palettes']['form'];
