@@ -26,7 +26,7 @@ $container['i18n'] = $container->share(
 );
 
 if (!isset($container['i18n.insert-tags.parsers'])) {
-    $container['i18n.insert-tags.parsers'] = [];
+    $container['i18n.insert-tags.parsers'] = new \ArrayObject();
 }
 
 $container['i18n.insert-tags.parsers'][] = 'i18n.insert-tags.parsers.translate';
@@ -41,9 +41,9 @@ $container['i18n.insert-tags.replacer'] = $container->share(
     function ($container) {
         $parsers = array_map(
             function ($service) use ($container) {
-                return $container($service);
+                return $container[$service];
             },
-            $container['i18n.insert-tags.parsers']
+            $container['i18n.insert-tags.parsers']->getArrayCopy()
         );
 
         return new Replacer($parsers);
