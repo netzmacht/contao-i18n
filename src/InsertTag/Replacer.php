@@ -47,7 +47,7 @@ class Replacer
      */
     public static function getInstance()
     {
-        return $GLOBALS['container']['i18n.insert-tag.replacer'];
+        return $GLOBALS['container']['i18n.insert-tags.replacer'];
     }
 
     /**
