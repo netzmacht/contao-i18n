@@ -53,18 +53,18 @@ class Replacer
     /**
      * Replace insert tags.
      *
-     * @param string    $tag   The tag name.
+     * @param string    $raw   Insert tag string.
      * @param bool|true $cache Generate for the cache.
      *
      * @return bool|string
      */
-    public function replace($tag, $cache = true)
+    public function replace($raw, $cache = true)
     {
-        list($tag, $params) = explode('::', $tag, 2);
+        list($tag, $params) = explode('::', $raw, 2);
 
         foreach ($this->parsers as $parser) {
             if ($parser->supports($tag)) {
-                return $parser->parse($params, $cache);
+                return $parser->parse($tag, $params, $raw, $cache);
             }
         }
 

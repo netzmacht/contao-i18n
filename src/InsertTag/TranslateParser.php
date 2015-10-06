@@ -99,7 +99,7 @@ class TranslateParser implements Parser
     /**
      * {@inheritDoc}
      */
-    public function parse($params = null, $cache = true)
+    public function parse($tag, $params = null, $raw, $cache = true)
     {
         if ($params === null) {
             return '';
