@@ -17,7 +17,8 @@ use Contao\Model;
 use Contao\ModuleModel;
 
 /**
- * Router
+ * Router modifies the jumpTo informations of modules.
+ *
  * @package Netzmacht\Contao\I18n
  */
 class Router
@@ -39,13 +40,13 @@ class Router
     /**
      * Router constructor.
      *
-     * @param I18n  $i18n
+     * @param I18n  $i18n           I18n service.
      * @param array $supportedTypes Supported types.
      */
     public function __construct(I18n $i18n, array $supportedTypes)
     {
         $this->supportedTypes = $supportedTypes;
-        $this->i18n = $i18n;
+        $this->i18n           = $i18n;
     }
 
     /**
@@ -63,12 +64,12 @@ class Router
     /**
      * Listen on the isVisibleElement hook to change the routing information.
      *
-     * @param Model  $model   Element model.
-     * @param bool   $visible Visible state.
+     * @param Model $model   Element model.
+     * @param bool  $visible Visible state.
      *
      * @return bool
      */
-    public function onIsVisibleElement(Model &$model, $visible)
+    public function onIsVisibleElement(Model $model, $visible)
     {
         if ($this->supports($model)) {
             $this->setRouting($model);
