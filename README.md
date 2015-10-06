@@ -47,11 +47,11 @@ So you only have to define once the language relations! And you keep control if 
 Sometimes you have to translate your website but some pages stays identical. If you use different page aliases in your 
 language tree the fallback page is not loaded. 
 
-The `I18n Regular page` is designed to solve this issue. It simply load all the content of the fallback page. So it's 
+The `I18n Regular page` is designed to solve this issue. It simply loads all the content of the fallback page. So it's 
 possible to have language aware aliases but use same content without duplication. 
 
-On top of it the language is kept. This means that Contao uses the language defined in the page settings for all 
-translation string.
+On top of it the language is kept. This means that Contao uses the language defined in the page settings. This enables
+ you to use insert tags to translate contents.
  
 ### Translation insert tags
 
@@ -72,9 +72,10 @@ In other words, you have to create a `page_ALIAS.php` translation file. If you h
 If no page alias is given, the page id is used instead. Folder aliases get escaped to underscores.
 
 `{{t::domain:path.to.translation}}`
-Translate from a given domain.
+Translate from a custom domain.
 
 Note: The dot syntax is used for the array structure of the language file.
+Note: Nested insert tags are supported in the translation strings.
 
 ### Navigation modules
 
