@@ -11,10 +11,12 @@
 
 namespace Netzmacht\Contao\I18n\InsertTag;
 
-use Contao\InsertTags;
 use Contao\PageModel;
 use ContaoCommunityAlliance\Translator\TranslatorInterface;
+use DependencyInjection\Container\PageProvider;
 use Netzmacht\Contao\I18n\I18n;
+use Netzmacht\Contao\Toolkit\InsertTag\Parser;
+use Netzmacht\Contao\Toolkit\InsertTag\Replacer;
 
 /**
  * Translate parser handles the translate insert tag and its shortcut "t".
@@ -51,33 +53,37 @@ class TranslateParser implements Parser
     private $translator;
 
     /**
-     * Current page.
+     * Insert tag replacer.
      *
-     * @var PageModel
+     * @var Replacer
      */
-    private $page;
+    private $replacer;
 
     /**
-     * Contao insert tag replacer.
+     * Page provider.
      *
-     * @var InsertTags
+     * @var PageProvider
      */
-    private $insertTags;
+    private $pageProvider;
 
     /**
      * TranslateParser constructor.
      *
-     * @param I18n                $i18n       I18n service.
-     * @param TranslatorInterface $translator Translator.
-     * @param PageModel           $page       Current page.
-     * @param InsertTags          $insertTags Insert tags.
+     * @param I18n                $i18n         I18n service.
+     * @param TranslatorInterface $translator   Translator.
+     * @param PageProvider        $pageProvider Page provider.
+     * @param Replacer            $replacer     Insert tag replacer.
      */
-    public function __construct(I18n $i18n, TranslatorInterface $translator, PageModel $page, InsertTags $insertTags)
-    {
-        $this->i18n       = $i18n;
-        $this->translator = $translator;
-        $this->page       = $i18n->getBasePage($page) ?: $page;
-        $this->insertTags = $insertTags;
+    public function __construct(
+        I18n $i18n,
+        TranslatorInterface $translator,
+        PageProvider $pageProvider,
+        Replacer $replacer
+    ) {
+        $this->i18n         = $i18n;
+        $this->translator   = $translator;
+        $this->replacer     = $replacer;
+        $this->pageProvider = $pageProvider;
     }
 
     /**
@@ -97,6 +103,21 @@ class TranslateParser implements Parser
     }
 
     /**
+     * Get the page.
+     *
+     * @return PageModel|null
+     */
+    private function getPage()
+    {
+        $page = $this->pageProvider->getPage();
+        if ($page) {
+            return $this->i18n->getBasePage($page) ?: $page;
+        }
+
+        return null;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function parse($tag, $params = null, $raw, $cache = true)
@@ -108,15 +129,16 @@ class TranslateParser implements Parser
         list($domain, $key) = explode(':', $params, 2);
 
         if ($key === null) {
-            $key = $domain;
+            $key  = $domain;
+            $page = $this->getPage();
 
-            if ($this->page) {
+            if ($page) {
                 $domain = 'page_';
 
-                if ($this->page->alias) {
-                    $domain .= str_replace('/', '_', $this->page->alias);
+                if ($page->alias) {
+                    $domain .= str_replace('/', '_', $page->alias);
                 } else {
-                    $domain .= $this->page->id;
+                    $domain .= $page->id;
                 }
             } else {
                 $domain = 'website';
@@ -130,6 +152,6 @@ class TranslateParser implements Parser
             $result = $this->translator->translate($key, 'website');
         }
 
-        return $this->insertTags->replace($result, $cache);
+        return $this->replacer->replace($result, $cache);
     }
 }

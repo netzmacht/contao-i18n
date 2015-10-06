@@ -30,8 +30,7 @@ $GLOBALS['TL_CTE']['includes']['i18n_form'] = 'Netzmacht\Contao\I18n\Hybrid\Form
 /*
  * Hooks
  */
-$GLOBALS['TL_HOOKS']['replaceInsertTags'][] = array('Netzmacht\Contao\I18n\InsertTag\Replacer', 'replace');
-$GLOBALS['TL_HOOKS']['isVisibleElement'][]  = array('Netzmacht\Contao\I18n\Router', 'onIsVisibleElement');
+$GLOBALS['TL_HOOKS']['isVisibleElement'][] = array('Netzmacht\Contao\I18n\Router', 'onIsVisibleElement');
 
 /*
  * I18n routing
