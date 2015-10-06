@@ -40,6 +40,8 @@ to define the module once if only the target differs.
 
 So you only have to define once the language relations! And you keep control if language redirects is required.
 
+*Known limititation:* The language related redirect of modules does not work when using the Contao frontend preview. 
+
 ### Same pages in different languages
 
 Sometimes you have to translate your website but some pages stays identical. If you use different page aliases in your 
