@@ -17,6 +17,7 @@ use Contao\InsertTags;
 use Netzmacht\Contao\I18n\I18n;
 use Netzmacht\Contao\I18n\InsertTag\Replacer;
 use Netzmacht\Contao\I18n\InsertTag\TranslateParser;
+use Netzmacht\Contao\I18n\Router;
 
 $container['i18n.pages'] = ['i18n_regular'];
 
@@ -48,5 +49,13 @@ $container['i18n.insert-tags.replacer'] = $container->share(
         );
 
         return new Replacer($parsers);
+    }
+);
+
+$container['i18n.router'] = $container->share(
+    function ($container) {
+        $types = empty($GLOBALS['I18N_ROUTING']) ? [] : (array) $GLOBALS['I18N_ROUTING'];
+
+        return new Router($container['i18n'], $types);
     }
 );

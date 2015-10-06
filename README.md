@@ -9,18 +9,6 @@ Contao I18n toolkit
 
 This extensions provides an flexible way for multilingual websites.
 
-The main goal is to allow to manage all the contents in the fallback page instead of duplicating all the contents. To
- achieve the goal it provides
-  
- * An translation insert tag so that the content can easily translated.
- * Provides an new page type `i18n_regular` which loads the content of the fallback page.
- * Provides several modules where the `jumpTo` page get translated. This means instead of getting the fallback page
-   the connected page in the current content is loaded.
-   At the moment `form` and `navigation` is supported. More will probably follow
-   
-You still have to define the separate site structure. This way you can easily translate the site specific settings. And 
-you keep the flexibility to use custom content on the translated pages.
-
 Install
 -------
 
@@ -36,12 +24,39 @@ Requirements
  * >= PHP 5.4
  * Contao 3.5 
  * Usage of [terminal42/contao-changelanguage](https://github.com/terminal42/contao-changelanguage)
+ 
+Features
+--------
 
+### Language aware redirects
 
-Insert Tag syntax
------------------
+Module and form redirects are able to redirect to the translated version of the defined jump to page. So you only have 
+to define the module once if only the target differs.
 
-To translate the content an insert tag is provided. It is triggered with `{{translate::}}` or even shorter `{{t:}}`.
+ 1. Setup the pages and connect pages as usual with changelanguage.
+ 2. Set the redirect page to the fallback language.
+ 3. In a module set the `jumpToI18n` checkbox, for forms choose the `I18n form` content element/module to enable the 
+    language aware redirect.
+
+So you only have to define once the language relations! And you keep control if language redirects is required.
+
+### Same pages in different languages
+
+Sometimes you have to translate your website but some pages stays identical. If you use different page aliases in your 
+language tree the fallback page is not loaded. 
+
+The `I18n Regular page` is designed to solve this issue. It simply load all the content of the fallback page. So it's 
+possible to have language aware aliases but use same content without duplication. 
+
+On top of it the language is kept. This means that Contao uses the language defined in the page settings for all 
+translation string.
+ 
+### Translation insert tags
+
+The two features above allow you to reduce the stupid duplication of modules or page when where is no difference. But 
+sometimes some labels has to be translated as well. 
+
+Use the `{{translate::*}}` insert tag for this or even it's shortcut `{{t::*}}`.
 
 Following syntax is supported:
 
@@ -49,9 +64,27 @@ Following syntax is supported:
 Try to get the translation from the page_ALIAS domain. Fallback to website domain if not translated. If the page
 type is an i18n page type, the alias of the base page is used instead.
 
+In other words, you have to create a `page_ALIAS.php` translation file. If you have website wide translations use the 
+`website.php` language file.
+
 If no page alias is given, the page id is used instead. Folder aliases get escaped to underscores.
 
 `{{t::domain:path.to.translation}}`
 Translate from a given domain.
 
 Note: The dot syntax is used for the array structure of the language file.
+
+### Navigation modules
+
+At the moment only the normal navigation module supports an i18n root page setting. Use the `I18n navigation` module for
+this. 
+
+Instead of using the defined root page it tries to find the correct related language page of it and then render the 
+navigation.
+
+### Language editor
+
+If you start using the `translate` insert tag you probably want to provide an easy way to translate that labels in the 
+backend. Have a look at [netzmacht/contao-language-editor](https://github.com/netzmacht/contao-language-editor) for it.
+
+ATM it's still required to create the english language files so that the language editor knows this labels exists.
