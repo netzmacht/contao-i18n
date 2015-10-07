@@ -157,11 +157,11 @@ class I18n
      */
     private function getRootPage(PageModel $page)
     {
-        if (!$page->rootId) {
-            $page->loadDetails();
+        if ($page->cca_rr_root > 0) {
+            return PageModel::findByPk($page->cca_rr_root);
         }
 
-        return PageModel::findByPk($page->rootId);
+        return null;
     }
 
     /**
