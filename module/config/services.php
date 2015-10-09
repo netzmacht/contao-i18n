@@ -15,13 +15,24 @@ global $container;
 
 use Contao\Model\Registry;
 use Netzmacht\Contao\I18n\I18n;
+use Netzmacht\Contao\I18n\Model\Repository\PageRepository;
 use Netzmacht\Contao\I18n\Router;
 
 $container['i18n.pages'] = ['i18n_regular'];
 
+$container['i18n.page-repository'] = $container->share(
+    function ($container) {
+        return new PageRepository(
+            $container['database.connection'],
+            Registry::getInstance(),
+            Model::getClassFromTable('tl_page')
+        );
+    }
+);
+
 $container['i18n'] = $container->share(
     function ($container) {
-        return new I18n($container['i18n.pages'], $container['database.connection'], Registry::getInstance());
+        return new I18n($container['i18n.pages'], $container['i18n.page-repository']);
     }
 );
 

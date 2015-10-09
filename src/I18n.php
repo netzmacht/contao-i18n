@@ -13,9 +13,8 @@
 
 namespace Netzmacht\Contao\I18n;
 
-use Contao\Database;
-use Contao\Model\Registry;
 use Contao\PageModel;
+use Netzmacht\Contao\I18n\Model\Repository\PageRepository;
 
 /**
  * Class I18n.
@@ -50,31 +49,22 @@ class I18n
     private $translatedPages = [];
 
     /**
-     * Database connection.
+     * Page repository.
      *
-     * @var Database
+     * @var PageRepository
      */
-    private $database;
-
-    /**
-     * Model registry.
-     *
-     * @var Registry
-     */
-    private $modelRegistry;
+    private $pageRepository;
 
     /**
      * I18n constructor.
      *
-     * @param array    $i18nPageTypes Set of supported i18n pages.
-     * @param Database $database      Database connection.
-     * @param Registry $modelRegistry Model registry.
+     * @param array          $i18nPageTypes  Set of supported i18n pages.
+     * @param PageRepository $pageRepository Page repository.
      */
-    public function __construct(array $i18nPageTypes, Database $database, Registry $modelRegistry)
+    public function __construct(array $i18nPageTypes, PageRepository $pageRepository)
     {
-        $this->i18nPageTypes = $i18nPageTypes;
-        $this->database      = $database;
-        $this->modelRegistry = $modelRegistry;
+        $this->i18nPageTypes  = $i18nPageTypes;
+        $this->pageRepository = $pageRepository;
     }
 
     /**
@@ -103,7 +93,7 @@ class I18n
                 return $this->basePages[$page];
             }
 
-            $page = PageModel::findByPk($page);
+            $page = $this->pageRepository->find($page);
         }
 
         if (!$page || !$this->isI18nPage($page->type)) {
@@ -111,7 +101,7 @@ class I18n
         }
 
         if (!array_key_exists($page->id, $this->basePages)) {
-            $this->basePages[$page->id] = PageModel::findByPk($page->languageMain);
+            $this->basePages[$page->id] = $this->pageRepository->find($page->languageMain);
         }
 
         return $this->basePages[$page->id];
@@ -133,7 +123,7 @@ class I18n
                 return $this->translatedPages[$language][$page];
             }
 
-            $page = PageModel::findByPk($page);
+            $page = $this->pageRepository->find($page);
         }
 
         $this->translatedPages[$language][$page->id] = $page;
@@ -147,7 +137,7 @@ class I18n
             return null;
         }
 
-        $this->translatedPages[$language][$page->id] = $this->findTranslatedPage($page, $language);
+        $this->translatedPages[$language][$page->id] = $this->pageRepository->findTranslatedPage($page->id, $language);
 
         return $this->translatedPages[$language][$page->id];
     }
@@ -162,7 +152,7 @@ class I18n
     private function getRootPage(PageModel $page)
     {
         if ($page->cca_rr_root > 0) {
-            return PageModel::findByPk($page->cca_rr_root);
+            return $this->pageRepository->find($page->cca_rr_root);
         }
 
         return null;
@@ -178,34 +168,5 @@ class I18n
     public function getCurrentLanguage()
     {
         return $GLOBALS['TL_LANGUAGE'];
-    }
-
-    /**
-     * Find the translated page.
-     *
-     * @param PageModel $page     Related main page.
-     * @param string    $language The requested language.
-     *
-     * @return PageModel|null
-     */
-    private function findTranslatedPage($page, $language)
-    {
-        $query = <<<SQL
-SELECT p.* FROM tl_page p
-JOIN tl_page r ON r.id = p.cca_rr_root AND r.language = ?
-WHERE p.languageMain = ?
-SQL;
-
-        $result = $this->database->prepare($query)->limit(1)->execute($language, $page->id);
-        if ($result->numRows < 1) {
-            return null;
-        }
-
-        $page = $this->modelRegistry->fetch('tl_page', $result->id);
-        if ($page) {
-            return $page;
-        }
-
-        return new PageModel($result);
     }
 }
