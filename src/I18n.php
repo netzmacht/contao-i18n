@@ -82,7 +82,7 @@ class I18n
     /**
      * Get the base page for a given page id. If the page is not an 18n page the page for the page id is returned.
      *
-     * @param PageModel|int $page The page as model or id.
+     * @param PageModel|int|string $page The page as model or id/alias.
      *
      * @return PageModel|null
      */
@@ -110,7 +110,7 @@ class I18n
     /**
      * Get the translated page for a given page.
      *
-     * @param PageModel|int $page The page as model or id.
+     * @param PageModel|int|string $page The page as model or id/alias.
      *
      * @return PageModel|null
      */

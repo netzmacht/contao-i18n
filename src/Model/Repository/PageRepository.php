@@ -53,6 +53,22 @@ class PageRepository extends ContaoRepository
     }
 
     /**
+     * Find page by id or alias.
+     *
+     * @param int|string $pageIdOrAlias Page id or alias.
+     *
+     * @return PageModel|null
+     */
+    public function find($pageIdOrAlias)
+    {
+        if (is_numeric($pageIdOrAlias)) {
+            return parent::find($pageIdOrAlias);
+        }
+
+        return $this->findBy(['alias = ?'], [$pageIdOrAlias], ['return' => 'Model']);
+    }
+
+    /**
      * Find a translated page.
      *
      * @param int    $pageId   Current page.
