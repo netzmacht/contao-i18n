@@ -42,3 +42,10 @@ $GLOBALS['I18N_ROUTING']['modules']['registration'] = ['jumpTo', 'reg_jumpTo'];
 $GLOBALS['I18N_ROUTING']['modules']['lostPassword'] = ['jumpTo', 'reg_jumpTo'];
 $GLOBALS['I18N_ROUTING']['modules']['closeAccount'] = ['jumpTo'];
 $GLOBALS['I18N_ROUTING']['modules']['search']       = ['jumpTo'];
+
+/*
+ * Merger2 functions
+ */
+$GLOBALS['MERGER2_FUNCTION']['i18nPage']       = 'Netzmacht\Contao\I18n\Merger2\I18nFunctions::i18nPage';
+$GLOBALS['MERGER2_FUNCTION']['i18nRoot']       = 'Netzmacht\Contao\I18n\Merger2\I18nFunctions::i18nRoot';
+$GLOBALS['MERGER2_FUNCTION']['i18nPageInPath'] = 'Netzmacht\Contao\I18n\Merger2\I18nFunctions::i18nPageInPath';

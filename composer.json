@@ -37,6 +37,9 @@
   "require-dev": {
     "netzmacht/contao-build-tools": "~1.1"
   },
+  "suggest": {
+    "contao-community-alliance/merger2": "Allows flexible module integration. I18n provides special functions for it."
+  },
   "autoload": {
     "psr-4": {
       "Netzmacht\\Contao\\I18n\\": "src/"
