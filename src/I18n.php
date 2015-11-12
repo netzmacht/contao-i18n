@@ -127,11 +127,19 @@ class I18n
         }
 
         $this->translatedPages[$language][$page->id] = $page;
-        if (!$page || $page->language === $language) {
+
+        // No page found, return.
+        if (!$page) {
+            return null;
+        }
+
+        // Load root page to get language.
+        $rootPage = $this->getRootPage($page);
+
+        if ($rootPage->language === $language) {
             return $page;
         }
 
-        $rootPage = $this->getRootPage($page);
         // Current page is not in the fallback language tree. Not able to find the translated page.
         if (!$rootPage->fallback) {
             return null;
