@@ -152,6 +152,11 @@ class TranslateParser implements Parser
             $result = $this->translator->translate($key, 'website');
         }
 
+        // Translator won't check if content is a string.
+        if (is_array($result)) {
+            return false;
+        }
+
         return $this->replacer->replace($result, $cache);
     }
 }
