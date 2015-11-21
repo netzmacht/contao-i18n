@@ -13,8 +13,8 @@
 
 namespace Netzmacht\Contao\I18n;
 
-use Contao\Model;
-use Contao\ModuleModel;
+use Model;
+use ModuleModel;
 
 /**
  * Router modifies the jumpTo informations of modules.

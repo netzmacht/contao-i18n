@@ -12,9 +12,9 @@
  */
 namespace Netzmacht\Contao\I18n\Module;
 
-use Contao\ModuleNavigation;
-use Contao\PageModel;
+use ModuleNavigation;
 use Netzmacht\Contao\I18n\I18nTrait;
+use PageModel;
 
 /**
  * The i18n navigation module sets the defined root page of the navigation to the related base page.

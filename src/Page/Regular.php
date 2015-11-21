@@ -13,11 +13,11 @@
 
 namespace Netzmacht\Contao\I18n\Page;
 
-use Contao\Module;
-use Contao\ModuleModel;
-use Contao\PageModel;
-use Contao\PageRegular;
+use Module;
+use ModuleModel;
 use Netzmacht\Contao\I18n\I18nTrait;
+use PageModel;
+use PageRegular;
 
 /**
  * Regular i18n page load the content of the base page.

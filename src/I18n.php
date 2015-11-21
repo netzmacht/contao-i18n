@@ -13,8 +13,8 @@
 
 namespace Netzmacht\Contao\I18n;
 
-use Contao\PageModel;
 use Netzmacht\Contao\I18n\Model\Repository\PageRepository;
+use PageModel;
 
 /**
  * Class I18n.
