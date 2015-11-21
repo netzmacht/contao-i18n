@@ -13,8 +13,8 @@
 
 namespace Netzmacht\Contao\I18n\Model\Decorator;
 
-use Contao\FormModel;
-use Contao\PageModel;
+use FormModel;
+use PageModel;
 
 /**
  * Class FormModelDecorator decorates the module model to inject a specific jumpToPage.

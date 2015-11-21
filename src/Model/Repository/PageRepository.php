@@ -11,10 +11,10 @@
 
 namespace Netzmacht\Contao\I18n\Model\Repository;
 
-use Contao\Database;
-use Contao\Model\Registry;
-use Contao\PageModel;
+use Database;
+use Model\Registry;
 use Netzmacht\Contao\Toolkit\Data\Model\ContaoRepository;
+use PageModel;
 
 /**
  * PageRepository used in the i18n context.

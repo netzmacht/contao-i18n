@@ -11,12 +11,12 @@
 
 namespace Netzmacht\Contao\I18n\InsertTag;
 
-use Contao\PageModel;
 use ContaoCommunityAlliance\Translator\TranslatorInterface;
 use DependencyInjection\Container\PageProvider;
 use Netzmacht\Contao\I18n\I18n;
 use Netzmacht\Contao\Toolkit\InsertTag\Parser;
 use Netzmacht\Contao\Toolkit\InsertTag\Replacer;
+use PageModel;
 
 /**
  * Translate parser handles the translate insert tag and its shortcut "t".
