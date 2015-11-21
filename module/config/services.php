@@ -13,7 +13,7 @@
 
 global $container;
 
-use Contao\Model\Registry;
+use Model\Registry;
 use Netzmacht\Contao\I18n\I18n;
 use Netzmacht\Contao\I18n\Model\Repository\PageRepository;
 use Netzmacht\Contao\I18n\Router;
