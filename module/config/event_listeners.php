@@ -17,6 +17,10 @@ use Netzmacht\Contao\Toolkit\Event\InitializeSystemEvent;
 return array(
     InitializeSystemEvent::NAME => array(
         function (InitializeSystemEvent $event) {
+            if (TL_MODE !== 'FE') {
+                return;
+            }
+
             $container = $event->getServiceContainer();
             $replacer  = $container->getInsertTagReplacer();
             $parser    = new TranslateParser(
