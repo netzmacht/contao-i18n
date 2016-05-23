@@ -26,6 +26,7 @@ $GLOBALS['FE_MOD']['i18n']['i18n_form']       = 'Netzmacht\Contao\I18n\Hybrid\Fo
  * Content elements
  */
 $GLOBALS['TL_CTE']['includes']['i18n_form'] = 'Netzmacht\Contao\I18n\Hybrid\Form';
+$GLOBALS['TL_CTE']['includes']['module']    = 'Netzmacht\Contao\I18n\Element\ContentModule';
 
 /*
  * Hooks
