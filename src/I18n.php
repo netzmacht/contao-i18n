@@ -110,13 +110,14 @@ class I18n
     /**
      * Get the translated page for a given page.
      *
-     * @param PageModel|int|string $page The page as model or id/alias.
+     * @param PageModel|int|string $page     The page as model or id/alias.
+     * @param string               $language If set a specific language is loaded. Otherwise the current language.
      *
-     * @return PageModel|null
+     * @return null|PageModel
      */
-    public function getTranslatedPage($page)
+    public function getTranslatedPage($page, $language = null)
     {
-        $language = $this->getCurrentLanguage();
+        $language = $language ?: $this->getCurrentLanguage();
 
         if (!$page instanceof PageModel) {
             if (isset($this->translatedPages[$language][$page])) {
