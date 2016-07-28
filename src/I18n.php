@@ -175,12 +175,20 @@ class I18n
     /**
      * Get the language of a page.
      *
-     * @param PageModel $page Page model
+     * @param PageModel|int|string $page The page as model or id/alias.
      *
      * @return string|null
      */
-    public function getPageLanguage(PageModel $page)
+    public function getPageLanguage($page)
     {
+        if (!$page instanceof PageModel) {
+            $page = $this->pageRepository->find($page);
+        }
+
+        if (!$page) {
+            return null;
+        }
+
         // Page with loaded details.
         if ($page->language) {
             return $page->language;
