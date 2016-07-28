@@ -31,7 +31,7 @@
     "contao-community-alliance/translator": "~2.0",
     "contao-community-alliance/meta-palettes": "~1.0",
     "contao-community-alliance/root-relations": "~1.0",
-    "terminal42/contao-changelanguage": "~2.0",
+    "terminal42/contao-changelanguage": "~2.0|~3.0",
     "netzmacht/contao-toolkit": "~1.0"
   },
   "require-dev": {
