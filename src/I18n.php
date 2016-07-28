@@ -49,6 +49,13 @@ class I18n
     private $translatedPages = [];
 
     /**
+     * Page translations.
+     *
+     * @var PageModel[][]
+     */
+    private $translations = [];
+
+    /**
      * Page repository.
      *
      * @var PageRepository
@@ -105,6 +112,86 @@ class I18n
         }
 
         return $this->basePages[$page->id];
+    }
+
+    /**
+     * Get the main page of a connected language page.
+     *
+     * @param PageModel|int|string $page The page as model or id/alias.
+     *
+     * @return PageModel|null
+     */
+    public function getMainPage($page)
+    {
+        if (!$page instanceof PageModel) {
+            $page = $this->pageRepository->find($page);
+        }
+
+        if (!$page) {
+            return null;
+        }
+
+        // Current page is already the main page.
+        if ($page->languageMain == 0) {
+            return $page;
+        }
+
+        return $this->pageRepository->find($page->languageMain);
+    }
+
+    /**
+     * Get all translations of a page.
+     *
+     * @param PageModel|int|string $page The page as model or id/alias.
+     *
+     * @return PageModel[]
+     */
+    public function getPageTranslations($page)
+    {
+        $pages    = [];
+        $mainPage = $this->getMainPage($page);
+
+        if (!$mainPage) {
+            return $pages;
+        }
+
+        if (array_key_exists($mainPage->id, $this->translations)) {
+            return $this->translations[$mainPage->id];
+        }
+
+        $language         = $this->getPageLanguage($mainPage);
+        $pages[$language] = $mainPage;
+
+        foreach ($this->pageRepository->findBy(['tl_page.languageMain = ?'], [$mainPage->languageMain]) as $page) {
+            $language         = $this->getPageLanguage($page);
+            $pages[$language] = $page;
+        }
+
+        $this->translations[$mainPage->id] = $pages;
+
+        return $pages;
+    }
+
+    /**
+     * Get the language of a page.
+     *
+     * @param PageModel $page Page model
+     *
+     * @return string|null
+     */
+    public function getPageLanguage(PageModel $page)
+    {
+        // Page with loaded details.
+        if ($page->language) {
+            return $page->language;
+        }
+
+        $root = $this->getRootPage($page);
+        if ($root) {
+            return $root->language;
+        }
+
+        return null;
     }
 
     /**
