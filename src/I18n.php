@@ -162,7 +162,7 @@ class I18n
         $language         = $this->getPageLanguage($mainPage);
         $pages[$language] = $mainPage;
 
-        foreach ($this->pageRepository->findBy(['tl_page.languageMain = ?'], [$mainPage->languageMain]) as $page) {
+        foreach ($this->pageRepository->findBy(['tl_page.languageMain = ?'], [$mainPage->id]) as $page) {
             $language         = $this->getPageLanguage($page);
             $pages[$language] = $page;
         }
