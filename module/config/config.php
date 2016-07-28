@@ -31,7 +31,8 @@ $GLOBALS['TL_CTE']['includes']['module']    = 'Netzmacht\Contao\I18n\Element\Con
 /*
  * Hooks
  */
-$GLOBALS['TL_HOOKS']['isVisibleElement'][] = array('Netzmacht\Contao\I18n\Router', 'onIsVisibleElement');
+$GLOBALS['TL_HOOKS']['isVisibleElement'][]   = array('Netzmacht\Contao\I18n\Router', 'onIsVisibleElement');
+$GLOBALS['TL_HOOKS']['getSearchablePages'][] = array('Netzmacht\Contao\I18n\SearchIndex\SitemapBuilder', 'build');
 
 /*
  * I18n routing
