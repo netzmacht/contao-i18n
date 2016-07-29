@@ -49,7 +49,7 @@ class I18n
     private $translatedPages = [];
 
     /**
-     * Page translations.
+     * Cache of page translations.
      *
      * @var PageModel[][]
      */
