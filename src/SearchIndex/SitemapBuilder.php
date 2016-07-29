@@ -66,11 +66,14 @@ class SitemapBuilder
     }
 
     /**
-     * Get all searchable i18n pages and return them as array
+     * Get all searchable i18n pages and return them as array.
+     *
+     * Stolen from Backend::findSearchablePages
      *
      * @param int    $pid       Parent id.
      * @param string $domain    Domain name.
      * @param bool   $isSitemap Fetch for the sitemap Sitemap.
+     * @see   https://github.com/contao/core/blob/master/system/modules/core/classes/Backend.php
      *
      * @return array
      */
