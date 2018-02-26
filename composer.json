@@ -45,6 +45,7 @@
   "prefer-stable": true,
   "minimum-stability": "dev",
   "extra": {
+    "contao-manager-plugin": "Netzmacht\\Contao\\I18n\\ContaoManager\\Plugin",
     "contao": {
       "sources": {
         "themes/flexible/images/i18n_regular.gif":   "system/themes/flexible/images/i18n_regular.gif",
