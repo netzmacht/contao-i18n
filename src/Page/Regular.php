@@ -13,6 +13,11 @@
 
 namespace Netzmacht\Contao\I18n\Page;
 
+use Contao\ArticleModel;
+use Contao\CoreBundle\Exception\AccessDeniedException;
+use Contao\CoreBundle\Exception\PageNotFoundException;
+use Contao\Environment;
+use Contao\Input;
 use Contao\Module;
 use Contao\ModuleModel;
 use Contao\PageModel;
@@ -68,8 +73,8 @@ class Regular extends PageRegular
     private static function getArticles($basePage, $column = 'main')
     {
         // Show a particular article only
-        if ($basePage->type == 'regular' && \Input::get('articles')) {
-            list($section, $article) = explode(':', \Input::get('articles'));
+        if ($basePage->type == 'regular' && Input::get('articles')) {
+            list($section, $article) = explode(':', Input::get('articles'));
 
             if ($article === null) {
                 $article = $section;
@@ -81,9 +86,15 @@ class Regular extends PageRegular
             }
         }
 
-        // HOOK: trigger the article_raster_designer extension
-        if (in_array('article_raster_designer', \ModuleLoader::getActive())) {
-            return \RasterDesigner::load($basePage->id, $column);
+        // HOOK: add custom logic
+        if (isset($GLOBALS['TL_HOOKS']['getArticles']) && \is_array($GLOBALS['TL_HOOKS']['getArticles'])) {
+            foreach ($GLOBALS['TL_HOOKS']['getArticles'] as $callback) {
+                $return = static::importStatic($callback[0])->{$callback[1]}($basePage->id, $column);
+
+                if (\is_string($return)) {
+                    return $return;
+                }
+            }
         }
 
         return static::generateArticleList($basePage, $column);
@@ -108,7 +119,7 @@ class Regular extends PageRegular
             return '';
         }
 
-        $moduleClass = \Module::findClass($moduleModel->type);
+        $moduleClass = Module::findClass($moduleModel->type);
 
         // Return if the class does not exist
         if (!class_exists($moduleClass)) {
@@ -167,23 +178,20 @@ class Regular extends PageRegular
      */
     private static function generateSectionArticle(PageModel $basePage, $article)
     {
-        $articleModel = \ArticleModel::findByIdOrAliasAndPid($article, $basePage->id);
+        $articleModel = ArticleModel::findByIdOrAliasAndPid($article, $basePage->id);
 
         // Send a 404 header if the article does not exist
         if ($articleModel === null) {
-            // Do not index the page
-            $basePage->noSearch = 1;
-            $basePage->cache    = 0;
+            throw new PageNotFoundException('Page not found: ' . Environment::get('uri'));
+        }
 
-            header('HTTP/1.1 404 Not Found');
-
-            $translator = static::getServiceContainer()->getTranslator();
-
-            return '<p class="error">' . $translator->translate('invalidPage', 'MSC', [$article]) . '</p>';
+        // Send a 403 header if the article cannot be accessed
+        if (!static::isVisibleElement($articleModel)) {
+            throw new AccessDeniedException('Access denied: ' . Environment::get('uri'));
         }
 
         // Add the "first" and "last" classes (see #2583)
-        $articleModel->classes = array('first', 'last');
+        $articleModel->classes = ['first', 'last'];
 
         return static::getArticle($articleModel);
     }
@@ -199,7 +207,7 @@ class Regular extends PageRegular
     private static function generateArticleList(PageModel $basePage, $column)
     {
         // Show all articles (no else block here, see #4740)
-        $articles = \ArticleModel::findPublishedByPidAndColumn($basePage->id, $column);
+        $articles = ArticleModel::findPublishedByPidAndColumn($basePage->id, $column);
 
         if ($articles === null) {
             return '';
