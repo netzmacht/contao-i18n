@@ -8,7 +8,7 @@
     "multilingual",
     "language"
   ],
-  "type": "contao-module",
+  "type": "contao-bundle",
   "license": "LGPL-3.0+",
   "authors": [
     {
@@ -47,7 +47,6 @@
   "extra": {
     "contao": {
       "sources": {
-        "module": "system/modules/i18n",
         "themes/flexible/images/i18n_regular.gif":   "system/themes/flexible/images/i18n_regular.gif",
         "themes/flexible/images/i18n_regular_1.gif": "system/themes/flexible/images/i18n_regular_1.gif",
         "themes/flexible/images/i18n_regular_2.gif": "system/themes/flexible/images/i18n_regular_2.gif",
