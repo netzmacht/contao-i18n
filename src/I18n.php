@@ -327,7 +327,7 @@ class I18n
     {
         foreach ($this->contexts as $index => $value) {
             if ($value->match($context)) {
-                $this->contexts = array_slice($this->contexts, 0, ($index + 1));
+                $this->contexts = array_slice($this->contexts, 0, $index);
                 break;
             }
         }
