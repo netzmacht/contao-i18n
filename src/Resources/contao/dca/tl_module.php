@@ -11,7 +11,7 @@
  *
  */
 
-use Bit3\Contao\MetaPalettes\MetaPalettes;
+Use ContaoCommunityAlliance\MetaPalettes\MetaPalettes;
 
 /*
  * Palettes

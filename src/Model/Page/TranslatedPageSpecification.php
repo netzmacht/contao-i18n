@@ -41,13 +41,13 @@ class TranslatedPageSpecification implements Specification
     /**
      * TranslatedPageSpecification constructor.
      *
-     * @param string $language     The current language.
      * @param int    $mainLanguage Page id of the page in the main language.
+     * @param string $language     The current language.
      */
-    public function __construct(string $language, int $mainLanguage)
+    public function __construct(int $mainLanguage, string $language)
     {
-        $this->language     = $language;
         $this->mainLanguage = $mainLanguage;
+        $this->language     = $language;
     }
 
     /**
@@ -63,8 +63,8 @@ class TranslatedPageSpecification implements Specification
      */
     public function buildQuery(array &$columns, array &$values)
     {
-        $columns[] = ['.languageMain = ?'];
-        $columns[] = ['(SELECT count(id) FROM tl_page r WHERE r.id=.hofff_root_page_id AND r.language=?)'];
+        $columns[] = '.languageMain = ?';
+        $columns[] = '(SELECT count(id) FROM tl_page r WHERE r.id=.hofff_root_page_id AND r.language=?)';
         $values[]  = $this->mainLanguage;
         $values[]  = $this->language;
     }

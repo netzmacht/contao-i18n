@@ -13,7 +13,7 @@
 
 namespace Netzmacht\Contao\I18n;
 
-use Netzmacht\Contao\Toolkit\ServiceContainerTrait;
+use Contao\System;
 
 /**
  * Class I18nTrait.
@@ -22,15 +22,13 @@ use Netzmacht\Contao\Toolkit\ServiceContainerTrait;
  */
 trait I18nTrait
 {
-    use ServiceContainerTrait;
-
     /**
      * Get the I18n service.
      *
      * @return I18n
      */
-    protected static function getI18n()
+    protected static function getI18n(): I18n
     {
-        return static::getServiceContainer()->getService('i18n');
+        return System::getContainer()->get('netzmacht.contao_i18n.i18n');
     }
 }

@@ -37,7 +37,7 @@ class Regular extends PageRegular
             return '';
         }
 
-        $currentPage = static::getServiceContainer()->getPageProvider()->getPage();
+        $currentPage = static::getContainer()->get('netzmacht.contao_i18n.page_provider')->getPage();
         $i18n        = static::getI18n();
 
         if (!$i18n->isI18nPage($currentPage->type)) {
@@ -128,7 +128,7 @@ class Regular extends PageRegular
         // HOOK: add custom logic
         if (isset($GLOBALS['TL_HOOKS']['getFrontendModule']) && is_array($GLOBALS['TL_HOOKS']['getFrontendModule'])) {
             foreach ($GLOBALS['TL_HOOKS']['getFrontendModule'] as $callback) {
-                $buffer = static::importStatic($callback[0])->$callback[1]($moduleModel, $buffer, $module);
+                $buffer = static::importStatic($callback[0])->{$callback[1]}($moduleModel, $buffer, $module);
             }
         }
 

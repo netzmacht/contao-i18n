@@ -261,8 +261,13 @@ class I18n
 
         $repository    = $this->repositoryManager->getRepository(PageModel::class);
         $specification = new TranslatedPageSpecification((int) $page->id, $language);
+        $collection    = $repository->findBySpecification($specification, ['limit' => 1]);
 
-        $this->translatedPages[$language][$page->id] = $repository->findBySpecification($specification);
+        if ($collection) {
+            $this->translatedPages[$language][$page->id] = $collection->current();
+        } else {
+            $this->translatedPages[$language][$page->id] = null;
+        }
 
         return $this->translatedPages[$language][$page->id];
     }
