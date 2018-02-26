@@ -23,14 +23,3 @@ $GLOBALS['FE_MOD']['i18n']['i18n_navigation'] = 'Netzmacht\Contao\I18n\Module\Na
  * Hooks
  */
 $GLOBALS['TL_HOOKS']['getSearchablePages'][] = array('Netzmacht\Contao\I18n\SearchIndex\SitemapBuilder', 'build');
-
-/*
- * I18n routing
- */
-$GLOBALS['I18N_ROUTING']['modules']['login']        = ['jumpTo'];
-$GLOBALS['I18N_ROUTING']['modules']['logout']       = ['jumpTo'];
-$GLOBALS['I18N_ROUTING']['modules']['personalData'] = ['jumpTo'];
-$GLOBALS['I18N_ROUTING']['modules']['registration'] = ['jumpTo', 'reg_jumpTo'];
-$GLOBALS['I18N_ROUTING']['modules']['lostPassword'] = ['jumpTo', 'reg_jumpTo'];
-$GLOBALS['I18N_ROUTING']['modules']['closeAccount'] = ['jumpTo'];
-$GLOBALS['I18N_ROUTING']['modules']['search']       = ['jumpTo'];
