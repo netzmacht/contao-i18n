@@ -67,7 +67,7 @@ class Navigation extends ModuleNavigation
     {
         // We have to reset the host here.
         if ($this->translatedPage) {
-            if ($this->translatedPage->cca_rr_root != $this->currentPage->cca_rr_root
+            if ($this->translatedPage->hofff_root_page_id != $this->currentPage->hofff_root_page_id
                 && $this->translatedPage->domain != ''
                 && $this->translatedPage->domain != $this->currentPage->domain
             ) {

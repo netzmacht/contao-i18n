@@ -55,7 +55,7 @@ class I18nFunctions
         $currentPage = static::getCurrentPage();
         $page        = static::getTranslatedPage($pageIdOrAlias);
 
-        return $currentPage->cca_root_id === $page->cca_root_id;
+        return $currentPage->hofff_root_page_id === $page->hofff_root_page_id;
     }
 
     /**

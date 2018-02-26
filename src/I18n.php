@@ -276,10 +276,10 @@ class I18n
      */
     private function getRootPage(PageModel $page)
     {
-        if ($page->cca_rr_root > 0) {
+        if ($page->hofff_root_page_id > 0) {
             $repository = $this->repositoryManager->getRepository(PageModel::class);
 
-            return $repository->find((int) $page->cca_rr_root);
+            return $repository->find((int) $page->hofff_root_page_id);
 
         }
 
