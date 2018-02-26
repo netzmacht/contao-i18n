@@ -13,8 +13,10 @@
 
 namespace Netzmacht\Contao\I18n;
 
-use Netzmacht\Contao\I18n\Model\Repository\PageRepository;
-use PageModel;
+use Contao\PageModel;
+use Netzmacht\Contao\I18n\Context\Context;
+use Netzmacht\Contao\I18n\Model\Page\TranslatedPageSpecification;
+use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 
 /**
  * Class I18n.
@@ -56,22 +58,29 @@ class I18n
     private $translations = [];
 
     /**
-     * Page repository.
+     * Repository manager.
      *
-     * @var PageRepository
+     * @var RepositoryManager
      */
-    private $pageRepository;
+    private $repositoryManager;
+
+    /**
+     * Contexts.
+     *
+     * @var Context[]
+     */
+    private $contexts = [];
 
     /**
      * I18n constructor.
      *
-     * @param array          $i18nPageTypes  Set of supported i18n pages.
-     * @param PageRepository $pageRepository Page repository.
+     * @param array             $i18nPageTypes     Set of supported i18n pages.
+     * @param RepositoryManager $repositoryManager Repository manager.
      */
-    public function __construct(array $i18nPageTypes, PageRepository $pageRepository)
+    public function __construct(array $i18nPageTypes, RepositoryManager $repositoryManager)
     {
-        $this->i18nPageTypes  = $i18nPageTypes;
-        $this->pageRepository = $pageRepository;
+        $this->i18nPageTypes     = $i18nPageTypes;
+        $this->repositoryManager = $repositoryManager;
     }
 
     /**
@@ -100,7 +109,8 @@ class I18n
                 return $this->basePages[$page];
             }
 
-            $page = $this->pageRepository->find($page);
+            $repository = $this->repositoryManager->getRepository(PageModel::class);
+            $page       = $repository->find((int) $page);
         }
 
         if (!$page || !$this->isI18nPage($page->type)) {
@@ -108,7 +118,8 @@ class I18n
         }
 
         if (!array_key_exists($page->id, $this->basePages)) {
-            $this->basePages[$page->id] = $this->pageRepository->find($page->languageMain);
+            $repository                 = $this->repositoryManager->getRepository(PageModel::class);
+            $this->basePages[$page->id] = $repository->find((int) $page->languageMain);
         }
 
         return $this->basePages[$page->id];
@@ -124,7 +135,8 @@ class I18n
     public function getMainPage($page)
     {
         if (!$page instanceof PageModel) {
-            $page = $this->pageRepository->find($page);
+            $repository = $this->repositoryManager->getRepository(PageModel::class);
+            $page       = $repository->find((int) $page);
         }
 
         if (!$page) {
@@ -136,7 +148,10 @@ class I18n
             return $page;
         }
 
-        return $this->pageRepository->find($page->languageMain);
+        $repository = $this->repositoryManager->getRepository(PageModel::class);
+        $page       = $repository->find((int) $page->languageMain);
+
+        return $page;
     }
 
     /**
@@ -161,8 +176,9 @@ class I18n
 
         $language         = $this->getPageLanguage($mainPage);
         $pages[$language] = $mainPage;
+        $repository       = $this->repositoryManager->getRepository(PageModel::class);
 
-        foreach ($this->pageRepository->findBy(['tl_page.languageMain = ?'], [$mainPage->id]) as $page) {
+        foreach ($repository->findBy(['.languageMain = ?'], [$mainPage->id]) as $page) {
             $language         = $this->getPageLanguage($page);
             $pages[$language] = $page;
         }
@@ -182,7 +198,8 @@ class I18n
     public function getPageLanguage($page)
     {
         if (!$page instanceof PageModel) {
-            $page = $this->pageRepository->find($page);
+            $repository = $this->repositoryManager->getRepository(PageModel::class);
+            $page       = $repository->find((int) $page);
         }
 
         if (!$page) {
@@ -219,7 +236,8 @@ class I18n
                 return $this->translatedPages[$language][$page];
             }
 
-            $page = $this->pageRepository->find($page);
+            $repository = $this->repositoryManager->getRepository(PageModel::class);
+            $page       = $repository->find((int) $page);
         }
 
         $this->translatedPages[$language][$page->id] = $page;
@@ -241,7 +259,10 @@ class I18n
             return null;
         }
 
-        $this->translatedPages[$language][$page->id] = $this->pageRepository->findTranslatedPage($page->id, $language);
+        $repository    = $this->repositoryManager->getRepository(PageModel::class);
+        $specification = new TranslatedPageSpecification((int) $page->id, $language);
+
+        $this->translatedPages[$language][$page->id] = $repository->findBySpecification($specification);
 
         return $this->translatedPages[$language][$page->id];
     }
@@ -251,12 +272,15 @@ class I18n
      *
      * @param PageModel $page The page model.
      *
-     * @return \Model|null
+     * @return PageModel|null
      */
     private function getRootPage(PageModel $page)
     {
         if ($page->cca_rr_root > 0) {
-            return $this->pageRepository->find($page->cca_rr_root);
+            $repository = $this->repositoryManager->getRepository(PageModel::class);
+
+            return $repository->find((int) $page->cca_rr_root);
+
         }
 
         return null;
@@ -272,5 +296,35 @@ class I18n
     public function getCurrentLanguage()
     {
         return $GLOBALS['TL_LANGUAGE'];
+    }
+
+    public function enterContext(Context $context): void
+    {
+        $this->contexts[] = $context;
+    }
+
+    public function matchCurrentContext(Context $context, bool $strict = false): bool
+    {
+        if (empty ($this->contexts)) {
+            return false;
+        }
+
+        $index   = (count($this->contexts) - 1);
+        $current = $this->contexts[$index];
+
+        return $current->match($context, $strict);
+    }
+
+    /**
+     * @param Context $context
+     */
+    public function leaveContext(Context $context): void
+    {
+        foreach ($this->contexts as $index => $value) {
+            if ($value->match($context)) {
+                $this->contexts = array_slice($this->contexts, 0, ($index + 1));
+                break;
+            }
+        }
     }
 }
