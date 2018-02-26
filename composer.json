@@ -14,7 +14,7 @@
     {
       "name": "David Molineus",
       "email": "mail@netzmacht.de",
-      "homepage": "http://www.netzmacht.de",
+      "homepage": "https://netzmacht.de",
       "role": "Developer"
     }
   ],
@@ -46,18 +46,6 @@
   "minimum-stability": "dev",
   "extra": {
     "contao-manager-plugin": "Netzmacht\\Contao\\I18n\\ContaoManager\\Plugin",
-    "contao": {
-      "sources": {
-        "themes/flexible/images/i18n_regular.gif":   "system/themes/flexible/images/i18n_regular.gif",
-        "themes/flexible/images/i18n_regular_1.gif": "system/themes/flexible/images/i18n_regular_1.gif",
-        "themes/flexible/images/i18n_regular_2.gif": "system/themes/flexible/images/i18n_regular_2.gif",
-        "themes/flexible/images/i18n_regular_3.gif": "system/themes/flexible/images/i18n_regular_3.gif",
-        "themes/flexible/images/i18n_regular_4.gif": "system/themes/flexible/images/i18n_regular_4.gif",
-        "themes/flexible/images/i18n_regular_5.gif": "system/themes/flexible/images/i18n_regular_5.gif",
-        "themes/flexible/images/i18n_regular_6.gif": "system/themes/flexible/images/i18n_regular_6.gif",
-        "themes/flexible/images/i18n_regular_7.gif": "system/themes/flexible/images/i18n_regular_7.gif"
-      }
-    },
     "branch-alias": {
       "dev-master": "1.0.x-dev",
       "dev-develop": "2.0.x-dev"
