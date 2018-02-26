@@ -12,7 +12,7 @@
 /*
  * Pages
  */
-$GLOBALS['TL_PTY']['i18n_regular'] = 'Netzmacht\Contao\I18n\Page\Regular';
+$GLOBALS['TL_PTY']['i18n_regular'] = 'Netzmacht\Contao\I18n\PageType\I18nRegular';
 
 /*
  * Modules

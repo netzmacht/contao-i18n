@@ -11,7 +11,7 @@
  *
  */
 
-namespace Netzmacht\Contao\I18n\Page;
+namespace Netzmacht\Contao\I18n\PageType;
 
 use Contao\ArticleModel;
 use Contao\CoreBundle\Exception\AccessDeniedException;
@@ -29,7 +29,7 @@ use Netzmacht\Contao\I18n\I18nTrait;
  * 
  * @package Netzmacht\Contao\I18n\Page
  */
-class Regular extends PageRegular
+class I18nRegular extends PageRegular
 {
     use I18nTrait;
 
