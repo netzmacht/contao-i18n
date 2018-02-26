@@ -64,7 +64,7 @@ class TranslatedPageSpecification implements Specification
     public function buildQuery(array &$columns, array &$values)
     {
         $columns[] = '.languageMain = ?';
-        $columns[] = '(SELECT count(id) FROM tl_page r WHERE r.id=.hofff_root_page_id AND r.language=?)';
+        $columns[] = '(SELECT count(id) FROM tl_page r WHERE r.id=.hofff_root_page_id AND r.language=?) > 0';
         $values[]  = $this->mainLanguage;
         $values[]  = $this->language;
     }
