@@ -19,6 +19,3 @@ $GLOBALS['TL_LANG']['FMD']['i18n'][1] = 'Internationalization';
 
 $GLOBALS['TL_LANG']['FMD']['i18n_navigation'][0] = 'I18n navigation menu';
 $GLOBALS['TL_LANG']['FMD']['i18n_navigation'][1] = 'I18n navigation menu uses the translated reference page.';
-
-$GLOBALS['TL_LANG']['FMD']['i18n_form'][0] = 'I18n form';
-$GLOBALS['TL_LANG']['FMD']['i18n_form'][1] = 'I18n redirects to the translated page.';

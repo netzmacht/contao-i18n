@@ -26,7 +26,6 @@
   "require": {
     "php": "^7.1",
     "contao/core-bundle": "~4.4",
-    "contao-community-alliance/meta-palettes": "~2.0",
     "hofff/contao-root-relations": "^2.2.0",
     "terminal42/contao-changelanguage": "~3.0",
     "netzmacht/contao-toolkit": "~3.0"
