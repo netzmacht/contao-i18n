@@ -16,6 +16,7 @@ namespace Netzmacht\Contao\I18n\Module;
 
 use Contao\BackendTemplate;
 use Contao\Environment;
+use Contao\FrontendTemplate;
 use Contao\Module;
 use Contao\PageModel;
 use Contao\StringUtil;
@@ -101,7 +102,7 @@ class I18nCustomNavigation extends Module
 
         // Sort the array keys according to the given order
         if ($this->orderPages != '') {
-            $tmp = \StringUtil::deserialize($this->orderPages);
+            $tmp = StringUtil::deserialize($this->orderPages);
 
             if (!empty($tmp) && \is_array($tmp)) {
                 $arrPages = array_map(function () {}, array_flip($tmp));
@@ -121,7 +122,7 @@ class I18nCustomNavigation extends Module
         }
 
         /** @var FrontendTemplate|object $objTemplate */
-        $objTemplate = new \FrontendTemplate($this->navigationTpl);
+        $objTemplate = new FrontendTemplate($this->navigationTpl);
 
         $objTemplate->type  = \get_class($this);
         $objTemplate->cssID = $this->cssID; // see #4897 and 6129
@@ -129,7 +130,7 @@ class I18nCustomNavigation extends Module
 
         /** @var PageModel[] $arrPages */
         foreach ($arrPages as $objModel) {
-            $_groups = \StringUtil::deserialize($objModel->groups);
+            $_groups = StringUtil::deserialize($objModel->groups);
 
             // Do not show protected pages unless a front end user is logged in
             if (!$objModel->protected || (\is_array($_groups) && \count(
