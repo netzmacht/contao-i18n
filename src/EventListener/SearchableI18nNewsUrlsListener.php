@@ -113,7 +113,7 @@ class SearchableI18nNewsUrlsListener extends AbstractSearchableUrlsListener
 
                 foreach ($translations as $translation) {
                     // Skip news archives outside the root nodes
-                    if (!empty($root) && !\in_array($translation->id, $root)) {
+                    if (!empty($root) && !\in_array($translation->id, $root) || $translation->type !== 'i18n_regular') {
                         continue;
                     }
 

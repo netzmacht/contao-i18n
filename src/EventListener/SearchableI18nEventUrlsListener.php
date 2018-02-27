@@ -111,7 +111,7 @@ final class SearchableI18nEventUrlsListener extends AbstractSearchableUrlsListen
 
                 foreach ($translations as $translation) {
                     // Skip calendars outside the root nodes
-                    if (!empty($root) && !\in_array($translation->id, $root)) {
+                    if (!empty($root) && !\in_array($translation->id, $root) || $translation->type !== 'i18n_regular') {
                         continue;
                     }
 

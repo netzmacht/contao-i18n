@@ -109,7 +109,7 @@ class SearchableI18nFaqUrlsListener extends AbstractSearchableUrlsListener
 
                 foreach ($translations as $translation) {
                     // Skip FAQs outside the root nodes
-                    if (!empty($root) && !\in_array($translation->id, $root)) {
+                    if (!empty($root) && !\in_array($translation->id, $root) || $translation->type !== 'i18n_regular') {
                         continue;
                     }
 
