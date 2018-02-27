@@ -84,6 +84,7 @@
                 id="netzmacht.contao_i18n.listeners.searchable_news"
                 class="Netzmacht\Contao\I18n\EventListener\SearchableI18nNewsUrlsListener"
                 public="true">
+            <argument type="service" id="netzmacht.contao_toolkit.repository_manager" />
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
             <argument type="service" id="netzmacht.contao_i18n.contao.database_connection" />
             <argument type="service" id="netzmacht.contao_toolkit.contao.config_adapter" />
@@ -94,6 +95,7 @@
                 id="netzmacht.contao_i18n.listeners.searchable_events"
                 class="Netzmacht\Contao\I18n\EventListener\SearchableI18nEventUrlsListener"
                 public="true">
+            <argument type="service" id="netzmacht.contao_toolkit.repository_manager" />
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
             <argument type="service" id="netzmacht.contao_i18n.contao.database_connection" />
             <argument type="service" id="netzmacht.contao_toolkit.contao.config_adapter" />
@@ -104,6 +106,7 @@
                 id="netzmacht.contao_i18n.listeners.searchable_faqs"
                 class="Netzmacht\Contao\I18n\EventListener\SearchableI18nFaqUrlsListener"
                 public="true">
+            <argument type="service" id="netzmacht.contao_toolkit.repository_manager" />
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
             <argument type="service" id="netzmacht.contao_i18n.contao.database_connection" />
             <argument type="service" id="netzmacht.contao_toolkit.contao.config_adapter" />

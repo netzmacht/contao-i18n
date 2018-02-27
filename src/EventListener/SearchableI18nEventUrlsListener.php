@@ -21,6 +21,8 @@ use Contao\CoreBundle\Framework\Adapter;
 use Contao\Database;
 use Contao\Date;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
+use Netzmacht\Contao\Toolkit\Data\Model\Repository;
+use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 
 /**
  * Class SearchableI18nEventUrlsListener
@@ -49,14 +51,27 @@ final class SearchableI18nEventUrlsListener extends AbstractSearchableUrlsListen
     private $config;
 
     /**
+     * Model repository manager.
+     *
+     * @var RepositoryManager
+     */
+    private $repositoryManager;
+
+    /**
      * SearchableI18nEventUrlsListener constructor.
      *
+     * @param RepositoryManager  $repositoryManager  Model repository manager.
      * @param I18nPageRepository $i18nPageRepository I18n page repository.
      * @param Database           $database           Legacy contao database connection.
      * @param Config|Adapter     $config             Contao config adpater.
      */
-    public function __construct(I18nPageRepository $i18nPageRepository, Database $database, $config)
-    {
+    public function __construct(
+        RepositoryManager $repositoryManager,
+        I18nPageRepository $i18nPageRepository,
+        Database $database,
+        $config
+    ) {
+        $this->repositoryManager  = $repositoryManager;
         $this->i18nPageRepository = $i18nPageRepository;
         $this->database           = $database;
         $this->config             = $config;
@@ -77,7 +92,12 @@ final class SearchableI18nEventUrlsListener extends AbstractSearchableUrlsListen
         }
 
         // Get all calendars
-        $collection = CalendarModel::findByProtected('');
+        /** @var CalendarModel|Repository $calendarRepository */
+        $calendarRepository = $this->repositoryManager->getRepository(CalendarModel::class);
+
+        /** @var CalendarEventsModel|Repository $eventsRepository */
+        $eventsRepository   = $this->repositoryManager->getRepository(CalendarEventsModel::class);
+        $collection         = $calendarRepository->findByProtected('');
 
         // Walk through each calendar
         if ($collection !== null) {
@@ -126,7 +146,7 @@ final class SearchableI18nEventUrlsListener extends AbstractSearchableUrlsListen
                     $strUrl = $processed[$collection->jumpTo][$translation->id];
 
                     // Get the items
-                    $objEvents = CalendarEventsModel::findPublishedDefaultByPid($collection->id);
+                    $objEvents = $eventsRepository->findPublishedDefaultByPid($collection->id);
 
                     if ($objEvents !== null) {
                         while ($objEvents->next()) {

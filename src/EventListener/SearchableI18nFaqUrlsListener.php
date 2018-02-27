@@ -21,6 +21,8 @@ use Contao\Date;
 use Contao\FaqCategoryModel;
 use Contao\FaqModel;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
+use Netzmacht\Contao\Toolkit\Data\Model\Repository;
+use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 
 /**
  * Class SearchableI18nFaqUrlsListener
@@ -29,6 +31,13 @@ use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
  */
 class SearchableI18nFaqUrlsListener extends AbstractSearchableUrlsListener
 {
+    /**
+     * Model repository manager.
+     *
+     * @var RepositoryManager
+     */
+    private $repositoryManager;
+
     /**
      * I18n page repository.
      *
@@ -53,12 +62,14 @@ class SearchableI18nFaqUrlsListener extends AbstractSearchableUrlsListener
     /**
      * SearchableI18nNewsUrlsListener constructor.
      *
+     * @param RepositoryManager  $repositoryManager  Model repository manager.
      * @param I18nPageRepository $i18nPageRepository I18n page repository.
      * @param Database           $database           Legacy contao database connection.
      * @param Config|Adapter     $config             Contao config adapter.
      */
-    public function __construct(I18nPageRepository $i18nPageRepository, Database $database, $config)
+    public function __construct(RepositoryManager $repositoryManager, I18nPageRepository $i18nPageRepository, Database $database, $config)
     {
+        $this->repositoryManager  = $repositoryManager;
         $this->i18nPageRepository = $i18nPageRepository;
         $this->database           = $database;
         $this->config             = $config;
@@ -79,7 +90,12 @@ class SearchableI18nFaqUrlsListener extends AbstractSearchableUrlsListener
         }
 
         // Get all categories
-        $collection = FaqCategoryModel::findAll();
+        /** @var Repository|FaqCategoryModel $categoryRepository */
+        $categoryRepository = $this->repositoryManager->getRepository(FaqCategoryModel::class);
+
+        /** @var FaqModel|Repository $faqRepository */
+        $faqRepository = $this->repositoryManager->getRepository(FaqModel::class);
+        $collection    = $categoryRepository->findAll();
 
         // Walk through each category
         if ($collection !== null) {
@@ -128,7 +144,7 @@ class SearchableI18nFaqUrlsListener extends AbstractSearchableUrlsListener
                     $strUrl = $processed[$collection->jumpTo][$translation->id];
 
                     // Get the items
-                    $objItems = FaqModel::findPublishedByPid($collection->id);
+                    $objItems = $faqRepository->findPublishedByPid($collection->id);
 
                     if ($objItems !== null) {
                         while ($objItems->next()) {

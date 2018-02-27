@@ -23,12 +23,21 @@ use Contao\NewsArchiveModel;
 use Contao\NewsModel;
 use Contao\PageModel;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
+use Netzmacht\Contao\Toolkit\Data\Model\Repository;
+use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 
 /**
  * Class SearchableI18nNewsUrlsListener
  */
 class SearchableI18nNewsUrlsListener extends AbstractSearchableUrlsListener
 {
+    /**
+     * Model repository manager.
+     *
+     * @var RepositoryManager
+     */
+    private $repositoryManager;
+
     /**
      * I18n page repository.
      *
@@ -53,15 +62,21 @@ class SearchableI18nNewsUrlsListener extends AbstractSearchableUrlsListener
     /**
      * SearchableI18nNewsUrlsListener constructor.
      *
+     * @param RepositoryManager  $repositoryManager  Model repository manager.
      * @param I18nPageRepository $i18nPageRepository I18n page repository.
      * @param Database           $database           Legacy contao database connection.
      * @param Config|Adapter     $config             Contao config adpater.
      */
-    public function __construct(I18nPageRepository $i18nPageRepository, Database $database, $config)
-    {
-        $this->i18n     = $i18nPageRepository;
-        $this->database = $database;
-        $this->config   = $config;
+    public function __construct(
+        RepositoryManager $repositoryManager,
+        I18nPageRepository $i18nPageRepository,
+        Database $database,
+        $config
+    ) {
+        $this->repositoryManager = $repositoryManager;
+        $this->i18n              = $i18nPageRepository;
+        $this->database          = $database;
+        $this->config            = $config;
     }
 
     /**
@@ -79,7 +94,12 @@ class SearchableI18nNewsUrlsListener extends AbstractSearchableUrlsListener
         }
 
         // Get all news archives
-        $collection = NewsArchiveModel::findByProtected('');
+        /** @var NewsModel|Repository $newsRepository */
+        $newsRepository = $this->repositoryManager->getRepository(NewsModel::class);
+
+        /** @var NewsArchiveModel|Repository $archiveRepository */
+        $archiveRepository = $this->repositoryManager->getRepository(NewsArchiveModel::class);
+        $collection        = $archiveRepository->findByProtected('');
 
         // Walk through each archive
         if ($collection !== null) {
@@ -128,7 +148,7 @@ class SearchableI18nNewsUrlsListener extends AbstractSearchableUrlsListener
                     $strUrl = $processed[$collection->jumpTo][$translation->id];
 
                     // Get the items
-                    $objArticle = \NewsModel::findPublishedDefaultByPid($collection->id);
+                    $objArticle = $newsRepository->findPublishedDefaultByPid($collection->id);
 
                     if ($objArticle !== null) {
                         while ($objArticle->next()) {
@@ -170,7 +190,9 @@ class SearchableI18nNewsUrlsListener extends AbstractSearchableUrlsListener
 
             // Link to an article
             case 'article':
-                if (($articleModel = ArticleModel::findByPk($objItem->articleId, array('eager'=>true))) !== null
+                /** @var ArticleModel|Repository $repository */
+                $repository = $this->repositoryManager->getRepository(ArticleModel::class);
+                if (($articleModel = $repository->findByPK((int) $objItem->articleId, ['eager' =>true])) !== null
                     && ($objPid = $this->i18n->getTranslatedPage($articleModel->pid)) instanceof PageModel)
                 {
                     /** @var PageModel $objPid */
