@@ -12,8 +12,10 @@
     <services>
         <service id="netzmacht.contao_i18n.context_stack" class="Netzmacht\Contao\I18n\Context\ContextStack"/>
 
-        <service id="netzmacht.contao_i18n.page_repository" class="Netzmacht\Contao\I18n\Model\Page\I18nPageRepository">
-            <argument>%netzmacht.contao_i18n.pages%</argument>
+        <service id="netzmacht.contao_i18n.page_repository"
+                 class="Netzmacht\Contao\I18n\Model\Page\I18nPageRepository"
+                 public="true">
+        <argument>%netzmacht.contao_i18n.pages%</argument>
             <argument type="service" id="netzmacht.contao_toolkit.repository_manager"/>
         </service>
 
@@ -23,6 +25,10 @@
         <service id="netzmacht.contao_i18n.contao.model_registry"
                  class="Contao\Model\Registry">
             <factory service="netzmacht.contao_i18n.service_factory" method="createModelRegistry"/>
+        </service>
+
+        <service id="netzmacht.contao_i18n.contao.database_connection" class="Contao\Database">
+            <factory service="netzmacht.contao_i18n.service_factory" method="createDatabaseConnection" />
         </service>
 
         <service id="netzmacht.contao_i18n.page_provider" class="Netzmacht\Contao\I18n\PageProvider\PageProvider"/>
@@ -76,6 +82,7 @@
                 class="Netzmacht\Contao\I18n\EventListener\SearchableI18nNewsUrlsListener"
                 public="true">
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
+            <argument type="service" id="netzmacht.contao_i18n.contao.database_connection" />
             <tag name="contao.hook" hook="getSearchablePages"/>
         </service>
 
@@ -84,6 +91,7 @@
                 class="Netzmacht\Contao\I18n\EventListener\SearchableI18nEventUrlsListener"
                 public="true">
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
+            <argument type="service" id="netzmacht.contao_i18n.contao.database_connection" />
             <tag name="contao.hook" hook="getSearchablePages"/>
         </service>
 
@@ -92,6 +100,7 @@
                 class="Netzmacht\Contao\I18n\EventListener\SearchableI18nFaqUrlsListener"
                 public="true">
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
+            <argument type="service" id="netzmacht.contao_i18n.contao.database_connection" />
             <tag name="contao.hook" hook="getSearchablePages"/>
         </service>
     </services>

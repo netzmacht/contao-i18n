@@ -36,13 +36,22 @@ class SearchableI18nNewsUrlsListener extends AbstractSearchableUrlsListener
     private $i18n;
 
     /**
+     * Legacy contao database connection.
+     *
+     * @var Database
+     */
+    private $database;
+
+    /**
      * SearchableI18nNewsUrlsListener constructor.
      *
      * @param I18nPageRepository $i18nPageRepository I18n page repository.
+     * @param Database           $database           Legacy contao database connection.
      */
-    public function __construct(I18nPageRepository $i18nPageRepository)
+    public function __construct(I18nPageRepository $i18nPageRepository, Database $database)
     {
-        $this->i18n = $i18nPageRepository;
+        $this->i18n     = $i18nPageRepository;
+        $this->database = $database;
     }
 
     /**
@@ -56,7 +65,7 @@ class SearchableI18nNewsUrlsListener extends AbstractSearchableUrlsListener
         $pages     = [];
 
         if ($pid > 0) {
-            $root = Database::getInstance()->getChildRecords($pid, 'tl_page');
+            $root = $this->database->getChildRecords($pid, 'tl_page');
         }
 
         // Get all news archives

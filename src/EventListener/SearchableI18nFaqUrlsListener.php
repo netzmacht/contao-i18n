@@ -36,13 +36,22 @@ class SearchableI18nFaqUrlsListener extends AbstractSearchableUrlsListener
     private $i18nPageRepository;
 
     /**
+     * Legacy contao database connection.
+     *
+     * @var Database
+     */
+    private $database;
+
+    /**
      * SearchableI18nNewsUrlsListener constructor.
      *
      * @param I18nPageRepository $i18nPageRepository I18n page repository.
+     * @param Database           $database           Legacy contao database connection.
      */
-    public function __construct(I18nPageRepository $i18nPageRepository)
+    public function __construct(I18nPageRepository $i18nPageRepository, Database $database)
     {
         $this->i18nPageRepository = $i18nPageRepository;
+        $this->database           = $database;
     }
 
     /**
@@ -56,7 +65,7 @@ class SearchableI18nFaqUrlsListener extends AbstractSearchableUrlsListener
         $time      = Date::floorToMinute();
 
         if ($pid > 0) {
-            $root = Database::getInstance()->getChildRecords($pid, 'tl_page');
+            $root = $this->database->getChildRecords($pid, 'tl_page');
         }
 
         // Get all categories
