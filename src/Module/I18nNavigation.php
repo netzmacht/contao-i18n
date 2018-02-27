@@ -3,18 +3,19 @@
 /**
  * Contao I18n provides some i18n structures for easily l10n websites.
  *
- * @package    dev
  * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015 netzmacht creative David Molineus
- * @license    LGPL 3.0
+ * @copyright  2015-2018 netzmacht David Molineus
+ * @license    LGPL-3.0-or-later
  * @filesource
  *
  */
+
+declare(strict_types=1);
+
 namespace Netzmacht\Contao\I18n\Module;
 
-use ModuleNavigation;
-use Netzmacht\Contao\I18n\I18nTrait;
-use PageModel;
+use Contao\PageModel;
+use Contao\ModuleNavigation;
 
 /**
  * The i18n navigation module sets the defined root page of the navigation to the related base page.
@@ -22,10 +23,8 @@ use PageModel;
  * @property string|int  rootPage   The root page.
  * @property string|bool defineRoot If true a root page should be used.
  */
-class Navigation extends ModuleNavigation
+class I18nNavigation extends ModuleNavigation
 {
-    use I18nTrait;
-
     /**
      * Translated page of the redirect page.
      *
@@ -45,9 +44,10 @@ class Navigation extends ModuleNavigation
      */
     protected function compile()
     {
-        $i18n = $this->getI18n();
+        $i18n         = static::getContainer()->get('netzmacht.contao_i18n.page_repository');
+        $pageProvider = $this->getContainer()->get('netzmacht.contao_i18n.page_provider');
 
-        $this->currentPage = $this->getServiceContainer()->getPageProvider()->getPage();
+        $this->currentPage = $pageProvider->getPage();
 
         if ($this->defineRoot && $this->rootPage > 0) {
             $this->translatedPage = $i18n->getTranslatedPage($this->rootPage);
