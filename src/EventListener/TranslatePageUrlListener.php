@@ -53,7 +53,7 @@ class TranslatePageUrlListener
     /**
      * Handle the generateFrontendUrl hook to translate a page url.
      *
-     * @param array  $page   Given page as array.
+     * @param array  $page   Given page as array
      * @param string $params Optional query params.
      * @param string $url    Url of the current page.
      *
