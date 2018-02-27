@@ -16,8 +16,8 @@ namespace Netzmacht\Contao\I18n\EventListener;
 
 use Contao\Model;
 use Contao\ModuleModel;
+use Netzmacht\Contao\I18n\Context\ContextStack;
 use Netzmacht\Contao\I18n\Context\FrontendModuleContext;
-use Netzmacht\Contao\I18n\I18n;
 
 /**
  * Class ContextListener updates the context when rendering a page.
@@ -25,20 +25,20 @@ use Netzmacht\Contao\I18n\I18n;
 class ContextListener
 {
     /**
-     * Contao i18n.
+     * Context stack.
      *
-     * @var I18n
+     * @var ContextStack
      */
-    private $i18n;
+    private $contextStack;
 
     /**
      * ContextListener constructor.
      *
-     * @param I18n $i18n
+     * @param ContextStack $contextStack Context stack.
      */
-    public function __construct(I18n $i18n)
+    public function __construct(ContextStack $contextStack)
     {
-        $this->i18n = $i18n;
+        $this->contextStack = $contextStack;
     }
 
     /**
@@ -56,7 +56,7 @@ class ContextListener
         }
 
         if ($model instanceof ModuleModel) {
-            $this->i18n->enterContext(FrontendModuleContext::fromModel($model));
+            $this->contextStack->enterContext(FrontendModuleContext::fromModel($model));
         }
 
         // TODO: Handle module include elements
@@ -74,7 +74,7 @@ class ContextListener
      */
     public function onGetFrontendModule(ModuleModel $model, string $buffer): string
     {
-        $this->i18n->leaveContext(FrontendModuleContext::fromModel($model));
+        $this->contextStack->leaveContext(FrontendModuleContext::fromModel($model));
 
         return $buffer;
     }

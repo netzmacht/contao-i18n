@@ -15,7 +15,7 @@ declare(strict_types=1);
 namespace Netzmacht\Contao\I18n\EventListener;
 
 use Contao\PageModel;
-use Netzmacht\Contao\I18n\I18n;
+use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 use Netzmacht\Contao\I18n\PageProvider\PageProvider;
 use Netzmacht\Contao\Toolkit\InsertTag\AbstractInsertTagParser;
 use Symfony\Component\Translation\TranslatorInterface as Translator;
@@ -26,11 +26,11 @@ use Symfony\Component\Translation\TranslatorInterface as Translator;
 class TranslateInsertTagListener extends AbstractInsertTagParser
 {
     /**
-     * I18n service.
+     * I18n page repository.
      *
-     * @var I18n
+     * @var I18nPageRepository
      */
-    private $i18n;
+    private $i18nPageRepository;
 
     /**
      * Page provider.
@@ -49,15 +49,18 @@ class TranslateInsertTagListener extends AbstractInsertTagParser
     /**
      * TranslateInsertTagListener constructor.
      *
-     * @param I18n         $i18n         I18n service.
-     * @param PageProvider $pageProvider Current page provider.
-     * @param Translator   $translator   Translator.
+     * @param I18nPageRepository $i18nPageRepository I18n page repository.
+     * @param PageProvider       $pageProvider       Current page provider.
+     * @param Translator         $translator         Translator.
      */
-    public function __construct(I18n $i18n, PageProvider $pageProvider, Translator $translator)
-    {
-        $this->i18n         = $i18n;
-        $this->pageProvider = $pageProvider;
-        $this->translator   = $translator;
+    public function __construct(
+        I18nPageRepository $i18nPageRepository,
+        PageProvider $pageProvider,
+        Translator $translator
+    ) {
+        $this->i18nPageRepository = $i18nPageRepository;
+        $this->pageProvider       = $pageProvider;
+        $this->translator         = $translator;
     }
 
     /**
@@ -76,7 +79,7 @@ class TranslateInsertTagListener extends AbstractInsertTagParser
         if ($query === '') {
             return [
                 'domain' => null,
-                'key'    => null
+                'key'    => null,
             ];
         }
 
@@ -84,13 +87,13 @@ class TranslateInsertTagListener extends AbstractInsertTagParser
 
         if ($key === null) {
             $pageAlias = $this->getPageAlias();
-            $key    = $domain;
-            $domain = $pageAlias ? 'contao_page_' . $pageAlias : 'contao_website';
+            $key       = $domain;
+            $domain    = $pageAlias ? 'contao_page_' . $pageAlias : 'contao_website';
         }
 
         return [
             'domain' => $domain,
-            'key'    => $key
+            'key'    => $key,
         ];
     }
 
@@ -102,7 +105,7 @@ class TranslateInsertTagListener extends AbstractInsertTagParser
         $translated = $this->translator->trans($arguments['key'], [], $arguments['domain']);
 
         if ($arguments['domain'] !== 'contao_website' && $translated === $arguments['key']) {
-            $translated = $this->translator->trans($arguments['key'],[], 'contao_website');
+            $translated = $this->translator->trans($arguments['key'], [], 'contao_website');
         }
 
         if (is_array($translated)) {
@@ -135,7 +138,7 @@ class TranslateInsertTagListener extends AbstractInsertTagParser
     {
         $page = $this->pageProvider->getPage();
         if ($page) {
-            return $this->i18n->getBasePage($page) ?: $page;
+            return $this->i18nPageRepository->getBasePage($page) ?: $page;
         }
 
         return null;

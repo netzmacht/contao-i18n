@@ -15,9 +15,10 @@ declare(strict_types=1);
 namespace Netzmacht\Contao\I18n\EventListener;
 
 use Contao\CoreBundle\Framework\ContaoFrameworkInterface as ContaoFramework;
+use Netzmacht\Contao\I18n\Context\ContextStack;
 use Netzmacht\Contao\I18n\Context\FrontendModuleContext;
 use Netzmacht\Contao\I18n\Context\TranslatePageUrlContext;
-use Netzmacht\Contao\I18n\I18n;
+use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 
 /**
  * Class TranslatePageUrlListener
@@ -25,11 +26,18 @@ use Netzmacht\Contao\I18n\I18n;
 class TranslatePageUrlListener
 {
     /**
-     * The i18n service.
+     * I18n page repository.
      *
-     * @var I18n
+     * @var I18nPageRepository
      */
-    private $i18n;
+    private $i18nPageRepository;
+
+    /**
+     * The i18n context stack.
+     *
+     * @var ContextStack
+     */
+    private $contextStack;
 
     /**
      * The contao framework.
@@ -41,13 +49,18 @@ class TranslatePageUrlListener
     /**
      * GetFrontendUrlListener constructor.
      *
-     * @param I18n            $i18n      The i18n service.
-     * @param ContaoFramework $framework The contao framework.
+     * @param I18nPageRepository $i18nPageRepository
+     * @param ContextStack       $contextStack The i18n context stack.
+     * @param ContaoFramework    $framework    The contao framework.
      */
-    public function __construct(I18n $i18n, ContaoFramework $framework)
-    {
-        $this->i18n      = $i18n;
-        $this->framework = $framework;
+    public function __construct(
+        I18nPageRepository $i18nPageRepository,
+        ContextStack $contextStack,
+        ContaoFramework $framework
+    ) {
+        $this->i18nPageRepository = $i18nPageRepository;
+        $this->contextStack       = $contextStack;
+        $this->framework          = $framework;
     }
 
     /**
@@ -63,19 +76,19 @@ class TranslatePageUrlListener
     {
         $context = new TranslatePageUrlContext();
 
-        if ($this->i18n->matchCurrentContext($context)) {
+        if ($this->contextStack->matchCurrentContext($context)) {
             return $url;
         }
 
-        if ($this->i18n->matchCurrentContext(new FrontendModuleContext('changelanguage', 0))) {
+        if ($this->contextStack->matchCurrentContext(new FrontendModuleContext('changelanguage', 0))) {
             return $url;
         }
 
-        $translatedPage = $this->i18n->getTranslatedPage($page['id']);
+        $translatedPage = $this->i18nPageRepository->getTranslatedPage($page['id']);
         if ($translatedPage && $translatedPage->id != $page['id']) {
-            $this->i18n->enterContext($context);
+            $this->contextStack->enterContext($context);
             $url = $translatedPage->getFrontendUrl($params);
-            $this->i18n->leaveContext($context);
+            $this->contextStack->leaveContext($context);
         }
 
         return $url;

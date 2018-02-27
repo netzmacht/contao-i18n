@@ -22,7 +22,6 @@ use Contao\Module;
 use Contao\ModuleModel;
 use Contao\PageModel;
 use Contao\PageRegular;
-use Netzmacht\Contao\I18n\I18nTrait;
 
 /**
  * Regular i18n page load the content of the base page.
@@ -31,8 +30,6 @@ use Netzmacht\Contao\I18n\I18nTrait;
  */
 class I18nRegular extends PageRegular
 {
-    use I18nTrait;
-
     /**
      * {@inheritDoc}
      */
@@ -43,7 +40,7 @@ class I18nRegular extends PageRegular
         }
 
         $currentPage = static::getContainer()->get('netzmacht.contao_i18n.page_provider')->getPage();
-        $i18n        = static::getI18n();
+        $i18n        = static::getContainer()->get('netzmacht.contao_i18n.page_repository');
 
         if (!$i18n->isI18nPage($currentPage->type)) {
             return parent::getFrontendModule($moduleId, $column);

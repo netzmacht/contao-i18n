@@ -3,27 +3,26 @@
 /**
  * Contao I18n provides some i18n structures for easily l10n websites.
  *
- * @package    dev
  * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015 netzmacht creative David Molineus
- * @license    LGPL 3.0
+ * @copyright  2015-2018 netzmacht David Molineus
+ * @license    LGPL-3.0-or-later
  * @filesource
  *
  */
 
-namespace Netzmacht\Contao\I18n;
+declare(strict_types=1);
+
+namespace Netzmacht\Contao\I18n\Model\Page;
 
 use Contao\PageModel;
-use Netzmacht\Contao\I18n\Context\Context;
-use Netzmacht\Contao\I18n\Model\Page\TranslatedPageSpecification;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 
 /**
- * Class I18n.
+ * Class I18nPageRepository
  *
- * @package Netzmacht\Contao\I18n
+ * @package Netzmacht\Contao\I18n\Model\Page
  */
-class I18n
+class I18nPageRepository
 {
     /**
      * Set of supported i18n pages.
@@ -63,13 +62,6 @@ class I18n
      * @var RepositoryManager
      */
     private $repositoryManager;
-
-    /**
-     * Contexts.
-     *
-     * @var Context[]
-     */
-    private $contexts = [];
 
     /**
      * I18n constructor.
@@ -301,35 +293,5 @@ class I18n
     public function getCurrentLanguage()
     {
         return $GLOBALS['TL_LANGUAGE'];
-    }
-
-    public function enterContext(Context $context): void
-    {
-        $this->contexts[] = $context;
-    }
-
-    public function matchCurrentContext(Context $context, bool $strict = false): bool
-    {
-        if (empty ($this->contexts)) {
-            return false;
-        }
-
-        $index   = (count($this->contexts) - 1);
-        $current = $this->contexts[$index];
-
-        return $current->match($context, $strict);
-    }
-
-    /**
-     * @param Context $context
-     */
-    public function leaveContext(Context $context): void
-    {
-        foreach ($this->contexts as $index => $value) {
-            if ($value->match($context)) {
-                $this->contexts = array_slice($this->contexts, 0, $index);
-                break;
-            }
-        }
     }
 }

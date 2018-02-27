@@ -21,7 +21,7 @@ use Contao\Date;
 use Contao\NewsArchiveModel;
 use Contao\NewsModel;
 use Contao\PageModel;
-use Netzmacht\Contao\I18n\I18n;
+use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 
 /**
  * Class SearchableI18nNewsUrlsListener
@@ -29,20 +29,20 @@ use Netzmacht\Contao\I18n\I18n;
 class SearchableI18nNewsUrlsListener extends AbstractSearchableUrlsListener
 {
     /**
-     * I18n service.
+     * I18n page repository.
      *
-     * @var I18n
+     * @var I18nPageRepository
      */
     private $i18n;
 
     /**
      * SearchableI18nNewsUrlsListener constructor.
      *
-     * @param I18n $i18n I18n service.
+     * @param I18nPageRepository $i18nPageRepository I18n page repository.
      */
-    public function __construct(I18n $i18n)
+    public function __construct(I18nPageRepository $i18nPageRepository)
     {
-        $this->i18n = $i18n;
+        $this->i18n = $i18nPageRepository;
     }
 
     /**

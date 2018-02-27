@@ -19,28 +19,28 @@ use Contao\CalendarModel;
 use Contao\Config;
 use Contao\Database;
 use Contao\Date;
-use Netzmacht\Contao\I18n\I18n;
+use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 
 /**
  * Class SearchableI18nEventUrlsListener
  */
-class SearchableI18nEventUrlsListener extends AbstractSearchableUrlsListener
+final class SearchableI18nEventUrlsListener extends AbstractSearchableUrlsListener
 {
     /**
-     * I18n service.
+     * I18nPageRepository page repository.
      *
-     * @var I18n
+     * @var I18nPageRepository
      */
-    private $i18n;
+    private $i18nPageRepository;
 
     /**
      * SearchableI18nEventUrlsListener constructor.
      *
-     * @param I18n $i18n
+     * @param I18nPageRepository $i18nPageRepository I18n page repository.
      */
-    public function __construct(I18n $i18n)
+    public function __construct(I18nPageRepository $i18nPageRepository)
     {
-        $this->i18n = $i18n;
+        $this->i18nPageRepository = $i18nPageRepository;
     }
 
     /**
@@ -48,7 +48,7 @@ class SearchableI18nEventUrlsListener extends AbstractSearchableUrlsListener
      */
     protected function collectPages($pid = 0, string $domain = '', bool $isSitemap = false): array
     {
-        $root   = [];
+        $root      = [];
         $processed = [];
         $time      = Date::floorToMinute();
         $pages     = [];
@@ -68,7 +68,7 @@ class SearchableI18nEventUrlsListener extends AbstractSearchableUrlsListener
                     continue;
                 }
 
-                $translations = $this->i18n->getPageTranslations($collection->jumpTo);
+                $translations = $this->i18nPageRepository->getPageTranslations($collection->jumpTo);
 
                 foreach ($translations as $translation) {
                     // Skip calendars outside the root nodes
