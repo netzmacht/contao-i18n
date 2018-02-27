@@ -46,11 +46,12 @@ class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListen
      * Construct.
      *
      * @param Connection $connection Database connection.
+     * @param Registry   $registry   Model registry.
      */
-    public function __construct(Connection $connection)
+    public function __construct(Connection $connection, Registry $registry)
     {
-        $this->registry   = Registry::getInstance();
         $this->connection = $connection;
+        $this->registry   = $registry;
     }
 
     /**
