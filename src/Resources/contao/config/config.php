@@ -8,6 +8,9 @@
  * @license    LGPL-3.0-or-later
  * @filesource
  *
+ */
+
+declare(strict_types=1);
 
 /*
  * Pages
@@ -17,9 +20,5 @@ $GLOBALS['TL_PTY']['i18n_regular'] = 'Netzmacht\Contao\I18n\PageType\I18nRegular
 /*
  * Modules
  */
-$GLOBALS['FE_MOD']['i18n']['i18n_navigation'] = 'Netzmacht\Contao\I18n\Module\Navigation';
-
-/*
- * Hooks
- */
-$GLOBALS['TL_HOOKS']['getSearchablePages'][] = array('Netzmacht\Contao\I18n\SearchIndex\SitemapBuilder', 'build');
+$GLOBALS['FE_MOD']['i18n']['i18n_navigation'] = 'Netzmacht\Contao\I18n\Module\I18nNavigation';
+$GLOBALS['FE_MOD']['i18n']['i18n_customnav']  = 'Netzmacht\Contao\I18n\Module\I18nCustomNavigation';

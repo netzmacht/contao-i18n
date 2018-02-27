@@ -22,8 +22,19 @@ use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 /**
  * Class NetzmachtContaoI18nExtension
  */
-class NetzmachtContaoI18nExtension extends Extension
+final class NetzmachtContaoI18nExtension extends Extension
 {
+    /**
+     * Map of the bundle and the corresponding searchable pages listener.
+     *
+     * @var array
+     */
+    private $searchablePagesListenersMap = [
+        'ContaoCalendarBundle' => 'netzmacht.contao_i18n.listeners.searchable_events',
+        'ContaoFaqBundle'      => 'netzmacht.contao_i18n.listeners.searchable_faqs',
+        'ContaoNewsBundle'     => 'netzmacht.contao_i18n.listeners.searchable_news',
+    ];
+
     /**
      * {@inheritdoc}
      */
@@ -35,5 +46,25 @@ class NetzmachtContaoI18nExtension extends Extension
         );
 
         $loader->load('services.xml');
+
+        $this->configureSearchablePagesListeners($container);
+    }
+
+    /**
+     * Disable searchable pages listeners if the bundle is not available in the installation.
+     *
+     * @param ContainerBuilder $container The container builder.
+     *
+     * @return void
+     */
+    private function configureSearchablePagesListeners(ContainerBuilder $container): void
+    {
+        $bundles = $container->getParameter('kernel.bundles');
+
+        foreach ($this->searchablePagesListenersMap as $bundleName => $serviceId) {
+            if (!isset($bundles[$bundleName])) {
+                $container->removeDefinition($serviceId);
+            }
+        }
     }
 }

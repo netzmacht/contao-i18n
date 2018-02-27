@@ -11,27 +11,29 @@
  *
  */
 
-namespace Netzmacht\Contao\I18n\SearchIndex;
+namespace Netzmacht\Contao\I18n\EventListener;
 
-use Database\Result;
-use Model\Registry;
-use Netzmacht\Contao\Toolkit\ServiceContainerTrait;
+use Contao\Config;
+use Contao\Date;
+use Contao\Model\Registry;
+use Contao\PageModel;
+use Doctrine\DBAL\Connection;
+use Netzmacht\Contao\I18n\Model\Article\PageArticlesWithTeasersQuery;
+use Netzmacht\Contao\I18n\Model\Page\PublishedI18nRegularPagesQuery;
 
 /**
  * SitemapBuilder adds i18n_regular pages to the sitemap.
  *
  * @package Netzmacht\Contao\I18n\SearchIndex
  */
-class SitemapBuilder
+class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListener
 {
-    use ServiceContainerTrait;
-
     /**
      * Database connection.
      *
      * @var \Database
      */
-    private $database;
+    private $connection;
 
     /**
      * Model registry.
@@ -42,28 +44,13 @@ class SitemapBuilder
 
     /**
      * Construct.
-     */
-    public function __construct()
-    {
-        $this->database = $this->getServiceContainer()->getDatabaseConnection();
-        $this->registry = Registry::getInstance();
-    }
-
-    /**
-     * Build the sitemap and searchable pages list.
      *
-     * @param array $pages      Page array.
-     * @param null  $rootPageId Root page.
-     * @param bool  $isSitemap  Collect pages for the sitemap.
-     *
-     * @return array
+     * @param Connection $connection Database connection.
      */
-    public function build($pages, $rootPageId = null, $isSitemap = false)
+    public function __construct(Connection $connection)
     {
-        return array_merge(
-            $pages,
-            $this->collectPages($rootPageId ?: 0, '', $isSitemap)
-        );
+        $this->registry   = Registry::getInstance();
+        $this->connection = $connection;
     }
 
     /**
@@ -78,56 +65,39 @@ class SitemapBuilder
      * @see    https://github.com/contao/core/blob/master/system/modules/core/classes/Backend.php
      * @return array
      */
-    private function collectPages($pid = 0, $domain = '', $isSitemap = false)
+    protected function collectPages($pid = 0, string $domain = '', bool $isSitemap = false): array
     {
-        $time  = \Date::floorToMinute();
-        $query = <<<SQL
-  SELECT * 
-    FROM tl_page 
-   WHERE pid=? 
-     AND (start='' OR start<='$time') 
-     AND (stop='' OR stop>'" . ($time + 60) . "') 
-     AND published='1' 
-ORDER BY sorting
-SQL;
+        $time      = Date::floorToMinute();
+        $query     = new PublishedI18nRegularPagesQuery($this->connection);
+        $statement = $query->execute($time, $pid);
 
         // Get published pages
-        $result = $this->database->prepare($query)->execute($pid);
         $pages  = array();
 
         // Recursively walk through all subpages
-        while ($result->next()) {
+        while ($result = $statement->fetch(\PDO::FETCH_ASSOC)) {
             $page = $this->createModel($result);
 
             if ($this->shouldPageBeAdded($page, $isSitemap, $time)) {
                 $pages[] = $page->getAbsoluteUrl();
 
                 // Get articles with teaser
-                $query = <<<SQL
-  SELECT * 
-    FROM tl_article 
-   WHERE pid=? 
-     AND (start='' OR start<='$time') 
-     AND (stop='' OR stop>'" . ($time + 60) . "') 
-     AND published='1' 
-     AND showTeaser='1' 
-ORDER BY sorting
-SQL;
+                $query    = new PageArticlesWithTeasersQuery($this->connection);
+                $articles = $query->execute((int) $result['id'], $time);
 
-                $articles = $this->database->prepare($query)->execute($result->id);
-                while ($articles->next()) {
+                while ($article = $articles->fetch(\PDO::FETCH_OBJ)) {
                     $pages[] = sprintf(
                         $page->getAbsoluteUrl('/articles/%s'),
-                        (($articles->alias != '' && !\Config::get('disableAlias'))
-                            ? $articles->alias
-                            : $articles->id
+                        (($article->alias != '' && !Config::get('disableAlias'))
+                            ? $article->alias
+                            : $article->id
                         )
                     );
                 }
             }
 
             // Get subpages
-            if ((!$page->protected || \Config::get('indexProtected'))
+            if ((!$page->protected || Config::get('indexProtected'))
                 && ($subPages = $this::collectPages($page->id, $domain, $isSitemap)) != false) {
                 $pages = array_merge($pages, $subPages);
             }
@@ -139,13 +109,13 @@ SQL;
     /**
      * Check if page should be added to the sitemap.
      *
-     * @param \PageModel $page      Page model.
+     * @param PageModel $page      Page model.
      * @param bool       $isSitemap Is sitemap.
      * @param int        $time      Current time stamp.
      *
      * @return bool
      */
-    private function shouldPageBeAdded(\PageModel $page, $isSitemap, $time)
+    private function shouldPageBeAdded(PageModel $page, $isSitemap, $time)
     {
         // Only handle i18n pages.
         if ($page->type !== 'i18n_regular' || !$this->isPublished($page, $time)) {
@@ -162,7 +132,7 @@ SQL;
         }
 
         // Do not add if page is protected
-        if ($page->protected && ! \Config::get('indexProtected')) {
+        if ($page->protected && ! Config::get('indexProtected')) {
             return false;
         }
 
@@ -172,11 +142,11 @@ SQL;
     /**
      * Check if page should be added to the sitemap.
      *
-     * @param \PageModel $page Page model.
+     * @param PageModel $page Page model.
      *
      * @return bool
      */
-    private function shouldBeAddedToSitemap(\PageModel $page)
+    private function shouldBeAddedToSitemap(PageModel $page)
     {
         if ($page->protected) {
             return $page->sitemap === 'map_always';
@@ -188,12 +158,12 @@ SQL;
     /**
      * Check if page is published.
      *
-     * @param \PageModel $page Page model.
+     * @param PageModel $page Page model.
      * @param int        $time Current timestamp.
      *
      * @return bool
      */
-    private function isPublished(\PageModel $page, $time)
+    private function isPublished(PageModel $page, $time)
     {
         if (!$page->published) {
             return false;
@@ -205,18 +175,19 @@ SQL;
     /**
      * Create model from the result.
      *
-     * @param Result $result Database result.
+     * @param array $result Database result.
      *
-     * @return \PageModel
+     * @return PageModel
      */
     private function createModel($result)
     {
-        $page = $this->registry->fetch('tl_page', $result->id);
+        $page = $this->registry->fetch('tl_page', $result['id']);
 
         if ($page === null) {
-            $page = new \PageModel($result);
+            $page = new PageModel();
+            $page->setRow($result);
 
-            return $page;
+            $this->registry->register($page);
         }
 
         return $page;

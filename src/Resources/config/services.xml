@@ -10,7 +10,7 @@
         </parameter>
     </parameters>
     <services>
-        <service id="netzmacht.contao_i18n.i18n" class="Netzmacht\Contao\I18n\I18n">
+        <service id="netzmacht.contao_i18n.i18n" class="Netzmacht\Contao\I18n\I18n" public="true">
             <argument>%netzmacht.contao_i18n.pages%</argument>
             <argument type="service" id="netzmacht.contao_toolkit.repository_manager" />
         </service>
@@ -39,10 +39,42 @@
             <tag name="contao.hook" hook="getPageStatusIcon" />
         </service>
 
-        <service id="netzmacht.contao_i18n.listners.context" class="Netzmacht\Contao\I18n\EventListener\ContextListener" public="true">
+        <service id="netzmacht.contao_i18n.listeners.context" class="Netzmacht\Contao\I18n\EventListener\ContextListener" public="true">
             <argument type="service" id="netzmacht.contao_i18n.i18n" />
             <tag name="contao.hook" hook="isVisibleElement" />
             <tag name="contao.hook" hook="getFrontendModule" />
+        </service>
+
+        <service
+                id="netzmacht.contao_i18n.listeners.searchable_i18n_regular_pages"
+                class="Netzmacht\Contao\I18n\EventListener\SearchableI18nRegularPageUrlsListener"
+                public="true">
+            <argument type="service" id="database_connection" />
+            <tag name="contao.hook" hook="getSearchablePages" />
+        </service>
+
+        <service
+            id="netzmacht.contao_i18n.listeners.searchable_news"
+            class="Netzmacht\Contao\I18n\EventListener\SearchableI18nNewsUrlsListener"
+            public="true">
+            <argument type="service" id="netzmacht.contao_i18n.i18n" />
+            <tag name="contao.hook" hook="getSearchablePages" />
+        </service>
+
+        <service
+                id="netzmacht.contao_i18n.listeners.searchable_events"
+                class="Netzmacht\Contao\I18n\EventListener\SearchableI18nEventUrlsListener"
+                public="true">
+            <argument type="service" id="netzmacht.contao_i18n.i18n" />
+            <tag name="contao.hook" hook="getSearchablePages" />
+        </service>
+
+        <service
+                id="netzmacht.contao_i18n.listeners.searchable_faqs"
+                class="Netzmacht\Contao\I18n\EventListener\SearchableI18nFaqUrlsListener"
+                public="true">
+            <argument type="service" id="netzmacht.contao_i18n.i18n" />
+            <tag name="contao.hook" hook="getSearchablePages" />
         </service>
     </services>
 </container>
