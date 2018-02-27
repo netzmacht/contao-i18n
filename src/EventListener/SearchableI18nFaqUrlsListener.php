@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Netzmacht\Contao\I18n\EventListener;
 
 use Contao\Config;
+use Contao\CoreBundle\Framework\Adapter;
 use Contao\Database;
 use Contao\Date;
 use Contao\FaqCategoryModel;
@@ -43,15 +44,24 @@ class SearchableI18nFaqUrlsListener extends AbstractSearchableUrlsListener
     private $database;
 
     /**
+     * Contao config adapter.
+     *
+     * @var Config|Adapter
+     */
+    private $config;
+
+    /**
      * SearchableI18nNewsUrlsListener constructor.
      *
      * @param I18nPageRepository $i18nPageRepository I18n page repository.
      * @param Database           $database           Legacy contao database connection.
+     * @param Config|Adapter     $config             Contao config adapter.
      */
-    public function __construct(I18nPageRepository $i18nPageRepository, Database $database)
+    public function __construct(I18nPageRepository $i18nPageRepository, Database $database, $config)
     {
         $this->i18nPageRepository = $i18nPageRepository;
         $this->database           = $database;
+        $this->config             = $config;
     }
 
     /**
@@ -111,7 +121,7 @@ class SearchableI18nFaqUrlsListener extends AbstractSearchableUrlsListener
 
                         // Generate the URL
                         $processed[$collection->jumpTo][$translation->id] = $translation->getAbsoluteUrl(
-                            Config::get('useAutoItem') ? '/%s' : '/items/%s'
+                            $this->config->get('useAutoItem') ? '/%s' : '/items/%s'
                         );
                     }
 

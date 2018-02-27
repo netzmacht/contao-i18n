@@ -14,6 +14,7 @@
 namespace Netzmacht\Contao\I18n\EventListener;
 
 use Contao\Config;
+use Contao\CoreBundle\Framework\Adapter;
 use Contao\Date;
 use Contao\Model\Registry;
 use Contao\PageModel;
@@ -43,15 +44,24 @@ class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListen
     private $registry;
 
     /**
+     * Contao config adapter.
+     *
+     * @var Config|Adapter
+     */
+    private $config;
+
+    /**
      * Construct.
      *
-     * @param Connection $connection Database connection.
-     * @param Registry   $registry   Model registry.
+     * @param Connection     $connection Database connection.
+     * @param Registry       $registry   Model registry.
+     * @param Config|Adapter $config     Contao config adapter.
      */
-    public function __construct(Connection $connection, Registry $registry)
+    public function __construct(Connection $connection, Registry $registry, $config)
     {
         $this->connection = $connection;
         $this->registry   = $registry;
+        $this->config     = $config;
     }
 
     /**
@@ -89,7 +99,7 @@ class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListen
                 while ($article = $articles->fetch(\PDO::FETCH_OBJ)) {
                     $pages[] = sprintf(
                         $page->getAbsoluteUrl('/articles/%s'),
-                        (($article->alias != '' && !Config::get('disableAlias'))
+                        (($article->alias != '' && !$this->config->get('disableAlias'))
                             ? $article->alias
                             : $article->id
                         )
@@ -98,8 +108,8 @@ class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListen
             }
 
             // Get subpages
-            if ((!$page->protected || Config::get('indexProtected'))
-                && ($subPages = $this::collectPages($page->id, $domain, $isSitemap)) != false) {
+            if ((!$page->protected || $this->config->get('indexProtected'))
+                && ($subPages = $this->collectPages($page->id, $domain, $isSitemap)) != false) {
                 $pages = array_merge($pages, $subPages);
             }
         }
@@ -133,7 +143,7 @@ class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListen
         }
 
         // Do not add if page is protected
-        if ($page->protected && ! Config::get('indexProtected')) {
+        if ($page->protected && ! $this->config->get('indexProtected')) {
             return false;
         }
 

@@ -20,7 +20,9 @@
         </service>
 
         <service id="netzmacht.contao_i18n.service_factory"
-                 class="Netzmacht\Contao\I18n\DependencyInjection\ServiceFactory"/>
+                 class="Netzmacht\Contao\I18n\DependencyInjection\ServiceFactory">
+            <argument type="service" id="contao.framework" />
+        </service>
 
         <service id="netzmacht.contao_i18n.contao.model_registry"
                  class="Contao\Model\Registry">
@@ -74,6 +76,7 @@
                 public="true">
             <argument type="service" id="database_connection"/>
             <argument type="service" id="netzmacht.contao_i18n.contao.model_registry"/>
+            <argument type="service" id="netzmacht.contao_toolkit.contao.config_adapter" />
             <tag name="contao.hook" hook="getSearchablePages"/>
         </service>
 
@@ -83,6 +86,7 @@
                 public="true">
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
             <argument type="service" id="netzmacht.contao_i18n.contao.database_connection" />
+            <argument type="service" id="netzmacht.contao_toolkit.contao.config_adapter" />
             <tag name="contao.hook" hook="getSearchablePages"/>
         </service>
 
@@ -92,6 +96,7 @@
                 public="true">
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
             <argument type="service" id="netzmacht.contao_i18n.contao.database_connection" />
+            <argument type="service" id="netzmacht.contao_toolkit.contao.config_adapter" />
             <tag name="contao.hook" hook="getSearchablePages"/>
         </service>
 
@@ -101,6 +106,7 @@
                 public="true">
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
             <argument type="service" id="netzmacht.contao_i18n.contao.database_connection" />
+            <argument type="service" id="netzmacht.contao_toolkit.contao.config_adapter" />
             <tag name="contao.hook" hook="getSearchablePages"/>
         </service>
     </services>
