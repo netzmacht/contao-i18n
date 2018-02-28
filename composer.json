@@ -28,7 +28,8 @@
     "contao/core-bundle": "~4.4",
     "hofff/contao-root-relations": "^2.2.0",
     "terminal42/contao-changelanguage": "~3.0",
-    "netzmacht/contao-toolkit": "~3.0"
+    "netzmacht/contao-toolkit": "~3.0",
+    "contao-community-alliance/meta-palettes": "^2.0"
   },
   "require-dev": {
     "phpcq/all-tasks": "~1.2",

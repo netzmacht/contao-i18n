@@ -170,7 +170,7 @@ class I18nPageRepository
         $pages[$language] = $mainPage;
         $repository       = $this->repositoryManager->getRepository(PageModel::class);
 
-        foreach ($repository->findBy(['.languageMain = ?'], [$mainPage->id]) as $page) {
+        foreach ($repository->findBy(['.languageMain = ?'], [$mainPage->id]) ?: [] as $page) {
             $language         = $this->getPageLanguage($page);
             $pages[$language] = $page;
         }
@@ -239,6 +239,11 @@ class I18nPageRepository
             return null;
         }
 
+        // Page translation is disabled in the page settings.
+        if ($page->type !== 'i18n_regular' && $page->i18n_disable === '1') {
+            return $page;
+        }
+
         // Load root page to get language.
         $rootPage = $this->getRootPage($page);
 
@@ -247,7 +252,7 @@ class I18nPageRepository
         }
 
         // Current page is not in the fallback language tree. Not able to find the translated page.
-        if (!$rootPage->fallback) {
+        if (!$rootPage->fallback || $rootPage->languageRoot > 0) {
             return null;
         }
 
@@ -267,12 +272,17 @@ class I18nPageRepository
     /**
      * Get the root page for a page.
      *
-     * @param PageModel $page The page model.
+     * @param PageModel|string|int $page The page model.
      *
      * @return PageModel|null
      */
-    private function getRootPage(PageModel $page)
+    public function getRootPage($page)
     {
+        if (!$page instanceof PageModel) {
+            $repository = $this->repositoryManager->getRepository(PageModel::class);
+            $page       = $repository->find((int) $page);
+        }
+
         if ($page->hofff_root_page_id > 0) {
             $repository = $this->repositoryManager->getRepository(PageModel::class);
 

@@ -112,5 +112,12 @@
             <argument type="service" id="netzmacht.contao_toolkit.contao.config_adapter" />
             <tag name="contao.hook" hook="getSearchablePages"/>
         </service>
+
+        <service id="netzmacht.contao_i18n.listeners.dca.page"
+                 class="Netzmacht\Contao\I18n\EventListener\PageDcaListener"
+                 public="true">
+            <argument type="service" id="netzmacht.contao_toolkit.dca.manager" />
+            <argument type="service" id="netzmacht.contao_toolkit.repository_manager" />
+        </service>
     </services>
 </container>
