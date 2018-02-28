@@ -3,11 +3,11 @@
 /**
  * Contao I18n provides some i18n structures for easily l10n websites.
  *
+ * @package    contao-18n
  * @author     David Molineus <david.molineus@netzmacht.de>
  * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later
+ * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
  * @filesource
- *
  */
 
 declare(strict_types=1);
@@ -222,17 +222,7 @@ class I18nPageRepository
     public function getTranslatedPage($page, $language = null)
     {
         $language = $language ?: $this->getCurrentLanguage();
-
-        if (!$page instanceof PageModel) {
-            if (isset($this->translatedPages[$language][$page])) {
-                return $this->translatedPages[$language][$page];
-            }
-
-            $repository = $this->repositoryManager->getRepository(PageModel::class);
-            $page       = $repository->find((int) $page);
-        }
-
-        $this->translatedPages[$language][$page->id] = $page;
+        $page     = $this->loadTranslatedPage($page, $language);
 
         // No page found, return.
         if (!$page) {
@@ -287,7 +277,6 @@ class I18nPageRepository
             $repository = $this->repositoryManager->getRepository(PageModel::class);
 
             return $repository->find((int) $page->hofff_root_page_id);
-
         }
 
         return null;
@@ -303,5 +292,29 @@ class I18nPageRepository
     public function getCurrentLanguage()
     {
         return $GLOBALS['TL_LANGUAGE'];
+    }
+
+    /**
+     * Load a translated page and cache the results.
+     *
+     * @param PageModel|string|int $page     The page.
+     * @param string               $language The required language.
+     *
+     * @return PageModel|null
+     */
+    private function loadTranslatedPage($page, string $language): ?PageModel
+    {
+        if (!$page instanceof PageModel) {
+            if (isset($this->translatedPages[$language][$page])) {
+                return $this->translatedPages[$language][$page];
+            }
+
+            $repository = $this->repositoryManager->getRepository(PageModel::class);
+            $page       = $repository->find((int) $page);
+        }
+
+        $this->translatedPages[$language][$page->id] = $page;
+
+        return $page;
     }
 }

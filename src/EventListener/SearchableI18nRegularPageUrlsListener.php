@@ -3,12 +3,11 @@
 /**
  * Contao I18n provides some i18n structures for easily l10n websites.
  *
- * @package    dev
+ * @package    contao-18n
  * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015 netzmacht creative David Molineus
- * @license    LGPL 3.0
+ * @copyright  2015-2018 netzmacht David Molineus
+ * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
  * @filesource
- *
  */
 
 namespace Netzmacht\Contao\I18n\EventListener;
@@ -83,7 +82,7 @@ class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListen
         $statement = $query->execute($time, $pid);
 
         // Get published pages
-        $pages  = array();
+        $pages = array();
 
         // Recursively walk through all subpages
         while ($result = $statement->fetch(\PDO::FETCH_ASSOC)) {
@@ -121,8 +120,8 @@ class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListen
      * Check if page should be added to the sitemap.
      *
      * @param PageModel $page      Page model.
-     * @param bool       $isSitemap Is sitemap.
-     * @param int        $time      Current time stamp.
+     * @param bool      $isSitemap Is sitemap.
+     * @param int       $time      Current time stamp.
      *
      * @return bool
      */
@@ -170,7 +169,7 @@ class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListen
      * Check if page is published.
      *
      * @param PageModel $page Page model.
-     * @param int        $time Current timestamp.
+     * @param int       $time Current timestamp.
      *
      * @return bool
      */

@@ -9,7 +9,7 @@
     "language"
   ],
   "type": "contao-bundle",
-  "license": "LGPL-3.0+",
+  "license": "LGPL-3.0-3.0-or-later",
   "authors": [
     {
       "name": "David Molineus",
@@ -44,6 +44,11 @@
     "psr-4": {
       "Netzmacht\\Contao\\I18n\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "files": [
+      "vendor/phpcq/autoload-validation/hacks/contao-hack.php"
+    ]
   },
   "prefer-stable": true,
   "minimum-stability": "dev",

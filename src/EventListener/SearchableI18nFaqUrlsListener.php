@@ -3,11 +3,11 @@
 /**
  * Contao I18n provides some i18n structures for easily l10n websites.
  *
+ * @package    contao-18n
  * @author     David Molineus <david.molineus@netzmacht.de>
  * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later
+ * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
  * @filesource
- *
  */
 
 declare(strict_types=1);
@@ -20,6 +20,7 @@ use Contao\Database;
 use Contao\Date;
 use Contao\FaqCategoryModel;
 use Contao\FaqModel;
+use Contao\PageModel;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\Repository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
@@ -29,7 +30,7 @@ use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
  *
  * @package Netzmacht\Contao\I18n\EventListener
  */
-class SearchableI18nFaqUrlsListener extends AbstractSearchableUrlsListener
+class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsListener
 {
     /**
      * Model repository manager.
@@ -46,13 +47,6 @@ class SearchableI18nFaqUrlsListener extends AbstractSearchableUrlsListener
     private $i18nPageRepository;
 
     /**
-     * Legacy contao database connection.
-     *
-     * @var Database
-     */
-    private $database;
-
-    /**
      * Contao config adapter.
      *
      * @var Config|Adapter
@@ -67,11 +61,16 @@ class SearchableI18nFaqUrlsListener extends AbstractSearchableUrlsListener
      * @param Database           $database           Legacy contao database connection.
      * @param Config|Adapter     $config             Contao config adapter.
      */
-    public function __construct(RepositoryManager $repositoryManager, I18nPageRepository $i18nPageRepository, Database $database, $config)
-    {
+    public function __construct(
+        RepositoryManager $repositoryManager,
+        I18nPageRepository $i18nPageRepository,
+        Database $database,
+        $config
+    ) {
+        parent::__construct($database);
+
         $this->repositoryManager  = $repositoryManager;
         $this->i18nPageRepository = $i18nPageRepository;
-        $this->database           = $database;
         $this->config             = $config;
     }
 
@@ -81,80 +80,97 @@ class SearchableI18nFaqUrlsListener extends AbstractSearchableUrlsListener
     protected function collectPages($pid = 0, string $domain = '', bool $isSitemap = false): array
     {
         $pages     = [];
-        $root      = [];
+        $root      = $this->getPageChildRecords($pid);
         $processed = [];
         $time      = Date::floorToMinute();
-
-        if ($pid > 0) {
-            $root = $this->database->getChildRecords($pid, 'tl_page');
-        }
 
         // Get all categories
         /** @var Repository|FaqCategoryModel $categoryRepository */
         $categoryRepository = $this->repositoryManager->getRepository(FaqCategoryModel::class);
-
-        /** @var FaqModel|Repository $faqRepository */
-        $faqRepository = $this->repositoryManager->getRepository(FaqModel::class);
-        $collection    = $categoryRepository->findAll();
+        $collection         = $categoryRepository->findAll();
 
         // Walk through each category
-        if ($collection !== null) {
-            while ($collection->next()) {
-                // Skip FAQs without target page
-                if (!$collection->jumpTo) {
+        if ($collection === null) {
+            return $pages;
+        }
+
+        while ($collection->next()) {
+            // Skip FAQs without target page
+            if (!$collection->jumpTo) {
+                continue;
+            }
+
+            $translations = $this->i18nPageRepository->getPageTranslations($collection->jumpTo);
+
+            foreach ($translations as $translation) {
+                // Skip FAQs outside the root nodes
+                if (!empty($root) && !\in_array($translation->id, $root) || $translation->type !== 'i18n_regular') {
                     continue;
                 }
 
-                $translations = $this->i18nPageRepository->getPageTranslations($collection->jumpTo);
+                $pages = $this->processTranslation(
+                    $collection->current(),
+                    $translation,
+                    $pages,
+                    $processed,
+                    $isSitemap,
+                    $time
+                );
+            }
+        }
 
-                foreach ($translations as $translation) {
-                    // Skip FAQs outside the root nodes
-                    if (!empty($root) && !\in_array($translation->id, $root) || $translation->type !== 'i18n_regular') {
-                        continue;
-                    }
+        return $pages;
+    }
 
-                    // Get the URL of the jumpTo page
-                    if (!isset($processed[$collection->jumpTo][$translation->id])) {
-                        // The target page has not been published (see #5520)
-                        if (!$translation->published
-                            || ($translation->start != '' && $translation->start > $time)
-                            || ($translation->stop != '' && $translation->stop <= ($time + 60))
-                        ) {
-                            continue;
-                        }
+    /**
+     * Process the translation.
+     *
+     * @param FaqCategoryModel $category    The faq category.
+     * @param PageModel        $translation The translation.
+     * @param array            $pages       List of page urls.
+     * @param array            $processed   Cache of processed paged.
+     * @param bool             $isSitemap   Sitemap.
+     * @param int              $time        The time.
+     *
+     * @return array
+     */
+    private function processTranslation(
+        FaqCategoryModel $category,
+        PageModel $translation,
+        array $pages,
+        array &$processed,
+        bool $isSitemap,
+        int $time
+    ): array {
+        // Get the URL of the jumpTo page
+        if (!isset($processed[$category->jumpTo][$translation->id])) {
+            // The target page has not been published (see #5520)
+            if (!$this->isPagePublished($translation, $time)) {
+                return $pages;
+            }
 
-                        if ($isSitemap) {
-                            // The target page is protected (see #8416)
-                            if ($translation->protected) {
-                                continue;
-                            }
+            if (!$this->shouldPageBeAddedToSitemap($translation, $isSitemap)) {
+                return $pages;
+            }
 
-                            // The target page is exempt from the sitemap (see #6418)
-                            if ($translation->sitemap == 'map_never') {
-                                continue;
-                            }
-                        }
+            // Generate the URL
+            $processed[$category->jumpTo][$translation->id] = $translation->getAbsoluteUrl(
+                $this->config->get('useAutoItem') ? '/%s' : '/items/%s'
+            );
+        }
 
-                        // Generate the URL
-                        $processed[$collection->jumpTo][$translation->id] = $translation->getAbsoluteUrl(
-                            $this->config->get('useAutoItem') ? '/%s' : '/items/%s'
-                        );
-                    }
+        // Get the items
+        /** @var FaqModel|Repository $faqRepository */
+        $faqRepository = $this->repositoryManager->getRepository(FaqModel::class);
+        $items         = $faqRepository->findPublishedByPid($category->id);
+        $url           = $processed[$category->jumpTo][$translation->id];
 
-                    $strUrl = $processed[$collection->jumpTo][$translation->id];
-
-                    // Get the items
-                    $objItems = $faqRepository->findPublishedByPid($collection->id);
-
-                    if ($objItems !== null) {
-                        while ($objItems->next()) {
-                            $pages[] = sprintf(
-                                preg_replace('/%(?!s)/', '%%', $strUrl),
-                                ($objItems->alias ?: $objItems->id)
-                            );
-                        }
-                    }
-                }
+        if ($items !== null) {
+            while ($items->next()) {
+                $pages[] = sprintf(
+                    preg_replace('/%(?!s)/', '%%', $url),
+                    ($items->alias ?: $items->id)
+                );
             }
         }
 

@@ -3,11 +3,11 @@
 /**
  * Contao I18n provides some i18n structures for easily l10n websites.
  *
+ * @package    contao-18n
  * @author     David Molineus <david.molineus@netzmacht.de>
  * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later
+ * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
  * @filesource
- *
  */
 
 declare(strict_types=1);
@@ -29,7 +29,7 @@ use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 /**
  * Class SearchableI18nNewsUrlsListener
  */
-class SearchableI18nNewsUrlsListener extends AbstractSearchableUrlsListener
+class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListener
 {
     /**
      * Model repository manager.
@@ -44,13 +44,6 @@ class SearchableI18nNewsUrlsListener extends AbstractSearchableUrlsListener
      * @var I18nPageRepository
      */
     private $i18n;
-
-    /**
-     * Legacy contao database connection.
-     *
-     * @var Database
-     */
-    private $database;
 
     /**
      * Contao config adapter.
@@ -73,9 +66,10 @@ class SearchableI18nNewsUrlsListener extends AbstractSearchableUrlsListener
         Database $database,
         $config
     ) {
+        parent::__construct($database);
+
         $this->repositoryManager = $repositoryManager;
         $this->i18n              = $i18nPageRepository;
-        $this->database          = $database;
         $this->config            = $config;
     }
 
@@ -84,19 +78,12 @@ class SearchableI18nNewsUrlsListener extends AbstractSearchableUrlsListener
      */
     protected function collectPages($pid = 0, string $domain = '', bool $isSitemap = false): array
     {
-        $root      = [];
+        $root      = $this->getPageChildRecords($pid);
         $processed = [];
         $time      = Date::floorToMinute();
         $pages     = [];
 
-        if ($pid > 0) {
-            $root = $this->database->getChildRecords($pid, 'tl_page');
-        }
-
         // Get all news archives
-        /** @var NewsModel|Repository $newsRepository */
-        $newsRepository = $this->repositoryManager->getRepository(NewsModel::class);
-
         /** @var NewsArchiveModel|Repository $archiveRepository */
         $archiveRepository = $this->repositoryManager->getRepository(NewsArchiveModel::class);
         $collection        = $archiveRepository->findByProtected('');
@@ -117,45 +104,69 @@ class SearchableI18nNewsUrlsListener extends AbstractSearchableUrlsListener
                         continue;
                     }
 
-                    // Get the URL of the jumpTo page
-                    if (!isset($processed[$collection->jumpTo][$translation->id])) {
-                         // The target page has not been published (see #5520)
-                        if (!$translation->published
-                            || ($translation->start != '' && $translation->start > $time)
-                            || ($translation->stop != '' && $translation->stop <= ($time + 60))
-                        ) {
-                            continue;
-                        }
-
-                        if ($isSitemap) {
-                            // The target page is protected (see #8416)
-                            if ($translation->protected) {
-                                continue;
-                            }
-
-                            // The target page is exempt from the sitemap (see #6418)
-                            if ($translation->sitemap == 'map_never') {
-                                continue;
-                            }
-                        }
-
-                        // Generate the URL
-                        $processed[$collection->jumpTo][$translation->id] = $translation->getAbsoluteUrl(
-                            $this->config->get('useAutoItem') ? '/%s' : '/items/%s'
-                        );
-                    }
-
-                    $strUrl = $processed[$collection->jumpTo][$translation->id];
-
-                    // Get the items
-                    $objArticle = $newsRepository->findPublishedDefaultByPid($collection->id);
-
-                    if ($objArticle !== null) {
-                        while ($objArticle->next()) {
-                            $pages[] = $this->getLink($objArticle, $strUrl);
-                        }
-                    }
+                    $pages = $this->processTranslation(
+                        $collection->current(),
+                        $translation,
+                        $pages,
+                        $isSitemap,
+                        $processed,
+                        $time
+                    );
                 }
+            }
+        }
+
+        return $pages;
+    }
+
+
+    /**
+     * Process a page translation.
+     *
+     * @param NewsArchiveModel $newsArchiveModel The page.
+     * @param PageModel        $translation      The page translation.
+     * @param array            $pages            List of all added pages.
+     * @param bool             $isSitemap        If true the sitemap is generated.
+     * @param array            $processed        Cache of processed pages.
+     * @param int              $time             Start time.
+     *
+     * @return array
+     */
+    private function processTranslation(
+        NewsArchiveModel $newsArchiveModel,
+        PageModel $translation,
+        array $pages,
+        bool $isSitemap,
+        array &$processed,
+        int $time
+    ): array {
+        // Get the URL of the jumpTo page
+        if (!isset($processed[$newsArchiveModel->jumpTo][$translation->id])) {
+            // The target page has not been published (see #5520)
+            if (!$this->isPagePublished($translation, $time)) {
+                return $pages;
+            }
+
+            if (!$this->shouldPageBeAddedToSitemap($translation, $isSitemap)) {
+                return $pages;
+            }
+
+            // Generate the URL
+            $processed[$newsArchiveModel->jumpTo][$translation->id] = $translation->getAbsoluteUrl(
+                $this->config->get('useAutoItem') ? '/%s' : '/items/%s'
+            );
+        }
+
+        $url = $processed[$newsArchiveModel->jumpTo][$translation->id];
+
+        // Get the items
+        /** @var NewsModel|Repository $newsRepository */
+        $newsRepository = $this->repositoryManager->getRepository(NewsModel::class);
+        $objArticle     = $newsRepository->findPublishedDefaultByPid($newsArchiveModel->id);
+
+        if ($objArticle !== null) {
+            while ($objArticle->next()) {
+                $pages[] = $this->getLink($objArticle, $url);
             }
         }
 
@@ -165,24 +176,21 @@ class SearchableI18nNewsUrlsListener extends AbstractSearchableUrlsListener
     /**
      * Return the link of a news article
      *
-     * @param NewsModel $objItem
-     * @param string    $strUrl
-     * @param string    $strBase
+     * @param NewsModel $newsModel The news model.
+     * @param string    $url       The given url.
      *
      * @return string
      */
-    protected function getLink($objItem, $strUrl, $strBase='')
+    protected function getLink($newsModel, $url)
     {
-        switch ($objItem->source)
-        {
+        switch ($newsModel->source) {
             // Link to an external page
             case 'external':
-                return $objItem->url;
-                break;
+                return $newsModel->url;
 
             // Link to an internal page
             case 'internal':
-                if (($target = $this->i18n->getTranslatedPage($objItem->jumpTo)) instanceof PageModel) {
+                if (($target = $this->i18n->getTranslatedPage($newsModel->jumpTo)) instanceof PageModel) {
                     /** @var PageModel $target */
                     return $target->getAbsoluteUrl();
                 }
@@ -191,24 +199,24 @@ class SearchableI18nNewsUrlsListener extends AbstractSearchableUrlsListener
             // Link to an article
             case 'article':
                 /** @var ArticleModel|Repository $repository */
-                $repository = $this->repositoryManager->getRepository(ArticleModel::class);
-                if (($articleModel = $repository->findByPK((int) $objItem->articleId, ['eager' =>true])) !== null
-                    && ($objPid = $this->i18n->getTranslatedPage($articleModel->pid)) instanceof PageModel)
-                {
+                $repository   = $this->repositoryManager->getRepository(ArticleModel::class);
+                $articleModel = $articleModel = $repository->findByPK((int) $newsModel->articleId, ['eager' => true]);
+
+                if ($articleModel !== null
+                    && ($objPid = $this->i18n->getTranslatedPage($articleModel->pid)) instanceof PageModel
+                ) {
                     /** @var PageModel $objPid */
                     return ampersand(
                         $objPid->getAbsoluteUrl('/articles/' . ($articleModel->alias ?: $articleModel->id))
                     );
                 }
                 break;
-        }
 
-        // Backwards compatibility (see #8329)
-        if ($strBase != '' && !preg_match('#^https?://#', $strUrl)) {
-            $strUrl = $strBase . $strUrl;
+            default:
+                // Do nothing.
         }
 
         // Link to the default page
-        return sprintf(preg_replace('/%(?!s)/', '%%', $strUrl), ($objItem->alias ?: $objItem->id));
+        return sprintf(preg_replace('/%(?!s)/', '%%', $url), ($newsModel->alias ?: $newsModel->id));
     }
 }

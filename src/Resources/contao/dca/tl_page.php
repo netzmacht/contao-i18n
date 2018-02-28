@@ -3,12 +3,11 @@
 /**
  * Contao I18n provides some i18n structures for easily l10n websites.
  *
- * @package    dev
+ * @package    contao-18n
  * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015 netzmacht creative David Molineus
- * @license    LGPL 3.0
+ * @copyright  2015-2018 netzmacht David Molineus
+ * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
  * @filesource
- *
  */
 
 $GLOBALS['TL_DCA']['tl_page']['config']['onload_callback'][] = [

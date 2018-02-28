@@ -1,7 +1,25 @@
-/vendor/
-/bin/
+# OS
+.DS_Store
+Thumbs.db
+.directory
 
-coverage.xml
+# IDEs 
+.buildpath
+.project
+.settings/
+.build/
+.external*/
+.idea/
+nbproject/
 
+# composer related
+vendor/
 composer.lock
-.idea
+
+# build
+build/
+build.properties
+docs/_build
+
+# Translations
+.tx

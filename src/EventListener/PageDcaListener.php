@@ -3,11 +3,11 @@
 /**
  * Contao I18n provides some i18n structures for easily l10n websites.
  *
+ * @package    contao-18n
  * @author     David Molineus <david.molineus@netzmacht.de>
  * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later
+ * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
  * @filesource
- *
  */
 
 declare(strict_types=1);
@@ -18,7 +18,6 @@ use Contao\CoreBundle\DataContainer\PaletteManipulator;
 use Contao\DataContainer;
 use Contao\Input;
 use Contao\PageModel;
-use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 use Netzmacht\Contao\Toolkit\Dca\Listener\AbstractListener;
 use Netzmacht\Contao\Toolkit\Dca\Manager;
@@ -45,8 +44,8 @@ final class PageDcaListener extends AbstractListener
     /**
      * PageDcaListener constructor.
      *
-     * @param Manager           $dcaManager Data container definition manager.
-     * @param RepositoryManager $repositoryManager
+     * @param Manager           $dcaManager        Data container definition manager.
+     * @param RepositoryManager $repositoryManager Repository manager.
      */
     public function __construct(Manager $dcaManager, RepositoryManager $repositoryManager)
     {

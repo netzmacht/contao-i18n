@@ -3,11 +3,11 @@
 /**
  * Contao I18n provides some i18n structures for easily l10n websites.
  *
+ * @package    contao-18n
  * @author     David Molineus <david.molineus@netzmacht.de>
  * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later
+ * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
  * @filesource
- *
  */
 
 declare(strict_types=1);
@@ -49,9 +49,9 @@ class TranslatePageUrlListener
     /**
      * GetFrontendUrlListener constructor.
      *
-     * @param I18nPageRepository $i18nPageRepository
-     * @param ContextStack       $contextStack The i18n context stack.
-     * @param ContaoFramework    $framework    The contao framework.
+     * @param I18nPageRepository $i18nPageRepository The i18n page repository.
+     * @param ContextStack       $contextStack       The i18n context stack.
+     * @param ContaoFramework    $framework          The contao framework.
      */
     public function __construct(
         I18nPageRepository $i18nPageRepository,
@@ -66,7 +66,7 @@ class TranslatePageUrlListener
     /**
      * Handle the generateFrontendUrl hook to translate a page url.
      *
-     * @param array  $page   Given page as array
+     * @param array  $page   Given page as array.
      * @param string $params Optional query params.
      * @param string $url    Url of the current page.
      *
