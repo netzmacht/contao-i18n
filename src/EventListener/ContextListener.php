@@ -14,10 +14,12 @@ declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\EventListener;
 
+use Contao\ContentModel;
 use Contao\Model;
 use Contao\ModuleModel;
 use Netzmacht\Contao\I18n\Context\ContextStack;
 use Netzmacht\Contao\I18n\Context\FrontendModuleContext;
+use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 
 /**
  * Class ContextListener updates the context when rendering a page.
@@ -32,13 +34,22 @@ class ContextListener
     private $contextStack;
 
     /**
+     * Repository manager.
+     *
+     * @var RepositoryManager
+     */
+    private $repositoryManager;
+
+    /**
      * ContextListener constructor.
      *
-     * @param ContextStack $contextStack Context stack.
+     * @param ContextStack      $contextStack      Context stack.
+     * @param RepositoryManager $repositoryManager Repository manager.
      */
-    public function __construct(ContextStack $contextStack)
+    public function __construct(ContextStack $contextStack, RepositoryManager $repositoryManager)
     {
-        $this->contextStack = $contextStack;
+        $this->contextStack      = $contextStack;
+        $this->repositoryManager = $repositoryManager;
     }
 
     /**
@@ -59,7 +70,14 @@ class ContextListener
             $this->contextStack->enterContext(FrontendModuleContext::fromModel($model));
         }
 
-        // TODO: Handle module include elements
+        // The isVisibleElement hook is not triggered for the module if it's included using a content element.
+        // So we have to track it manually.
+        if ($model instanceof ContentModel && $model->type === 'module') {
+            $module = $this->repositoryManager->getRepository(ModuleModel::class)->find((int) $model->module);
+            if ($module) {
+                $this->contextStack->enterContext(FrontendModuleContext::fromModel($module));
+            }
+        }
         return $visible;
     }
 

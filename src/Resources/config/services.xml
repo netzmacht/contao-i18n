@@ -70,6 +70,7 @@
         <service id="netzmacht.contao_i18n.listeners.context"
                  class="Netzmacht\Contao\I18n\EventListener\ContextListener">
             <argument type="service" id="netzmacht.contao_i18n.context_stack"/>
+            <argument type="service" id="netzmacht.contao_toolkit.repository_manager" />
             <tag name="contao.hook" hook="isVisibleElement"/>
             <tag name="contao.hook" hook="getFrontendModule"/>
         </service>
