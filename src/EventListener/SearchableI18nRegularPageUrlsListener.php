@@ -97,7 +97,7 @@ class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListen
 
                 while ($article = $articles->fetch(\PDO::FETCH_OBJ)) {
                     // Do not show pages without a translation. They are ignored.
-                    if ($article->languageMain == 0) {
+                    if ($article->languageMain > 0) {
                         continue;
                     }
 
@@ -112,7 +112,7 @@ class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListen
             }
 
             // Get subpages
-            if ((!$page->protected || $this->config->get('indexProtected'))
+            if ($this->shouldBeIndexed($page)
                 && ($subPages = $this->collectPages($page->id, $domain, $isSitemap)) != false) {
                 $pages = array_merge($pages, $subPages);
             }
@@ -206,5 +206,17 @@ class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListen
         }
 
         return $page;
+    }
+
+    /**
+     * Check if page should be indexed.
+     *
+     * @param PageModel $page The page model.
+     *
+     * @return bool
+     */
+    private function shouldBeIndexed($page): bool
+    {
+        return (!$page->protected || $this->config->get('indexProtected'));
     }
 }

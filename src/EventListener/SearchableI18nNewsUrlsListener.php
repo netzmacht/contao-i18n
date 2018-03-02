@@ -52,7 +52,10 @@ class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListen
      * @var Config|Adapter
      */
     private $config;
+
     /**
+     * Translated article finder.
+     *
      * @var TranslatedArticleFinder
      */
     private $articleFinder;
@@ -213,13 +216,7 @@ class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListen
                 if ($articleModel !== null
                     && ($objPid = $this->i18n->getTranslatedPage($articleModel->pid)) instanceof PageModel
                 ) {
-                    // Replace article with the
-                    if ($objPid->type === 'i18n_regular') {
-                        $translated = $this->articleFinder->getOverrides($objPid);
-                        if (isset($translated[$articleModel->id])) {
-                            $articleModel = $translated[$articleModel->id];
-                        }
-                    }
+                    $articleModel = $this->getTranslatedArticle($objPid, $articleModel);
 
                     /** @var PageModel $objPid */
                     return ampersand(
@@ -234,5 +231,26 @@ class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListen
 
         // Link to the default page
         return sprintf(preg_replace('/%(?!s)/', '%%', $url), ($newsModel->alias ?: $newsModel->id));
+    }
+
+    /**
+     * Get the translation of an article. If the article is not an translated article, return the passed article.
+     *
+     * @param PageModel    $pageModel    The page model.
+     * @param ArticleModel $articleModel The article model.
+     *
+     * @return ArticleModel
+     */
+    private function getTranslatedArticle($pageModel, $articleModel): ArticleModel
+    {
+        // Replace article with the translation
+        if ($pageModel->type === 'i18n_regular') {
+            $translated = $this->articleFinder->getOverrides($pageModel);
+            if (isset($translated[$articleModel->id])) {
+                $articleModel = $translated[$articleModel->id];
+            }
+        }
+
+        return $articleModel;
     }
 }
