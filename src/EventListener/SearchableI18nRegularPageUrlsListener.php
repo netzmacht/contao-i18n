@@ -96,6 +96,11 @@ class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListen
                 $articles = $query->execute((int) $result['id'], $time);
 
                 while ($article = $articles->fetch(\PDO::FETCH_OBJ)) {
+                    // Do not show pages without a translation. They are ignored.
+                    if ($article->languageMain == 0) {
+                        continue;
+                    }
+
                     $pages[] = sprintf(
                         $page->getAbsoluteUrl('/articles/%s'),
                         (($article->alias != '' && !$this->config->get('disableAlias'))

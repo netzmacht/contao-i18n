@@ -22,6 +22,7 @@ use Contao\Date;
 use Contao\NewsArchiveModel;
 use Contao\NewsModel;
 use Contao\PageModel;
+use Netzmacht\Contao\I18n\Model\Article\TranslatedArticleFinder;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\Repository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
@@ -51,18 +52,24 @@ class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListen
      * @var Config|Adapter
      */
     private $config;
+    /**
+     * @var TranslatedArticleFinder
+     */
+    private $articleFinder;
 
     /**
      * SearchableI18nNewsUrlsListener constructor.
      *
-     * @param RepositoryManager  $repositoryManager  Model repository manager.
-     * @param I18nPageRepository $i18nPageRepository I18n page repository.
-     * @param Database           $database           Legacy contao database connection.
-     * @param Config|Adapter     $config             Contao config adpater.
+     * @param RepositoryManager       $repositoryManager  Model repository manager.
+     * @param I18nPageRepository      $i18nPageRepository I18n page repository.
+     * @param TranslatedArticleFinder $articleFinder      Translated article finder.
+     * @param Database                $database           Legacy contao database connection.
+     * @param Config|Adapter          $config             Contao config adpater.
      */
     public function __construct(
         RepositoryManager $repositoryManager,
         I18nPageRepository $i18nPageRepository,
+        TranslatedArticleFinder $articleFinder,
         Database $database,
         $config
     ) {
@@ -71,6 +78,7 @@ class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListen
         $this->repositoryManager = $repositoryManager;
         $this->i18n              = $i18nPageRepository;
         $this->config            = $config;
+        $this->articleFinder     = $articleFinder;
     }
 
     /**
@@ -205,6 +213,14 @@ class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListen
                 if ($articleModel !== null
                     && ($objPid = $this->i18n->getTranslatedPage($articleModel->pid)) instanceof PageModel
                 ) {
+                    // Replace article with the
+                    if ($objPid->type === 'i18n_regular') {
+                        $translated = $this->articleFinder->getOverrides($objPid);
+                        if (isset($translated[$articleModel->id])) {
+                            $articleModel = $translated[$articleModel->id];
+                        }
+                    }
+
                     /** @var PageModel $objPid */
                     return ampersand(
                         $objPid->getAbsoluteUrl('/articles/' . ($articleModel->alias ?: $articleModel->id))

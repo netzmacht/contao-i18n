@@ -10,5 +10,17 @@
  * @filesource
  */
 
-$GLOBALS['TL_LANG']['tl_page']['i18n_disable'][0] = 'Sprachsensitive Weiterleitung deaktivieren';
-$GLOBALS['TL_LANG']['tl_page']['i18n_disable'][1] = 'Sprachsensitive Weiterleitung für diese Seite deaktivieren.';
+$GLOBALS['TL_LANG']['tl_page']['articles_legend'] = 'Artikeleinstellungen';
+
+$GLOBALS['TL_LANG']['tl_page']['i18n_disable'][0]                 = 'Sprachsensitive Weiterleitung deaktivieren';
+$GLOBALS['TL_LANG']['tl_page']['i18n_disable'][1]                 = 'Sprachsensitive Weiterleitung für diese Seite deaktivieren.';
+$GLOBALS['TL_LANG']['tl_page']['i18n_article_override'][0]        = 'Artikel anpassen';
+$GLOBALS['TL_LANG']['tl_page']['i18n_article_override'][1]        = 'Übernahme der Artikel der Hauptsprache anpassen.';
+$GLOBALS['TL_LANG']['tl_page']['i18n_articles'][0]                = 'Artikelkonfiguration';
+$GLOBALS['TL_LANG']['tl_page']['i18n_articles'][1]                = 'Konfigurieren Sie Artikel, die ingoriert oder überschrieben werden sollen.';
+$GLOBALS['TL_LANG']['tl_page']['i18n_articles_article'][0]        = 'Artikel';
+$GLOBALS['TL_LANG']['tl_page']['i18n_articles_article'][1]        = 'Artikel der Hauptsprache';
+$GLOBALS['TL_LANG']['tl_page']['i18n_articles_mode'][0]           = 'Modus';
+$GLOBALS['TL_LANG']['tl_page']['i18n_articles_mode'][1]           = 'Artikel ignoriren oder überschreiben. Soll der Artikel einfach übernommen werden, muss nichts konfiguriert werden.';
+$GLOBALS['TL_LANG']['tl_page']['i18n_articles_modes']['exclude']  = 'Artikel ignorieren';
+$GLOBALS['TL_LANG']['tl_page']['i18n_articles_modes']['override'] = 'Artikel überschreiben';

@@ -15,13 +15,13 @@ namespace Netzmacht\Contao\I18n\PageType;
 use Contao\ArticleModel;
 use Contao\CoreBundle\Exception\AccessDeniedException;
 use Contao\CoreBundle\Exception\PageNotFoundException;
-use Contao\CoreBundle\Exception\ResponseException;
 use Contao\Environment;
 use Contao\Input;
 use Contao\Module;
 use Contao\ModuleModel;
 use Contao\PageModel;
 use Contao\PageRegular;
+use Contao\System;
 
 /**
  * Regular i18n page load the content of the base page.
@@ -51,7 +51,7 @@ class I18nRegular extends PageRegular
 
         if ($moduleId == 0) {
             // Articles
-            return self::getArticles($basePage, $column);
+            return self::getArticles($currentPage, $basePage, $column);
         } else {
             return self::generateFrontendModule($moduleId, $column);
         }
@@ -60,14 +60,15 @@ class I18nRegular extends PageRegular
     /**
      * Get the articles of a page.
      *
-     * @param PageModel $basePage Base page.
-     * @param string    $column   Article column.
+     * @param PageModel $currentPage I18n page.
+     * @param PageModel $basePage    Base page.
+     * @param string    $column      Article column.
      *
      * @return string
      *
      * @SuppressWarnings(PHPMD.Superglobals)
      */
-    private static function getArticles($basePage, $column = 'main')
+    private static function getArticles($currentPage, $basePage, $column = 'main')
     {
         // Show a particular article only
         if ($basePage->type == 'regular' && Input::get('articles')) {
@@ -94,7 +95,7 @@ class I18nRegular extends PageRegular
             }
         }
 
-        return static::generateArticleList($basePage, $column);
+        return static::generateArticleList($currentPage, $basePage, $column);
     }
 
     /**
@@ -199,12 +200,13 @@ class I18nRegular extends PageRegular
     /**
      * Generate the article list.
      *
-     * @param PageModel $basePage Page model.
-     * @param string    $column   Section column.
+     * @param PageModel $currentPage I18n page model.
+     * @param PageModel $basePage    Page model.
+     * @param string    $column      Section column.
      *
      * @return string
      */
-    private static function generateArticleList(PageModel $basePage, $column)
+    private static function generateArticleList(PageModel $currentPage, PageModel $basePage, $column)
     {
         // Show all articles (no else block here, see #4740)
         $articles = ArticleModel::findPublishedByPidAndColumn($basePage->id, $column);
@@ -213,13 +215,23 @@ class I18nRegular extends PageRegular
             return '';
         }
 
+        $finder    = System::getContainer()->get('netzmacht.contao_i18n.translated_article_finder');
+        $modes     = $finder->getArticleModes($currentPage);
+        $overrides = $finder->getOverrides($currentPage);
         $return    = '';
         $count     = 0;
         $multiMode = ($articles->count() > 1);
         $last      = ($articles->count() - 1);
 
-        while ($articles->next()) {
-            $articleModel = $articles->current();
+        foreach ($articles as $articleModel) {
+            // Article should be overridden. So replace it.
+            if (isset($overrides[$articleModel->id])) {
+                $articleModel = $overrides[$articleModel->id];
+            } elseif (isset($modes[$articleModel->id])) {
+                // Article is marked as exclude or as overriden.
+                // For the last case - the referenced article does not exist.
+                continue;
+            }
 
             // Add the "first" and "last" classes (see #2583)
             if ($count == 0 || $count == $last) {

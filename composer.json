@@ -9,7 +9,7 @@
     "language"
   ],
   "type": "contao-bundle",
-  "license": "LGPL-3.0-3.0-or-later",
+  "license": "LGPL-3.0-or-later",
   "authors": [
     {
       "name": "David Molineus",
@@ -29,7 +29,7 @@
     "hofff/contao-root-relations": "^2.2.0",
     "terminal42/contao-changelanguage": "~3.0",
     "netzmacht/contao-toolkit": "~3.0",
-    "contao-community-alliance/meta-palettes": "^2.0"
+    "menatwork/contao-multicolumnwizard": "~3.3.14"
   },
   "require-dev": {
     "phpcq/all-tasks": "~1.2",
