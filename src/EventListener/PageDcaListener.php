@@ -297,7 +297,7 @@ final class PageDcaListener extends AbstractListener
         $copy->tstamp       = time();
         $this->repositoryManager->getRepository(ArticleModel::class)->save($copy);
 
-        $contentElements = $this->repositoryManager->getRepository(ArticleModel::class)->findBy(
+        $contentElements = $this->repositoryManager->getRepository(ContentModel::class)->findBy(
             ['.pid=?', '( .ptable=? OR .ptable = \'\')'],
             [$articleId, ArticleModel::getTable()]
         );
