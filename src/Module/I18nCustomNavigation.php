@@ -198,7 +198,7 @@ class I18nCustomNavigation extends Module
 
         // Add the items to the pre-sorted array
         foreach ($translatedPages as $page) {
-            $pages[$page->id] = $page;
+            $pages[$page->languageMain > 0 ? $page->languageMain : $page->id] = $page;
         }
 
         $pages = array_values(array_filter($pages));
