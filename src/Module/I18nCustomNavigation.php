@@ -122,11 +122,7 @@ class I18nCustomNavigation extends Module
             }
         }
 
-        // Add classes first and last
-        $items[0]['class']     = trim($items[0]['class'] . ' first');
-        $last                  = (\count($items) - 1);
-        $items[$last]['class'] = trim($items[$last]['class'] . ' last');
-
+        $items              = $this->addCssClasses($items);
         $objTemplate->items = $items;
 
         $this->Template->request        = Environment::get('indexFreeRequest');
@@ -162,11 +158,21 @@ class I18nCustomNavigation extends Module
      */
     protected function loadTranslatedPages($objPages): array
     {
-        $repository      = $this->getContainer()->get('netzmacht.contao_i18n.page_repository');
+        $currentPage = $this->getContainer()->get('netzmacht.contao_i18n.page_provider')->getPage();
+        $repository  = $this->getContainer()->get('netzmacht.contao_i18n.page_repository');
+        $rootPage    = $repository->getRootPage($currentPage);
+
+        // We are in the root language. No translation needed.
+        if ($rootPage->fallback && $rootPage->languageRoot == '') {
+            return $objPages;
+        }
+
         $translatedPages = [];
 
         foreach ($objPages as $index => $page) {
-            $translatedPages[$index] = $repository->getTranslatedPage($page) ?: $page;
+            if ($page = $repository->getTranslatedPage($page)) {
+                $translatedPages[$index] = $page;
+            }
         }
 
         return $translatedPages;
@@ -299,5 +305,24 @@ class I18nCustomNavigation extends Module
         }
 
         return $href;
+    }
+
+    /**
+     * Add css classes.
+     *
+     * @param array $items Items.
+     *
+     * @return array
+     */
+    private function addCssClasses($items): array
+    {
+        if ($items) {
+            // Add classes first and last
+            $items[0]['class']     = trim($items[0]['class'] . ' first');
+            $last                  = (\count($items) - 1);
+            $items[$last]['class'] = trim($items[$last]['class'] . ' last');
+        }
+
+        return $items;
     }
 }
