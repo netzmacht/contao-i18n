@@ -19,6 +19,11 @@ $GLOBALS['TL_DCA']['tl_page']['config']['onload_callback'][] = [
     'initializePalette'
 ];
 
+$GLOBALS['TL_DCA']['tl_page']['config']['onload_callback'][] = [
+    'netzmacht.contao_i18n.listeners.dca.page',
+    'initializePageTypeOptionsCallback'
+];
+
 $GLOBALS['TL_DCA']['tl_page']['config']['onsubmit_callback'][] = [
     'netzmacht.contao_i18n.listeners.dca.page',
     'createI18nArticles'

@@ -27,6 +27,7 @@ use Contao\StringUtil;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Netzmacht\Contao\I18n\Cleanup\I18nPageArticleCleaner;
 use Netzmacht\Contao\I18n\Model\Article\TranslatedArticleFinder;
+use Netzmacht\Contao\Toolkit\Callback\Invoker;
 use Netzmacht\Contao\Toolkit\Data\Model\Repository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 use Netzmacht\Contao\Toolkit\Dca\Listener\AbstractListener;
@@ -80,6 +81,13 @@ final class PageDcaListener extends AbstractListener
     private $articleCleaner;
 
     /**
+     * Callback invoker.
+     *
+     * @var Invoker
+     */
+    private $callbackInvoker;
+
+    /**
      * PageDcaListener constructor.
      *
      * @param Manager                 $dcaManager        Data container definition manager.
@@ -87,6 +95,7 @@ final class PageDcaListener extends AbstractListener
      * @param BackendUser             $user              Backend user.
      * @param TranslatedArticleFinder $articleFinder     Article finder.
      * @param I18nPageArticleCleaner  $articleCleaner    Article cleaner.
+     * @param Invoker                 $callbackInvoker   Callback invoker.
      * @param bool                    $articleCleanup    If true all unrelated articles get removed.
      */
     public function __construct(
@@ -95,6 +104,7 @@ final class PageDcaListener extends AbstractListener
         BackendUser $user,
         TranslatedArticleFinder $articleFinder,
         I18nPageArticleCleaner $articleCleaner,
+        Invoker $callbackInvoker,
         bool $articleCleanup
     ) {
         parent::__construct($dcaManager);
@@ -102,8 +112,9 @@ final class PageDcaListener extends AbstractListener
         $this->repositoryManager = $repositoryManager;
         $this->user              = $user;
         $this->articleFinder     = $articleFinder;
+        $this->articleCleaner    = $articleCleaner;
+        $this->callbackInvoker   = $callbackInvoker;
         $this->articleCleanup    = $articleCleanup;
-        $this->articleCleaner = $articleCleaner;
     }
 
     /**
@@ -137,6 +148,64 @@ final class PageDcaListener extends AbstractListener
         PaletteManipulator::create()
             ->addField('i18n_disable', 'expert_legend', PaletteManipulator::POSITION_APPEND)
             ->applyToPalette('regular', static::getName());
+    }
+
+    /**
+     * Initialize the page type options.
+     *
+     * @return void
+     */
+    public function initializePageTypeOptionsCallback(): void
+    {
+        $definition = $this->getDefinition();
+        $callback   = $definition->get(['fields', 'type', 'options_callback']);
+        $definition->set(['fields', 'type', 'options_callback_original'], $callback);
+        $definition->set(
+            ['fields', 'type', 'options_callback'],
+            [
+                'netzmacht.contao_i18n.listeners.dca.page',
+                'pageTypeOptions'
+            ]
+        );
+    }
+
+    /**
+     * Get the page type options.
+     *
+     * @param DataContainer $dataContainer Data container driver.
+     *
+     * @return array
+     */
+    public function pageTypeOptions($dataContainer = null)
+    {
+        $callback = $this->getDefinition()->get(['fields', 'type', 'options_callback_original']);
+        if (!$callback || !$dataContainer) {
+            return [];
+        }
+
+        $options    = $this->callbackInvoker->invoke($callback, [$dataContainer]);
+        $repository = $this->repositoryManager->getRepository(PageModel::class);
+
+        $page = $repository->find((int) $dataContainer->id);
+        if (!$page) {
+            return $options;
+        }
+
+        $rootPage = $repository->find((int) $page->hofff_root_page_id);
+        if (!$rootPage) {
+            return $options;
+        }
+
+        if ($rootPage->fallback === '' || $rootPage->languageRoot === '0') {
+            $options = array_filter(
+                $options,
+                function ($value) {
+                    return $value !== 'i18n_regular';
+                }
+            );
+        }
+
+        return $options;
     }
 
     /**

@@ -122,6 +122,7 @@
             <argument type="service" id="netzmacht.contao_toolkit.contao.backend_user"/>
             <argument type="service" id="netzmacht.contao_i18n.translated_article_finder" />
             <argument type="service" id="netzmacht.contao_i18n.article_cleaner" />
+            <argument type="service" id="netzmacht.contao_toolkit.callback_invoker" />
             <argument type="string">%netzmacht.contao_i18n.article_cleanup%</argument>
         </service>
 
