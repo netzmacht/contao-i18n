@@ -32,7 +32,7 @@ class PageStatusIconListener
     public function onGetPageStatusIcon($pageModel, string $icon): string
     {
         if ($pageModel->type === 'i18n_regular') {
-            return 'web/bundles/netzmachtcontaoi18n/img/' . substr($icon, 0, -3) . 'gif';
+            return 'bundles/netzmachtcontaoi18n/img/' . $icon;
         }
 
         return $icon;
