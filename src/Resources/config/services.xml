@@ -121,6 +121,16 @@
             <argument type="service" id="netzmacht.contao_toolkit.repository_manager"/>
             <argument type="service" id="netzmacht.contao_toolkit.contao.backend_user"/>
             <argument type="service" id="netzmacht.contao_i18n.translated_article_finder" />
+            <argument type="service" id="netzmacht.contao_i18n.article_cleaner" />
+            <argument type="string">%netzmacht.contao_i18n.article_cleanup%</argument>
+        </service>
+
+        <service id="netzmacht.contao_i18n.article_cleaner"
+                 class="Netzmacht\Contao\I18n\Cleanup\I18nPageArticleCleaner">
+            <argument type="service" id="netzmacht.contao_toolkit.repository_manager" />
+            <argument type="service" id="netzmacht.contao_toolkit.dca.manager" />
+            <argument type="service" id="netzmacht.contao_toolkit.contao.backend_user" />
+            <argument type="service" id="netzmacht.contao_toolkit.callback_invoker" />
         </service>
     </services>
 </container>

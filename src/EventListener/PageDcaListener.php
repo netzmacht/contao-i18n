@@ -24,6 +24,8 @@ use Contao\Image;
 use Contao\Input;
 use Contao\PageModel;
 use Contao\StringUtil;
+use Doctrine\DBAL\Exception\InvalidArgumentException;
+use Netzmacht\Contao\I18n\Cleanup\I18nPageArticleCleaner;
 use Netzmacht\Contao\I18n\Model\Article\TranslatedArticleFinder;
 use Netzmacht\Contao\Toolkit\Data\Model\Repository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
@@ -64,24 +66,44 @@ final class PageDcaListener extends AbstractListener
     private $articleFinder;
 
     /**
+     * If true all unrelated articles get removed.
+     *
+     * @var bool
+     */
+    private $articleCleanup;
+
+    /**
+     * Article cleaner.
+     *
+     * @var I18nPageArticleCleaner
+     */
+    private $articleCleaner;
+
+    /**
      * PageDcaListener constructor.
      *
      * @param Manager                 $dcaManager        Data container definition manager.
      * @param RepositoryManager       $repositoryManager Repository manager.
      * @param BackendUser             $user              Backend user.
      * @param TranslatedArticleFinder $articleFinder     Article finder.
+     * @param I18nPageArticleCleaner  $articleCleaner    Article cleaner.
+     * @param bool                    $articleCleanup    If true all unrelated articles get removed.
      */
     public function __construct(
         Manager $dcaManager,
         RepositoryManager $repositoryManager,
         BackendUser $user,
-        TranslatedArticleFinder $articleFinder
+        TranslatedArticleFinder $articleFinder,
+        I18nPageArticleCleaner $articleCleaner,
+        bool $articleCleanup
     ) {
         parent::__construct($dcaManager);
 
         $this->repositoryManager = $repositoryManager;
         $this->user              = $user;
         $this->articleFinder     = $articleFinder;
+        $this->articleCleanup    = $articleCleanup;
+        $this->articleCleaner = $articleCleaner;
     }
 
     /**
@@ -158,6 +180,8 @@ final class PageDcaListener extends AbstractListener
      * @param DataContainer|null $dataContainer The data container.
      *
      * @return void
+     *
+     * @throws InvalidArgumentException When an invalid query was built.
      */
     public function createI18nArticles($dataContainer = null): void
     {
@@ -180,11 +204,22 @@ final class PageDcaListener extends AbstractListener
         }
 
         // Remove connection between the languages. Do not delete the article.
-        foreach ($deletes as $article) {
-            $article->languageMain = 0;
-            $article->tstamp       = time();
+        $articleRepository = $this->repositoryManager->getRepository(ArticleModel::class);
 
-            $this->repositoryManager->getRepository(ArticleModel::class)->save($article);
+        foreach ($deletes as $article) {
+            if ($this->articleCleanup) {
+                $this->articleCleaner->deleteArticle($article, $dataContainer);
+            } else {
+                $article->languageMain = 0;
+                $article->tstamp       = time();
+
+                $articleRepository->save($article);
+            }
+        }
+
+        // Delete all unrelated articles.
+        if ($this->articleCleaner) {
+            $this->articleCleaner->cleanupUnrelatedArticles($dataContainer);
         }
     }
 
@@ -315,6 +350,7 @@ final class PageDcaListener extends AbstractListener
             $contentCopy->pid    = $copy->id;
             $contentCopy->ptable = ArticleModel::getTable();
             $contentCopy->tstamp = time();
+
             $this->repositoryManager->getRepository(ContentModel::class)->save($contentCopy);
         }
     }

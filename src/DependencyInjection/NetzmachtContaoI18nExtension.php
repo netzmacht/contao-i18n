@@ -48,6 +48,11 @@ final class NetzmachtContaoI18nExtension extends Extension
         $loader->load('services.xml');
 
         $this->configureSearchablePagesListeners($container);
+
+        $configuration = new Configuration();
+        $config        = $this->processConfiguration($configuration, $configs);
+
+        $container->setParameter('netzmacht.contao_i18n.article_cleanup', $config['article_cleanup']);
     }
 
     /**

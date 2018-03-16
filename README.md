@@ -95,3 +95,18 @@ Note: Nested insert tags are supported in the translation strings.
 This extension provides two navigation modules which goes a step further. They does not only replace the url but the 
 whole page. So you get an translated navigation module even if you have a reference page set in a navigation module or 
 you use an individual navigation.
+
+
+Configuration
+-------------
+
+By default contao-i18n does not delete any articles in the contao i18n regular page. If they are not connected as 
+page to override other pages, they are simply ignored. However, you can enable the cleanup. If cleanup is enabled all
+articles are deleted which are not configured as an article override.
+
+```yaml
+# app/config/config.yml
+
+netzmacht_contao_i18n:
+    article_cleanup: true
+```
