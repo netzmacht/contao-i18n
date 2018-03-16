@@ -57,7 +57,7 @@ class PublishedI18nRegularPagesQuery
             ->andWhere('(p.start=\'\' OR p.start <=:start)')
             ->andWhere('(p.stop=\'\' OR p.stop > :stop)')
             ->andWhere('p.published=\'1\'')
-            ->andWhere('r.fallback = \'\'')
+            ->andWhere('(r.fallback = \'\' or r.languageRoot > 0)')
             ->setParameter('pid', $pid)
             ->setParameter('start', $start)
             ->setParameter('stop', ($start + 60))
