@@ -86,6 +86,7 @@ $GLOBALS['TL_DCA']['tl_page']['fields']['i18n_articles'] = [
                 'eval'      => ['style' => 'width:100%', 'chosen' => true],
             ],
         ],
+        'buttons' => ['copy' => false, 'up' => false, 'down' => false],
     ],
     'load_callback' => [
         ['netzmacht.contao_i18n.listeners.dca.page', 'loadI18nArticles'],
