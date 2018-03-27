@@ -39,15 +39,6 @@ $GLOBALS['TL_DCA']['tl_page']['list']['operations']['articles']['button_callback
     'editArticles'
 ];
 
-
-/*
- * Palettes
- */
-
-$GLOBALS['TL_DCA']['tl_page']['palettes']['__selector__'][]           = 'i18n_article_override';
-$GLOBALS['TL_DCA']['tl_page']['subpalettes']['i18n_article_override'] = 'i18n_articles';
-
-
 /*
  * Fields
  */
@@ -57,14 +48,6 @@ $GLOBALS['TL_DCA']['tl_page']['fields']['i18n_disable'] = [
     'exclude'   => true,
     'inputType' => 'checkbox',
     'eval'      => ['tl_class' => 'clr w50'],
-    'sql'       => "char(1) NOT NULL default ''",
-];
-
-$GLOBALS['TL_DCA']['tl_page']['fields']['i18n_article_override'] = [
-    'label'     => &$GLOBALS['TL_LANG']['tl_page']['i18n_article_override'],
-    'exclude'   => true,
-    'inputType' => 'checkbox',
-    'eval'      => ['tl_class' => 'clr w50', 'submitOnChange' => true],
     'sql'       => "char(1) NOT NULL default ''",
 ];
 

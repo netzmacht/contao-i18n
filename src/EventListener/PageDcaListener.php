@@ -131,7 +131,7 @@ final class PageDcaListener extends AbstractListener
 
         PaletteManipulator::create()
             ->addLegend('articles_legend', ['meta_legend', 'language_legend', 'title_legend'])
-            ->addField('i18n_article_override', 'articles_legend', PaletteManipulator::POSITION_APPEND)
+            ->addField('i18n_articles', 'articles_legend', PaletteManipulator::POSITION_APPEND)
             ->applyToPalette('i18n_regular', static::getName());
 
         if (Input::get('act') !== 'edit') {

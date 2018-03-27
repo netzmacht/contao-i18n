@@ -56,10 +56,6 @@ final class TranslatedArticleFinder
     {
         $modes = [];
 
-        if (!$currentPage->i18n_article_override) {
-            return $modes;
-        }
-
         foreach (StringUtil::deserialize($currentPage->i18n_articles, true) as $config) {
             if (!$config['article']) {
                 continue;
