@@ -18,6 +18,7 @@ use Contao\Config;
 use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFrameworkInterface as ContaoFramework;
 use Contao\Environment;
+use Contao\PageModel;
 use Contao\Search;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -45,6 +46,8 @@ class AddToSearchIndexListener
     private $fragmentPath;
 
     /**
+     * Construct.
+     *
      * @param ContaoFramework $framework    Contao framework.
      * @param string          $fragmentPath Fragment path.
      */
@@ -57,7 +60,9 @@ class AddToSearchIndexListener
     /**
      * Checks if the request can be indexed and forwards it accordingly.
      *
-     * @param PostResponseEvent $event
+     * @param PostResponseEvent $event The subscribed event.
+     *
+     * @return void
      */
     public function onKernelTerminate(PostResponseEvent $event): void
     {
@@ -83,9 +88,13 @@ class AddToSearchIndexListener
     /**
      * Index a page if applicable
      *
-     * @param Response $response
+     * @param Response $response The http response.
+     *
+     * @return void
+     *
+     * @SuppressWarnings(PHPMD.Superglobals)
      */
-    private function indexPageIfApplicable(Response $response)
+    private function indexPageIfApplicable(Response $response): void
     {
         $page = $GLOBALS['objPage'];
 
@@ -93,45 +102,72 @@ class AddToSearchIndexListener
             return;
         }
 
-        /** @var Adapter|Config $config */
-        $config = $this->framework->getAdapter(Config::class);
         /** @var Environment $environment */
         $environment = $this->framework->getAdapter(Environment::class);
 
         // Index page if searching is allowed and there is no back end user
-        if ($config->get('enableSearch')
-            && $page->type == 'i18n_regular'
-            && !BE_USER_LOGGED_IN
-            && !$page->noSearch
-        ) {
-            // Index protected pages if enabled
-            if ($config->get('indexProtected') || (!FE_USER_LOGGED_IN && !$page->protected)) {
-                $index = true;
+        if ($this->isIndexingAllowed($page)) {
+            $data = [
+                'url'       => $environment->get('base') . $environment->get('relativeRequest'),
+                'content'   => $response->getContent(),
+                'title'     => $page->pageTitle ?: $page->title,
+                'protected' => ($page->protected ? '1' : ''),
+                'groups'    => $page->groups,
+                'pid'       => $page->id,
+                'language'  => $page->language,
+            ];
 
-                // Do not index the page if certain parameters are set
-                foreach (array_keys($_GET) as $key) {
-                    if (\in_array($key, $GLOBALS['TL_NOINDEX_KEYS']) || strncmp($key, 'page_', 5) === 0) {
-                        $index = false;
-                        break;
-                    }
-                }
+            /** @var Adapter|Search $search */
+            $search = $this->framework->getAdapter(Search::class);
+            $search->indexPage($data);
+        }
+    }
 
-                if ($index) {
-                    $data = [
-                        'url'       => $environment->get('base') . $environment->get('relativeRequest'),
-                        'content'   => $response->getContent(),
-                        'title'     => $page->pageTitle ?: $page->title,
-                        'protected' => ($page->protected ? '1' : ''),
-                        'groups'    => $page->groups,
-                        'pid'       => $page->id,
-                        'language'  => $page->language,
-                    ];
+    /**
+     * Check if indexing is allowed.
+     *
+     * @param PageModel $page The page model.
+     *
+     * @return bool
+     */
+    private function isIndexingAllowed($page): bool
+    {
+        /** @var Adapter|Config $config */
 
-                    /** @var Adapter|Search $search */
-                    $search = $this->framework->getAdapter(Search::class);
-                    $search->indexPage($data);
-                }
+        $config = $this->framework->getAdapter(Config::class);
+
+        if (!$config->get('enableSearch')) {
+            return false;
+        }
+
+        if ($page->type !== 'i18n_regular' || BE_USER_LOGGED_IN || $page->noSearch) {
+            return false;
+        }
+
+        // Index protected pages if enabled
+        if (!$config->get('indexProtected') && FE_USER_LOGGED_IN && $page->protected) {
+            return false;
+        }
+
+        return !$this->hasNoIndexKeys();
+    }
+
+    /**
+     * Check if query has some no index keys.
+     *
+     * @return bool
+     *
+     * @SuppressWarnings(PHPMD.Superglobals)
+     */
+    private function hasNoIndexKeys(): bool
+    {
+        // Do not index the page if certain parameters are set
+        foreach (array_keys($_GET) as $key) {
+            if (\in_array($key, $GLOBALS['TL_NOINDEX_KEYS']) || strncmp($key, 'page_', 5) === 0) {
+                return true;
             }
         }
+
+        return false;
     }
 }

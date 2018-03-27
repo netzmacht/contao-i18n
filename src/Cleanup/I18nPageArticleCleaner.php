@@ -19,8 +19,10 @@ use Contao\BackendUser;
 use Contao\CoreBundle\Framework\Adapter;
 use Contao\DataContainer;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Netzmacht\Contao\Toolkit\Callback\Invoker;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
+use Netzmacht\Contao\Toolkit\Dca\Definition;
 use Netzmacht\Contao\Toolkit\Dca\Manager;
 
 /**
@@ -90,7 +92,7 @@ final class I18nPageArticleCleaner
         $articleRepository = $this->repositoryManager->getRepository(ArticleModel::class);
         $collection        = $articleRepository->findBy(['.pid=?', '.languageMain=0'], [$dataContainer->id]);
 
-        foreach ($collection ?? [] as $articleModel) {
+        foreach (($collection ?? []) as $articleModel) {
             $this->deleteArticle($articleModel, $dataContainer);
         }
     }
@@ -98,8 +100,10 @@ final class I18nPageArticleCleaner
     /**
      * Delete a article. The article is listed
      *
-     * @param ArticleModel  $articleModel Article model.
+     * @param ArticleModel  $articleModel  Article model.
      * @param DataContainer $dataContainer Data container driver of tl_page.
+     *
+     * @return void
      *
      * @throws InvalidArgumentException When an invalid argument is passed to the delete statement.
      */
@@ -116,13 +120,13 @@ final class I18nPageArticleCleaner
     /**
      * Recursively get all related table names and records which has to be deleted.
      *
-     * @param string  $table  The current table name.
-     * @param integer $id     The record id.
-     * @param array   $delete Array of all collected delete statements.
+     * @param string  $table    The current table name.
+     * @param integer $recordId The record id.
+     * @param array   $delete   Array of all collected delete statements.
      *
      * @return void
      */
-    private function collectChildren($table, $id, &$delete): void
+    private function collectChildren($table, $recordId, &$delete): void
     {
         $cctable = [];
         $ctables = $this->dcaManager->getDefinition($table)->get(['config', 'ctable']);
@@ -130,8 +134,6 @@ final class I18nPageArticleCleaner
         if (!\is_array($ctables)) {
             return;
         }
-
-        $connection = $this->repositoryManager->getConnection();
 
         // Walk through each child table
         foreach ($ctables as $ctable) {
@@ -142,25 +144,8 @@ final class I18nPageArticleCleaner
             $definition       = $this->dcaManager->getDefinition($ctable);
             $cctable[$ctable] = $definition->get(['config', 'ctable']);
 
-            $builder = $connection->createQueryBuilder()
-                ->select('id')
-                ->from($ctable)
-                ->andWhere('pid=:pid')
-                ->setParameter('pid', $id);
-
-            // Consider the dynamic parent table (see #4867)
-            if ($definition->get(['config', 'dynamicPtable'])) {
-                $ptable = $definition->get(['config', 'ptable']);
-                $builder->setParameter('ptable', $ptable);
-
-                if ($ptable === 'tl_article') {
-                    $builder->andWhere('(ptable=:ptable OR ptable=\'\')');
-                } else {
-                    $builder->andWhere('ptable=:ptable');
-                }
-            }
-
-            $result = $builder->execute();
+            $builder = $this->buildCollectChildrenQuery($definition, $recordId, $ctable);
+            $result  = $builder->execute();
 
             if ($definition->get(['config', 'doNotDeleteRecords']) || !$result->rowCount()) {
                 continue;
@@ -183,44 +168,14 @@ final class I18nPageArticleCleaner
      * @param int           $articleId     The article id.
      * @param DataContainer $dataContainer Data container driver of tl_page.
      *
+     * @return void
+     *
      * @throws InvalidArgumentException When an invalid argument is passed to the delete statement.
      */
     private function deleteRecords(array $delete, $articleId, $dataContainer): void
     {
-        $connection = $this->repositoryManager->getConnection();
-        $affected   = 0;
-        $data       = [];
-
-
-        // Save each record of each table
-        foreach ($delete as $table => $fields) {
-            foreach ($fields as $k => $v) {
-                $statement = $connection->createQueryBuilder()
-                    ->select('*')
-                    ->from($table)
-                    ->where('id=:id')
-                    ->setParameter('id', $v)
-                    ->execute();
-
-                if ($statement->rowCount()) {
-                    $data[$table][$k] = $statement->fetch(\PDO::FETCH_ASSOC);
-                    $affected++;
-                }
-            }
-        }
-
-        $affectedRows = $connection->insert(
-            'tl_undo',
-            [
-                'pid'          => $this->backendUser->id,
-                'tstamp'       => time(),
-                'fromTable'    => ArticleModel::getTable(),
-                'query'        => 'DELETE FROM tl_article WHERE id=' . $articleId,
-                'affectedRows' => $affected,
-                'data'         => serialize($data),
-            ]
-        );
-
+        $connection   = $this->repositoryManager->getConnection();
+        $affectedRows = $this->updateUndoRecord($delete, $articleId);
 
         // Delete the records
         if (!$affectedRows) {
@@ -239,5 +194,81 @@ final class I18nPageArticleCleaner
                 $connection->delete($table, ['id' => $recordId]);
             }
         }
+    }
+
+    /**
+     * Update the undo record with all child content.
+     *
+     * @param array $delete    Records to delete.
+     * @param int   $articleId The article id.
+     *
+     * @return int
+     */
+    private function updateUndoRecord(array $delete, $articleId): int
+    {
+        $connection = $this->repositoryManager->getConnection();
+        $affected   = 0;
+        $data       = [];
+
+        // Save each record of each table
+        foreach ($delete as $table => $fields) {
+            foreach ($fields as $key => $value) {
+                $statement = $connection->createQueryBuilder()
+                    ->select('*')
+                    ->from($table)
+                    ->where('id=:id')
+                    ->setParameter('id', $value)
+                    ->execute();
+
+                if ($statement->rowCount()) {
+                    $data[$table][$key] = $statement->fetch(\PDO::FETCH_ASSOC);
+                    $affected++;
+                }
+            }
+        }
+
+        return $connection->insert(
+            'tl_undo',
+            [
+                'pid'          => $this->backendUser->id,
+                'tstamp'       => time(),
+                'fromTable'    => ArticleModel::getTable(),
+                'query'        => 'DELETE FROM tl_article WHERE id=' . $articleId,
+                'affectedRows' => $affected,
+                'data'         => serialize($data),
+            ]
+        );
+    }
+
+    /**
+     * Build the children collection query.
+     *
+     * @param Definition $definition The dca definition.
+     * @param string|int $recordId   The record id.
+     * @param string     $ctable     The children table.
+     *
+     * @return QueryBuilder
+     */
+    private function buildCollectChildrenQuery($definition, $recordId, $ctable): QueryBuilder
+    {
+        $builder = $this->repositoryManager->getConnection()->createQueryBuilder()
+            ->select('id')
+            ->from($ctable)
+            ->andWhere('pid=:pid')
+            ->setParameter('pid', $recordId);
+
+        // Consider the dynamic parent table (see #4867)
+        if ($definition->get(['config', 'dynamicPtable'])) {
+            $ptable = $definition->get(['config', 'ptable']);
+            $builder->setParameter('ptable', $ptable);
+
+            if ($ptable === 'tl_article') {
+                $builder->andWhere('(ptable=:ptable OR ptable=\'\')');
+            } else {
+                $builder->andWhere('ptable=:ptable');
+            }
+        }
+
+        return $builder;
     }
 }
