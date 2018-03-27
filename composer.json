@@ -8,13 +8,13 @@
     "multilingual",
     "language"
   ],
-  "type": "contao-module",
-  "license": "LGPL-3.0+",
+  "type": "contao-bundle",
+  "license": "LGPL-3.0-or-later",
   "authors": [
     {
       "name": "David Molineus",
       "email": "mail@netzmacht.de",
-      "homepage": "http://www.netzmacht.de",
+      "homepage": "https://netzmacht.de",
       "role": "Developer"
     }
   ],
@@ -24,54 +24,40 @@
     "source": "https://github.com/netzmacht/contao-i18n"
   },
   "require": {
-    "php": ">=5.4",
-    "contao/core": ">=3.5,<3.6-dev",
-    "contao-community-alliance/composer-plugin": "~2",
-    "contao-community-alliance/dependency-container": "~1.6",
-    "contao-community-alliance/translator": "~2.0",
-    "contao-community-alliance/meta-palettes": "~1.0",
-    "contao-community-alliance/root-relations": "~1.0",
-    "terminal42/contao-changelanguage": "~2.0",
-    "netzmacht/contao-toolkit": "~1.0"
+    "php": "^7.1",
+    "contao/core-bundle": "~4.4",
+    "hofff/contao-root-relations": "^2.2.0",
+    "terminal42/contao-changelanguage": "~3.0",
+    "netzmacht/contao-toolkit": "~3.0",
+    "menatwork/contao-multicolumnwizard": "~3.3.14"
   },
   "require-dev": {
-    "netzmacht/contao-build-tools": "~1.1"
+    "phpcq/all-tasks": "~1.2",
+    "contao/manager-plugin": "~2.0",
+    "contao/news-bundle": "~4.4",
+    "contao/calendar-bundle": "~4.4",
+    "contao/faq-bundle": "~4.4"
   },
   "suggest": {
-    "contao-community-alliance/merger2": "Allows flexible module integration. I18n provides special functions for it."
   },
   "autoload": {
     "psr-4": {
       "Netzmacht\\Contao\\I18n\\": "src/"
     }
   },
+  "autoload-dev": {
+    "files": [
+      "vendor/phpcq/autoload-validation/hacks/contao-hack.php"
+    ]
+  },
   "prefer-stable": true,
   "minimum-stability": "dev",
   "extra": {
-    "contao": {
-      "sources": {
-        "module": "system/modules/i18n",
-        "themes/default/images/i18n_regular.gif":    "system/themes/default/images/i18n_regular.gif",
-        "themes/default/images/i18n_regular_1.gif":  "system/themes/default/images/i18n_regular_1.gif",
-        "themes/default/images/i18n_regular_2.gif":  "system/themes/default/images/i18n_regular_2.gif",
-        "themes/default/images/i18n_regular_3.gif":  "system/themes/default/images/i18n_regular_3.gif",
-        "themes/default/images/i18n_regular_4.gif":  "system/themes/default/images/i18n_regular_4.gif",
-        "themes/default/images/i18n_regular_5.gif":  "system/themes/default/images/i18n_regular_5.gif",
-        "themes/default/images/i18n_regular_6.gif":  "system/themes/default/images/i18n_regular_6.gif",
-        "themes/default/images/i18n_regular_7.gif":  "system/themes/default/images/i18n_regular_7.gif",
-        "themes/flexible/images/i18n_regular.gif":   "system/themes/flexible/images/i18n_regular.gif",
-        "themes/flexible/images/i18n_regular_1.gif": "system/themes/flexible/images/i18n_regular_1.gif",
-        "themes/flexible/images/i18n_regular_2.gif": "system/themes/flexible/images/i18n_regular_2.gif",
-        "themes/flexible/images/i18n_regular_3.gif": "system/themes/flexible/images/i18n_regular_3.gif",
-        "themes/flexible/images/i18n_regular_4.gif": "system/themes/flexible/images/i18n_regular_4.gif",
-        "themes/flexible/images/i18n_regular_5.gif": "system/themes/flexible/images/i18n_regular_5.gif",
-        "themes/flexible/images/i18n_regular_6.gif": "system/themes/flexible/images/i18n_regular_6.gif",
-        "themes/flexible/images/i18n_regular_7.gif": "system/themes/flexible/images/i18n_regular_7.gif"
-      }
-    },
+    "contao-manager-plugin": "Netzmacht\\Contao\\I18n\\ContaoManager\\Plugin",
     "branch-alias": {
-      "dev-master": "1.0.x-dev",
-      "dev-develop": "1.1.x-dev"
+      "dev-support/1.0.x": "1.0.x-dev",
+      "dev-master": "2.0.x-dev",
+      "dev-develop": "2.1.x-dev"
     }
   }
 }

@@ -7,7 +7,8 @@ Contao I18n toolkit
 [![Downloads](http://img.shields.io/packagist/dt/netzmacht/contao-i18n.svg?style=flat-square)](http://packagist.com/packages/netzmacht/contao-i18n)
 [![Contao Community Alliance coding standard](http://img.shields.io/badge/cca-coding_standard-red.svg?style=flat-square)](https://github.com/contao-community-alliance/coding-standard)
 
-This extensions provides an flexible way for multilingual websites.
+This extensions provides an flexible way for multilingual websites where parts of the main language should be reused on
+the translated pages.
 
 Install
 -------
@@ -15,14 +16,14 @@ Install
 You can install this extension using Composer.
 
 ```
-$ php composer.phar require netzmacht/contao-i18n:~1.0
+$ php composer.phar require netzmacht/contao-i18n:~2.0
 ```
 
 Requirements
 ------------
 
- * >= PHP 5.4
- * Contao 3.5 
+ * >= PHP 7.1
+ * Contao 4.4 
  * Usage of [terminal42/contao-changelanguage](https://github.com/terminal42/contao-changelanguage)
  
 Features
@@ -30,17 +31,21 @@ Features
 
 ### Language aware redirects
 
-Module and form redirects are able to redirect to the translated version of the defined jump to page. So you only have 
-to define the module once if only the target differs.
+The main idea of the repository is you want to reuse modules or content from the main page in the translations. If you 
+do so - most links or redirects would go back to the main language.
+
+That's where this extension hook into. It detects references to pages in another language tree. If the it's the case it
+try to find the translation and manipulates the target page to the translation.
+
+It works for all page references. No matter if you have a jumpTo in your form or module. But you stay in control. You can 
+disable this behaviour by disable it in the page of the main language. Also the change language module is blacklisted, so
+you are still able to link to another language.
 
  1. Setup the pages and connect pages as usual with changelanguage.
  2. Set the redirect page to the fallback language.
- 3. In a module set the `jumpToI18n` checkbox, for forms choose the `I18n form` content element/module to enable the 
-    language aware redirect.
+ 3. In you want to disable the *"page translation"* you may configure it in your page setting.
 
 So you only have to define once the language relations! And you keep control if language redirects is required.
-
-*Known limititation:* The language related redirect of modules does not work when using the Contao frontend preview. 
 
 ### Same pages in different languages
 
@@ -52,6 +57,14 @@ possible to have language aware aliases but use same content without duplication
 
 On top of it the language is kept. This means that Contao uses the language defined in the page settings. This enables
  you to use insert tags to translate contents.
+ 
+### Same news, events and faqs in different languages
+
+If you want to reuse news, events and faqs in different languages, it's supported. You only have to use the
+`I18n Regular page` as the reader page in the translation tree. This extension automatically creates the search page 
+entries and sitemap entries for you.
+
+**Known limitation**: The rss feed are not translated at the moment.  
  
 ### Translation insert tags
 
@@ -79,15 +92,21 @@ Note: Nested insert tags are supported in the translation strings.
 
 ### Navigation modules
 
-At the moment only the normal navigation module supports an i18n root page setting. Use the `I18n navigation` module for
-this. 
+This extension provides two navigation modules which goes a step further. They does not only replace the url but the 
+whole page. So you get an translated navigation module even if you have a reference page set in a navigation module or 
+you use an individual navigation.
 
-Instead of using the defined root page it tries to find the correct related language page of it and then render the 
-navigation.
 
-### Language editor
+Configuration
+-------------
 
-If you start using the `translate` insert tag you probably want to provide an easy way to translate that labels in the 
-backend. Have a look at [netzmacht/contao-language-editor](https://github.com/netzmacht/contao-language-editor) for it.
+By default contao-i18n does not delete any articles in the contao i18n regular page. If they are not connected as 
+page to override other pages, they are simply ignored. However, you can enable the cleanup. If cleanup is enabled all
+articles are deleted which are not configured as an article override.
 
-ATM it's still required to create the english language files so that the language editor knows this labels exists.
+```yaml
+# app/config/config.yml
+
+netzmacht_contao_i18n:
+    article_cleanup: true
+```

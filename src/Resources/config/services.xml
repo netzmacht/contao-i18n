@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services
+        http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="netzmacht.contao_i18n.pages" type="collection">
+            <parameter>i18n_regular</parameter>
+        </parameter>
+    </parameters>
+    <services>
+        <defaults public="true"/>
+        <service id="netzmacht.contao_i18n.context_stack" class="Netzmacht\Contao\I18n\Context\ContextStack"/>
+
+        <service id="netzmacht.contao_i18n.page_repository"
+                 class="Netzmacht\Contao\I18n\Model\Page\I18nPageRepository">
+            <argument>%netzmacht.contao_i18n.pages%</argument>
+            <argument type="service" id="netzmacht.contao_toolkit.repository_manager"/>
+        </service>
+
+        <service id="netzmacht.contao_i18n.service_factory"
+                 class="Netzmacht\Contao\I18n\DependencyInjection\ServiceFactory">
+            <argument type="service" id="contao.framework"/>
+        </service>
+
+        <service id="netzmacht.contao_i18n.contao.model_registry"
+                 class="Contao\Model\Registry">
+            <factory service="netzmacht.contao_i18n.service_factory" method="createModelRegistry"/>
+        </service>
+
+        <service id="netzmacht.contao_i18n.contao.database_connection" class="Contao\Database">
+            <factory service="netzmacht.contao_i18n.service_factory" method="createDatabaseConnection"/>
+        </service>
+
+        <service id="netzmacht.contao_i18n.page_provider" class="Netzmacht\Contao\I18n\PageProvider\PageProvider"/>
+
+        <service id="netzmacht.contao_i18n.translated_article_finder"
+                 class="Netzmacht\Contao\I18n\Model\Article\TranslatedArticleFinder">
+            <argument type="service" id="netzmacht.contao_toolkit.repository_manager"/>
+        </service>
+
+        <service id="netzmacht.contao_18n.listeners.translate_page_url"
+                 class="Netzmacht\Contao\I18n\EventListener\TranslatePageUrlListener">
+            <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
+            <argument type="service" id="netzmacht.contao_i18n.context_stack"/>
+            <argument type="service" id="contao.framework"/>
+            <tag name="contao.hook" hook="generateFrontendUrl"/>
+        </service>
+
+        <service id="netzmacht.contao_i18m.listeners.current_page"
+                 class="Netzmacht\Contao\I18n\EventListener\CurrentPageListener">
+            <argument type="service" id="netzmacht.contao_i18n.page_provider"/>
+            <tag name="contao.hook" hook="getPageLayout"/>
+        </service>
+
+        <service id="netzmacht.contao_18n.listeners.translate_insert_tag"
+                 class="Netzmacht\Contao\I18n\EventListener\TranslateInsertTagListener">
+            <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
+            <argument type="service" id="netzmacht.contao_i18n.page_provider"/>
+            <argument type="service" id="translator"/>
+            <tag name="contao.hook" hook="replaceInsertTags" method="replace"/>
+        </service>
+
+        <service id="netzmacht.contao_i18n.listeners.page_status_icon"
+                 class="Netzmacht\Contao\I18n\EventListener\PageStatusIconListener">
+            <tag name="contao.hook" hook="getPageStatusIcon"/>
+        </service>
+
+        <service id="netzmacht.contao_i18n.listeners.context"
+                 class="Netzmacht\Contao\I18n\EventListener\ContextListener">
+            <argument type="service" id="netzmacht.contao_i18n.context_stack"/>
+            <argument type="service" id="netzmacht.contao_toolkit.repository_manager" />
+            <tag name="contao.hook" hook="isVisibleElement"/>
+            <tag name="contao.hook" hook="getFrontendModule"/>
+        </service>
+
+        <service
+                id="netzmacht.contao_i18n.listeners.searchable_i18n_regular_pages"
+                class="Netzmacht\Contao\I18n\EventListener\SearchableI18nRegularPageUrlsListener">
+            <argument type="service" id="database_connection"/>
+            <argument type="service" id="netzmacht.contao_i18n.contao.model_registry"/>
+            <argument type="service" id="netzmacht.contao_toolkit.contao.config_adapter"/>
+            <tag name="contao.hook" hook="getSearchablePages"/>
+        </service>
+
+        <service
+                id="netzmacht.contao_i18n.listeners.searchable_news"
+                class="Netzmacht\Contao\I18n\EventListener\SearchableI18nNewsUrlsListener">
+            <argument type="service" id="netzmacht.contao_toolkit.repository_manager"/>
+            <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
+            <argument type="service" id="netzmacht.contao_i18n.translated_article_finder" />
+            <argument type="service" id="netzmacht.contao_i18n.contao.database_connection"/>
+            <argument type="service" id="netzmacht.contao_toolkit.contao.config_adapter"/>
+            <tag name="contao.hook" hook="getSearchablePages"/>
+        </service>
+
+        <service
+                id="netzmacht.contao_i18n.listeners.searchable_events"
+                class="Netzmacht\Contao\I18n\EventListener\SearchableI18nEventUrlsListener">
+            <argument type="service" id="netzmacht.contao_toolkit.repository_manager"/>
+            <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
+            <argument type="service" id="netzmacht.contao_i18n.contao.database_connection"/>
+            <argument type="service" id="netzmacht.contao_toolkit.contao.config_adapter"/>
+            <tag name="contao.hook" hook="getSearchablePages"/>
+        </service>
+
+        <service
+                id="netzmacht.contao_i18n.listeners.searchable_faqs"
+                class="Netzmacht\Contao\I18n\EventListener\SearchableI18nFaqUrlsListener">
+            <argument type="service" id="netzmacht.contao_toolkit.repository_manager"/>
+            <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
+            <argument type="service" id="netzmacht.contao_i18n.contao.database_connection"/>
+            <argument type="service" id="netzmacht.contao_toolkit.contao.config_adapter"/>
+            <tag name="contao.hook" hook="getSearchablePages"/>
+        </service>
+
+        <service id="netzmacht.contao_i18n.listeners.dca.page"
+                 class="Netzmacht\Contao\I18n\EventListener\PageDcaListener">
+            <argument type="service" id="netzmacht.contao_toolkit.dca.manager"/>
+            <argument type="service" id="netzmacht.contao_toolkit.repository_manager"/>
+            <argument type="service" id="netzmacht.contao_toolkit.contao.backend_user"/>
+            <argument type="service" id="netzmacht.contao_i18n.translated_article_finder" />
+            <argument type="service" id="netzmacht.contao_i18n.article_cleaner" />
+            <argument type="service" id="netzmacht.contao_toolkit.callback_invoker" />
+            <argument type="string">%netzmacht.contao_i18n.article_cleanup%</argument>
+        </service>
+
+        <service id="netzmacht.contao_i18n.article_cleaner"
+                 class="Netzmacht\Contao\I18n\Cleanup\I18nPageArticleCleaner">
+            <argument type="service" id="netzmacht.contao_toolkit.repository_manager" />
+            <argument type="service" id="netzmacht.contao_toolkit.dca.manager" />
+            <argument type="service" id="netzmacht.contao_toolkit.contao.backend_user" />
+            <argument type="service" id="netzmacht.contao_toolkit.callback_invoker" />
+        </service>
+
+        <service id="netzmacht.contao_i18n.listeners.add_to_search_index"
+                 class="Netzmacht\Contao\I18n\EventListener\AddToSearchIndexListener">
+            <argument type="service" id="contao.framework" />
+            <argument type="string" >%fragment.path%</argument>
+            <tag name="kernel.event_listener" event="kernel.terminate" method="onKernelTerminate" />
+        </service>
+    </services>
+</container>
