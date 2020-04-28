@@ -196,7 +196,7 @@ final class PageDcaListener extends AbstractListener
             return $options;
         }
 
-        if ($rootPage->fallback === '' || $rootPage->languageRoot === '0') {
+        if ($rootPage->fallback === '1' && $rootPage->languageRoot === '0') {
             $options = array_filter(
                 $options,
                 function ($value) {
