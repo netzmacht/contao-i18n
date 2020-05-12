@@ -1,5 +1,6 @@
 {
   "name": "netzmacht/contao-i18n",
+  "type": "contao-bundle",
   "description": "This library provides a toolkit for flexible i18n websites..",
   "keywords": [
     "contao",
@@ -8,7 +9,6 @@
     "multilingual",
     "language"
   ],
-  "type": "contao-bundle",
   "license": "LGPL-3.0-or-later",
   "authors": [
     {
@@ -18,27 +18,29 @@
       "role": "Developer"
     }
   ],
-  "support": {
-    "email": "mail@netzmacht.de",
-    "issues": "https://github.com/netzmacht/contao-i18n/issues",
-    "source": "https://github.com/netzmacht/contao-i18n"
-  },
   "require": {
     "php": "^7.1",
     "contao/core-bundle": "~4.4",
     "hofff/contao-root-relations": "^2.2.0",
-    "terminal42/contao-changelanguage": "~3.0",
+    "menatwork/contao-multicolumnwizard-bundle": "^3.4",
     "netzmacht/contao-toolkit": "~3.0",
-    "menatwork/contao-multicolumnwizard": "~3.3.14"
+    "terminal42/contao-changelanguage": "~3.0"
   },
   "require-dev": {
-    "phpcq/all-tasks": "~1.2",
+    "contao/calendar-bundle": "~4.4",
+    "contao/faq-bundle": "~4.4",
     "contao/manager-plugin": "~2.0",
     "contao/news-bundle": "~4.4",
-    "contao/calendar-bundle": "~4.4",
-    "contao/faq-bundle": "~4.4"
+    "phpcq/all-tasks": "~1.2"
   },
-  "suggest": {
+  "suggest": {},
+  "extra": {
+    "branch-alias": {
+      "dev-support/1.0.x": "1.0.x-dev",
+      "dev-master": "2.0.x-dev",
+      "dev-develop": "2.1.x-dev"
+    },
+    "contao-manager-plugin": "Netzmacht\\Contao\\I18n\\ContaoManager\\Plugin"
   },
   "autoload": {
     "psr-4": {
@@ -50,14 +52,9 @@
       "vendor/phpcq/autoload-validation/hacks/contao-hack.php"
     ]
   },
-  "prefer-stable": true,
-  "minimum-stability": "dev",
-  "extra": {
-    "contao-manager-plugin": "Netzmacht\\Contao\\I18n\\ContaoManager\\Plugin",
-    "branch-alias": {
-      "dev-support/1.0.x": "1.0.x-dev",
-      "dev-master": "2.0.x-dev",
-      "dev-develop": "2.1.x-dev"
-    }
+  "support": {
+    "email": "mail@netzmacht.de",
+    "issues": "https://github.com/netzmacht/contao-i18n/issues",
+    "source": "https://github.com/netzmacht/contao-i18n"
   }
 }

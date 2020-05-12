@@ -211,26 +211,28 @@ final class PageDcaListener extends AbstractListener
     /**
      * Get all articles of the base page as options array.
      *
-     * @param DataContainer|null $dataContainer Data container driver.
-     *
      * @return array
      */
-    public function getBasePageArticlesOptions($dataContainer = null)
+    public function getBasePageArticlesOptions()
     {
-        if (!$dataContainer || !$dataContainer->activeRecord) {
+        if (Input::get('act') !== 'edit') {
+            return [];
+        }
+
+        $pageRepository = $this->repositoryManager->getRepository(PageModel::class);
+        $pageModel      = $pageRepository->find((int) Input::get('id'));
+        if (!$pageModel) {
             return [];
         }
 
         /** @var Repository|ArticleModel $repository */
         $repository = $this->repositoryManager->getRepository(ArticleModel::class);
-        $collection = $repository->findByPid($dataContainer->activeRecord->languageMain);
-
+        $collection = $repository->findByPid($pageModel->languageMain);
         if (!$collection) {
             return [];
         }
 
         $options = [];
-
         foreach ($collection as $article) {
             $options[$article->id] = sprintf(
                 '%s (ID %s) [%s]',
