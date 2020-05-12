@@ -1,3 +1,10 @@
+dist: xenial
+
+addons:
+  apt:
+    packages:
+      - ant-optional
+
 language: php
 
 php:
@@ -9,19 +16,11 @@ php:
 
 env:
   - CONTAO_VERSION=contao/core-bundle ~4.4.0
-  - CONTAO_VERSION=contao/core-bundle ~4.5.0
-  - CONTAO_VERSION=contao/core-bundle ~4.6.0
-  - CONTAO_VERSION=contao/core-bundle ~4.7.0
-  - CONTAO_VERSION=contao/core-bundle ~4.8.0
   - CONTAO_VERSION=contao/core-bundle ~4.9.0
 
 matrix:
   allow_failures:
     - php: "nightly"
-    - env: CONTAO_VERSION=contao/core-bundle ~4.5.0
-    - env: CONTAO_VERSION=contao/core-bundle ~4.6.0
-    - env: CONTAO_VERSION=contao/core-bundle ~4.7.0
-    - env: CONTAO_VERSION=contao/core-bundle ~4.8.0
 
 sudo: false
 
