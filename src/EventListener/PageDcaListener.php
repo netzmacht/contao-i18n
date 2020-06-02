@@ -289,7 +289,7 @@ final class PageDcaListener extends AbstractListener
         }
 
         // Delete all unrelated articles.
-        if ($this->articleCleaner) {
+        if ($this->articleCleanup) {
             $this->articleCleaner->cleanupUnrelatedArticles($dataContainer);
         }
     }
