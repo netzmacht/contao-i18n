@@ -7,14 +7,22 @@ namespace Netzmacht\Contao\I18n\PageType;
 use Contao\ArticleModel;
 use Contao\CoreBundle\Exception\AccessDeniedException;
 use Contao\CoreBundle\Exception\PageNotFoundException;
+use Contao\CoreBundle\Monolog\ContaoContext;
 use Contao\Environment;
 use Contao\Input;
+use Contao\Model\Collection;
 use Contao\Module;
 use Contao\ModuleModel;
 use Contao\PageModel;
 use Contao\PageRegular;
 use Contao\System;
+use Netzmacht\Contao\I18n\Model\Article\TranslatedArticleFinder;
+use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
+use Netzmacht\Contao\I18n\PageProvider\PageProvider;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 
+use function array_pad;
 use function assert;
 use function class_exists;
 use function explode;
@@ -27,23 +35,29 @@ use function strlen;
 
 /**
  * Regular i18n page load the content of the base page.
+ *
+ * @psalm-suppress PropertyNotSetInConstructor
  */
 class I18nRegular extends PageRegular
 {
     /**
      * {@inheritDoc}
      */
-    public static function getFrontendModule($moduleId, $column = 'main')
+    public static function getFrontendModule($intId, $strColumn = 'main')
     {
-        if (! is_object($moduleId) && ! strlen((string) $moduleId)) {
+        if (! is_object($intId) && ! strlen((string) $intId)) {
             return '';
         }
 
-        $currentPage = static::getContainer()->get('netzmacht.contao_i18n.page_provider')->getPage();
-        $i18n        = static::getContainer()->get('netzmacht.contao_i18n.page_repository');
+        $pageProvider = static::getContainer()->get('netzmacht.contao_i18n.page_provider');
+        assert($pageProvider instanceof PageProvider);
 
-        if (! $i18n->isI18nPage($currentPage->type)) {
-            return parent::getFrontendModule($moduleId, $column);
+        $currentPage = $pageProvider->getPage();
+        $i18n        = static::getContainer()->get('netzmacht.contao_i18n.page_repository');
+        assert($i18n instanceof I18nPageRepository);
+
+        if (! $currentPage || ! $i18n->isI18nPage($currentPage->type)) {
+            return parent::getFrontendModule($intId, $strColumn);
         }
 
         $basePage = $i18n->getBasePage($currentPage);
@@ -51,12 +65,12 @@ class I18nRegular extends PageRegular
             return '';
         }
 
-        if ((int) $moduleId === 0) {
+        if ((int) $intId === 0) {
             // Articles
-            return self::getArticles($currentPage, $basePage, $column);
+            return self::getArticles($currentPage, $basePage, $strColumn);
         }
 
-        return self::generateFrontendModule((int) $moduleId, $column);
+        return self::generateFrontendModule((int) $intId, $strColumn);
     }
 
     /**
@@ -72,7 +86,8 @@ class I18nRegular extends PageRegular
     {
         // Show a particular article only
         if ($basePage->type === 'regular' && Input::get('articles')) {
-            [$section, $article] = explode(':', Input::get('articles'));
+            [$section, $article] = array_pad(explode(':', Input::get('articles')), 2, null);
+            assert(is_string($section));
 
             if ($article === null) {
                 $article = $section;
@@ -119,10 +134,12 @@ class I18nRegular extends PageRegular
 
         // Return if the class does not exist
         if (! class_exists($moduleClass)) {
-            static::log(
+            $logger = static::getContainer()->get('monolog.logger.contao');
+            assert($logger instanceof LoggerInterface);
+            $logger->log(
+                LogLevel::ERROR,
                 sprintf('Module class "%s" (module "%s") does not exist', $moduleClass, $moduleModel->type),
-                __METHOD__,
-                TL_ERROR
+                ['contao' => new ContaoContext(__METHOD__, 'ERROR')]
             );
 
             return '';
@@ -170,12 +187,10 @@ class I18nRegular extends PageRegular
      * @param PageModel  $basePage Base page.
      * @param int|string $article  Article alias or id.
      *
-     * @return bool|string
-     *
      * @throws PageNotFoundException If page does not exist.
      * @throws AccessDeniedException If article is not visible.
      */
-    private static function generateSectionArticle(PageModel $basePage, $article)
+    private static function generateSectionArticle(PageModel $basePage, $article): string
     {
         $articleModel = ArticleModel::findByIdOrAliasAndPid($article, $basePage->id);
 
@@ -192,7 +207,12 @@ class I18nRegular extends PageRegular
         // Add the "first" and "last" classes (see #2583)
         $articleModel->classes = ['first', 'last'];
 
-        return static::getArticle($articleModel);
+        $article = static::getArticle($articleModel);
+        if (is_string($article)) {
+            return $article;
+        }
+
+        return '';
     }
 
     /**
@@ -207,11 +227,13 @@ class I18nRegular extends PageRegular
         // Show all articles (no else block here, see #4740)
         $articles = ArticleModel::findPublishedByPidAndColumn($basePage->id, $column);
 
-        if ($articles === null) {
+        if (! $articles instanceof Collection) {
             return '';
         }
 
-        $finder    = System::getContainer()->get('netzmacht.contao_i18n.translated_article_finder');
+        $finder = System::getContainer()->get('netzmacht.contao_i18n.translated_article_finder');
+        assert($finder instanceof TranslatedArticleFinder);
+
         $modes     = $finder->getArticleModes($currentPage);
         $overrides = $finder->getOverrides($currentPage);
         $return    = '';
@@ -220,6 +242,8 @@ class I18nRegular extends PageRegular
         $last      = $articles->count() - 1;
 
         foreach ($articles as $articleModel) {
+            assert($articleModel instanceof ArticleModel);
+
             // Article should be overridden. So replace it.
             if (isset($overrides[$articleModel->id])) {
                 $articleModel = $overrides[$articleModel->id];

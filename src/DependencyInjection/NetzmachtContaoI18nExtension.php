@@ -9,6 +9,9 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 
+use function assert;
+use function is_array;
+
 /** @SuppressWarnings(PHPMD.LongVariable) */
 final class NetzmachtContaoI18nExtension extends Extension
 {
@@ -49,6 +52,7 @@ final class NetzmachtContaoI18nExtension extends Extension
     private function configureSearchablePagesListeners(ContainerBuilder $container): void
     {
         $bundles = $container->getParameter('kernel.bundles');
+        assert(is_array($bundles));
 
         foreach ($this->searchablePagesListeners as $bundleName => $serviceId) {
             if (isset($bundles[$bundleName])) {

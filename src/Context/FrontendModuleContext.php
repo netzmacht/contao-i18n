@@ -44,7 +44,7 @@ class FrontendModuleContext implements Context
      */
     public static function fromModel(ModuleModel $module): self
     {
-        return new static($module->type, (int) $module->id);
+        return new self($module->type, (int) $module->id);
     }
 
     /**

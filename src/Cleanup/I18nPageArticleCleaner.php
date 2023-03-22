@@ -6,7 +6,6 @@ namespace Netzmacht\Contao\I18n\Cleanup;
 
 use Contao\ArticleModel;
 use Contao\BackendUser;
-use Contao\CoreBundle\Framework\Adapter;
 use Contao\DataContainer;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\DBAL\Query\QueryBuilder;
@@ -26,21 +25,20 @@ final class I18nPageArticleCleaner
 
     private DcaManager $dcaManager;
 
-    /** @var Adapter<BackendUser> */
-    private Adapter $backendUser;
+    private BackendUser $backendUser;
 
     private Invoker $callbackInvoker;
 
     /**
-     * @param RepositoryManager    $repositoryManager Repository manager.
-     * @param DcaManager           $dcaManager        Repository manager.
-     * @param Adapter<BackendUser> $backendUser       Backend user adapter.
-     * @param Invoker              $callbackInvoker   Callback invoker.
+     * @param RepositoryManager $repositoryManager Repository manager.
+     * @param DcaManager        $dcaManager        Repository manager.
+     * @param BackendUser       $backendUser       Backend user adapter.
+     * @param Invoker           $callbackInvoker   Callback invoker.
      */
     public function __construct(
         RepositoryManager $repositoryManager,
         DcaManager $dcaManager,
-        Adapter $backendUser,
+        BackendUser $backendUser,
         Invoker $callbackInvoker
     ) {
         $this->repositoryManager = $repositoryManager;
@@ -77,7 +75,7 @@ final class I18nPageArticleCleaner
     public function deleteArticle(ArticleModel $articleModel, DataContainer $dataContainer): void
     {
         $delete = [
-            ArticleModel::getTable() => [$articleModel->id],
+            ArticleModel::getTable() => [(int) $articleModel->id],
         ];
 
         $this->collectChildren(ArticleModel::getTable(), (int) $articleModel->id, $delete);
@@ -110,14 +108,14 @@ final class I18nPageArticleCleaner
             $cctable[$ctable] = $definition->get(['config', 'ctable']);
 
             $builder = $this->buildCollectChildrenQuery($definition, $recordId, $ctable);
-            $result  = $builder->execute();
+            $result  = $builder->executeQuery();
 
             if ($definition->get(['config', 'doNotDeleteRecords']) || ! $result->rowCount()) {
                 continue;
             }
 
             while ($deleteId = $result->fetchOne()) {
-                $delete[$ctable][] = $deleteId;
+                $delete[$ctable][] = (int) $deleteId;
 
                 if (empty($cctable[$ctable])) {
                     continue;
@@ -164,8 +162,8 @@ final class I18nPageArticleCleaner
     /**
      * Update the undo record with all child content.
      *
-     * @param array<string,array<string,mixed>> $delete    Records to delete.
-     * @param int                               $articleId The article id.
+     * @param array<string,list<int|string>> $delete    Records to delete.
+     * @param int                            $articleId The article id.
      */
     private function updateUndoRecord(array $delete, int $articleId): int
     {
@@ -175,24 +173,24 @@ final class I18nPageArticleCleaner
 
         // Save each record of each table
         foreach ($delete as $table => $fields) {
-            foreach ($fields as $key => $value) {
-                $statement = $connection->createQueryBuilder()
+            foreach ($fields as $value) {
+                $result = $connection->createQueryBuilder()
                     ->select('*')
                     ->from($table)
                     ->where('id=:id')
                     ->setParameter('id', $value)
-                    ->execute();
+                    ->executeQuery();
 
-                if (! $statement->rowCount()) {
+                if (! $result->rowCount()) {
                     continue;
                 }
 
-                $data[$table][$key] = $statement->fetchAssociative();
+                $data[$table][$value] = $result->fetchAssociative();
                 $affected++;
             }
         }
 
-        return $connection->insert(
+        $connection->insert(
             'tl_undo',
             [
                 'pid'          => $this->backendUser->id,
@@ -203,6 +201,8 @@ final class I18nPageArticleCleaner
                 'data'         => serialize($data),
             ]
         );
+
+        return (int) $connection->lastInsertId();
     }
 
     /**

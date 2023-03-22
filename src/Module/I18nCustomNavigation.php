@@ -5,22 +5,30 @@ declare(strict_types=1);
 namespace Netzmacht\Contao\I18n\Module;
 
 use Contao\BackendTemplate;
+use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\Environment;
 use Contao\FrontendTemplate;
+use Contao\Model\Collection;
 use Contao\Module;
-use Contao\PageForward;
+use Contao\PageError404;
 use Contao\PageModel;
-use Contao\PageRedirect;
 use Contao\PageRegular;
 use Contao\StringUtil;
 use Contao\System;
+use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
+use Netzmacht\Contao\I18n\PageProvider\PageProvider;
+use PageError401;
+use PageError403;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 use function array_filter;
 use function array_flip;
 use function array_intersect;
 use function array_map;
 use function array_values;
+use function assert;
 use function count;
+use function defined;
 use function get_class;
 use function in_array;
 use function is_array;
@@ -28,6 +36,7 @@ use function str_replace;
 use function strncmp;
 use function trim;
 
+/** @psalm-suppress PropertyNotSetInConstructor */
 class I18nCustomNavigation extends Module
 {
     /**
@@ -45,9 +54,15 @@ class I18nCustomNavigation extends Module
      */
     public function generate(): string
     {
-        $request = System::getContainer()->get('request_stack')->getCurrentRequest();
+        $requestStack = System::getContainer()->get('request_stack');
+        assert($requestStack instanceof RequestStack);
 
-        if ($request && System::getContainer()->get('contao.routing.scope_matcher')->isBackendRequest($request)) {
+        $scopeMatcher = System::getContainer()->get('contao.routing.scope_matcher');
+        assert($scopeMatcher instanceof ScopeMatcher);
+
+        $request = $requestStack->getCurrentRequest();
+
+        if ($request && $scopeMatcher->isBackendRequest($request)) {
             $template = new BackendTemplate('be_wildcard');
 
             $template->wildcard = '### ' . $GLOBALS['TL_LANG']['FMD']['i18n_customnav'][0] . ' ###';
@@ -85,10 +100,11 @@ class I18nCustomNavigation extends Module
         $objPages = PageModel::findPublishedRegularWithoutGuestsByIds($this->pages);
 
         // Return if there are no pages
-        if ($objPages === null) {
+        if (! $objPages instanceof Collection) {
             return;
         }
 
+        /** @psalm-suppress ArgumentTypeCoercion */
         $translatedPages = $this->loadTranslatedPages($objPages->getModels());
         $arrPages        = $this->preparePagesOrder($translatedPages);
 
@@ -138,9 +154,9 @@ class I18nCustomNavigation extends Module
         $groups = [];
 
         // Get all groups of the current front end user
-        if (FE_USER_LOGGED_IN) {
+        if (defined('FE_USER_LOGGED_IN') && FE_USER_LOGGED_IN) {
             $this->import('FrontendUser', 'User');
-            $groups = $this->User->groups;
+            $groups = array_filter((array) $this->User->groups);
         }
 
         return $groups;
@@ -155,11 +171,18 @@ class I18nCustomNavigation extends Module
      */
     protected function loadTranslatedPages(array $objPages): array
     {
-        $currentPage = $this->getContainer()->get('netzmacht.contao_i18n.page_provider')->getPage();
-        $repository  = $this->getContainer()->get('netzmacht.contao_i18n.page_repository');
-        $rootPage    = $repository->getRootPage($currentPage);
+        $repository = static::getContainer()->get('netzmacht.contao_i18n.page_repository');
+        assert($repository instanceof I18nPageRepository);
+        $pageProvider = static::getContainer()->get('netzmacht.contao_i18n.page_provider');
+        assert($pageProvider instanceof PageProvider);
+
+        $currentPage = $pageProvider->getPage();
+        if (! $currentPage) {
+            return $objPages;
+        }
 
         // We are in the root language. No translation needed.
+        $rootPage = $repository->getRootPage($currentPage);
         if ($rootPage && $rootPage->fallback && $rootPage->languageRoot === '') {
             return $objPages;
         }
@@ -194,6 +217,7 @@ class I18nCustomNavigation extends Module
             $tmp = StringUtil::deserialize($this->orderPages);
 
             if (! empty($tmp) && is_array($tmp)) {
+                /** @psalm-suppress TooManyArguments */
                 $pages = array_map(
                     static function (): void {
                     },
@@ -213,8 +237,8 @@ class I18nCustomNavigation extends Module
     /**
      * Compile an item.
      *
-     * @param PageModel                            $objModel The page model.
-     * @param PageRegular|PageRedirect|PageForward $objPage  The current page object.
+     * @param PageModel                                          $objModel The page model.
+     * @param PageRegular|PageError404|PageError401|PageError403 $objPage  The current page object.
      *
      * @return array<string,mixed>
      */
@@ -317,6 +341,6 @@ class I18nCustomNavigation extends Module
             $items[$last]['class'] = trim($items[$last]['class'] . ' last');
         }
 
-        return $items;
+        return array_values($items);
     }
 }

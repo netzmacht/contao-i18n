@@ -18,12 +18,14 @@ use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Netzmacht\Contao\I18n\Cleanup\I18nPageArticleCleaner;
 use Netzmacht\Contao\I18n\Model\Article\TranslatedArticleFinder;
 use Netzmacht\Contao\Toolkit\Callback\Invoker;
+use Netzmacht\Contao\Toolkit\Data\Model\ContaoRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 use Netzmacht\Contao\Toolkit\Dca\Listener\AbstractListener;
 use Netzmacht\Contao\Toolkit\Dca\Manager;
 
 use function array_filter;
 use function array_keys;
+use function assert;
 use function in_array;
 use function preg_replace;
 use function sprintf;
@@ -158,9 +160,10 @@ final class PageDcaListener extends AbstractListener
         }
 
         if ($rootPage->fallback === '1' && $rootPage->languageRoot === '0') {
-            $options = array_filter($options, static fn ($value): bool => $value !== 'i18n_regular');
+            $options = array_filter($options, static fn (string $value): bool => $value !== 'i18n_regular');
         }
 
+        /** @psalm-suppress LessSpecificReturnStatement */
         return $options;
     }
 
@@ -177,11 +180,12 @@ final class PageDcaListener extends AbstractListener
 
         $pageRepository = $this->repositoryManager->getRepository(PageModel::class);
         $pageModel      = $pageRepository->find((int) Input::get('id'));
-        if (! $pageModel) {
+        if (! $pageModel instanceof PageModel) {
             return [];
         }
 
         $repository = $this->repositoryManager->getRepository(ArticleModel::class);
+        assert($repository instanceof ContaoRepository);
         $collection = $repository->findByPid($pageModel->languageMain);
         if (! $collection) {
             return [];
@@ -218,7 +222,11 @@ final class PageDcaListener extends AbstractListener
         }
 
         // Reload the page. Active record stores the version before the changes are applied.
-        $page      = $this->repositoryManager->getRepository(PageModel::class)->find((int) $dataContainer->id);
+        $page = $this->repositoryManager->getRepository(PageModel::class)->find((int) $dataContainer->id);
+        if (! $page instanceof PageModel) {
+            return;
+        }
+
         $modes     = $this->articleFinder->getArticleModes($page, 'override');
         $overrides = $this->articleFinder->getOverrides($page);
         $deletes   = $overrides;
@@ -310,6 +318,7 @@ final class PageDcaListener extends AbstractListener
             ];
         }
 
+        /** @psalm-suppress LessSpecificReturnStatement */
         return $values;
     }
 

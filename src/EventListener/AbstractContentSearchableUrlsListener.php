@@ -73,6 +73,6 @@ abstract class AbstractContentSearchableUrlsListener extends AbstractSearchableU
         }
 
         // The target page is exempt from the sitemap (see #6418)
-        return ! $pageModel->sitemap === 'map_never';
+        return $pageModel->sitemap !== 'map_never';
     }
 }

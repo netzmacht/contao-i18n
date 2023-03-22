@@ -10,9 +10,9 @@ use Netzmacht\Contao\I18n\PageProvider\PageProvider;
 use Netzmacht\Contao\Toolkit\InsertTag\AbstractInsertTagParser;
 use Symfony\Contracts\Translation\TranslatorInterface as Translator;
 
+use function array_pad;
 use function explode;
 use function in_array;
-use function is_array;
 
 class TranslateInsertTagListener extends AbstractInsertTagParser
 {
@@ -50,7 +50,7 @@ class TranslateInsertTagListener extends AbstractInsertTagParser
             ];
         }
 
-        [$domain, $key] = explode(':', $query, 2);
+        [$domain, $key] = array_pad(explode(':', $query, 2), 2, null);
 
         if ($key === null) {
             $pageAlias = $this->getPageAlias();
@@ -67,7 +67,7 @@ class TranslateInsertTagListener extends AbstractInsertTagParser
     /**
      * {@inheritdoc}
      */
-    protected function parseTag(array $arguments, string $tag, string $raw): ?string
+    protected function parseTag(array $arguments, string $tag, string $raw)
     {
         $translated = $this->translator->trans($arguments['key'], [], $arguments['domain']);
 
@@ -75,11 +75,7 @@ class TranslateInsertTagListener extends AbstractInsertTagParser
             $translated = $this->translator->trans($arguments['key'], [], 'contao_website');
         }
 
-        if (is_array($translated)) {
-            return null;
-        }
-
-        return (string) $translated;
+        return $translated;
     }
 
     /**

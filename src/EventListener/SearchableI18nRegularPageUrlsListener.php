@@ -6,20 +6,21 @@ namespace Netzmacht\Contao\I18n\EventListener;
 
 use Contao\Config;
 use Contao\CoreBundle\Framework\Adapter;
-use Contao\Database;
 use Contao\Date;
 use Contao\Model\Registry;
 use Contao\PageModel;
 use Doctrine\DBAL\Connection;
 use Netzmacht\Contao\I18n\Model\Article\PageArticlesWithTeasersQuery;
 use Netzmacht\Contao\I18n\Model\Page\PublishedI18nRegularPagesQuery;
+use RuntimeException;
 
 use function array_merge;
+use function get_class;
 use function sprintf;
 
 class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListener
 {
-    private Database $connection;
+    private Connection $connection;
 
     /**
      * Model registry.
@@ -70,27 +71,27 @@ class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListen
         $pages = [];
 
         // Recursively walk through all subpages
-        while ($result = $result->fetchAssociative()) {
-            $page = $this->createModel($result);
+        while ($pageResult = $result->fetchAssociative()) {
+            $page = $this->createModel($pageResult);
 
             if ($this->shouldPageBeAdded($page, $isSitemap, $time)) {
                 $pages[] = $page->getAbsoluteUrl();
 
                 // Get articles with teaser
                 $query    = new PageArticlesWithTeasersQuery($this->connection);
-                $articles = $query->execute((int) $result['id'], $time);
+                $articles = $query->execute((int) $pageResult['id'], $time);
 
                 while ($article = $articles->fetchAssociative()) {
                     // Do not show pages without a translation. They are ignored.
-                    if ($article->languageMain > 0) {
+                    if ($article['languageMain'] > 0) {
                         continue;
                     }
 
                     $pages[] = sprintf(
                         $page->getAbsoluteUrl('/articles/%s'),
-                        ($article->alias !== '' && ! $this->config->get('disableAlias')
-                            ? $article->alias
-                            : $article->id
+                        ($article['alias'] !== '' && ! $this->config->get('disableAlias')
+                            ? $article['alias']
+                            : $article['id']
                         )
                     );
                 }
@@ -177,6 +178,12 @@ class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListen
             $page->setRow($result);
 
             $this->registry->register($page);
+        }
+
+        if (! $page instanceof PageModel) {
+            throw new RuntimeException(
+                'Unexpected model found. Expected \Contao\PageModel but got ' . get_class($page)
+            );
         }
 
         return $page;

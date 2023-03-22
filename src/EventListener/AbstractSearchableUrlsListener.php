@@ -13,9 +13,9 @@ abstract class AbstractSearchableUrlsListener
     /**
      * Build the sitemap and searchable pages list.
      *
-     * @param list<string> $pages      Page array.
-     * @param null         $rootPageId Root page.
-     * @param bool         $isSitemap  Collect pages for the sitemap.
+     * @param list<string>            $pages      Page array.
+     * @param int|numeric-string|null $rootPageId Root page.
+     * @param bool                    $isSitemap  Collect pages for the sitemap.
      *
      * @return list<string>
      */

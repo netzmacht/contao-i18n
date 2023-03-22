@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
 use function array_keys;
+use function defined;
 use function in_array;
 use function preg_match;
 use function preg_quote;
@@ -109,12 +110,12 @@ class AddToSearchIndexListener
             return false;
         }
 
-        if ($page->type !== 'i18n_regular' || BE_USER_LOGGED_IN || $page->noSearch) {
+        if ($page->type !== 'i18n_regular' || (defined('BE_USER_LOGGED_IN') && BE_USER_LOGGED_IN) || $page->noSearch) {
             return false;
         }
 
         // Index protected pages if enabled
-        if (! $config->get('indexProtected') && FE_USER_LOGGED_IN && $page->protected) {
+        if (! $config->get('indexProtected') && defined('FE_USER_LOGGED_IN') && FE_USER_LOGGED_IN && $page->protected) {
             return false;
         }
 
@@ -130,7 +131,7 @@ class AddToSearchIndexListener
     {
         // Do not index the page if certain parameters are set
         foreach (array_keys($_GET) as $key) {
-            if (in_array($key, $GLOBALS['TL_NOINDEX_KEYS']) || strncmp($key, 'page_', 5) === 0) {
+            if (in_array($key, $GLOBALS['TL_NOINDEX_KEYS']) || strncmp((string) $key, 'page_', 5) === 0) {
                 return true;
             }
         }

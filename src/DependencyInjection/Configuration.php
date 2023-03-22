@@ -9,13 +9,10 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 final class Configuration implements ConfigurationInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function getConfigTreeBuilder()
+    public function getConfigTreeBuilder(): TreeBuilder
     {
-        $treeBuilder = new TreeBuilder();
-        $root        = $treeBuilder->root('netzmacht_contao_i18n');
+        $treeBuilder = new TreeBuilder('netzmacht_contao_i18n');
+        $root        = $treeBuilder->getRootNode();
 
         $root
             ->children()

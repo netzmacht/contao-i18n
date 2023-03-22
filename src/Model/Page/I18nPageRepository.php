@@ -8,6 +8,7 @@ use Contao\PageModel;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 
 use function array_key_exists;
+use function assert;
 use function in_array;
 
 class I18nPageRepository
@@ -144,12 +145,20 @@ class I18nPageRepository
             return $this->translations[$mainPage->id];
         }
 
-        $language         = $this->getPageLanguage($mainPage);
+        $language = $this->getPageLanguage($mainPage);
+        if (! $language) {
+            return $pages;
+        }
+
         $pages[$language] = $mainPage;
         $repository       = $this->repositoryManager->getRepository(PageModel::class);
 
         foreach ($repository->findBy(['.languageMain = ?'], [$mainPage->id]) ?: [] as $page) {
-            $language         = $this->getPageLanguage($page);
+            $language = $this->getPageLanguage($page);
+            if (! $language) {
+                continue;
+            }
+
             $pages[$language] = $page;
         }
 
@@ -210,6 +219,9 @@ class I18nPageRepository
 
         // Load root page to get language.
         $rootPage = $this->getRootPage($page);
+        if ($rootPage === null) {
+            return null;
+        }
 
         if ($rootPage->language === $language) {
             return $page;
@@ -225,7 +237,9 @@ class I18nPageRepository
         $collection    = $repository->findBySpecification($specification, ['limit' => 1]);
 
         if ($collection) {
-            $this->translatedPages[$language][$page->id] = $collection->current();
+            $pageModel = $collection->current();
+            assert($pageModel instanceof PageModel);
+            $this->translatedPages[$language][$page->id] = $pageModel;
         } else {
             $this->translatedPages[$language][$page->id] = null;
         }
@@ -245,7 +259,7 @@ class I18nPageRepository
             $page       = $repository->find((int) $page);
         }
 
-        if ($page->hofff_root_page_id > 0) {
+        if ($page instanceof PageModel && $page->hofff_root_page_id > 0) {
             $repository = $this->repositoryManager->getRepository(PageModel::class);
 
             return $repository->find((int) $page->hofff_root_page_id);
@@ -279,6 +293,10 @@ class I18nPageRepository
 
             $repository = $this->repositoryManager->getRepository(PageModel::class);
             $page       = $repository->find((int) $page);
+        }
+
+        if (! $page instanceof PageModel) {
+            return null;
         }
 
         $this->translatedPages[$language][$page->id] = $page;

@@ -10,10 +10,13 @@ use Contao\Database;
 use Contao\Date;
 use Contao\FaqCategoryModel;
 use Contao\FaqModel;
+use Contao\Model\Collection;
 use Contao\PageModel;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
+use Netzmacht\Contao\Toolkit\Data\Model\ContaoRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 
+use function assert;
 use function in_array;
 use function preg_replace;
 use function sprintf;
@@ -65,17 +68,19 @@ class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsListene
         $collection         = $categoryRepository->findAll();
 
         // Walk through each category
-        if ($collection === null) {
+        if (! $collection instanceof Collection) {
             return $pages;
         }
 
-        while ($collection->next()) {
+        foreach ($collection as $faqCategory) {
+            assert($faqCategory instanceof FaqCategoryModel);
+
             // Skip FAQs without target page
-            if (! $collection->jumpTo) {
+            if (! $faqCategory->jumpTo) {
                 continue;
             }
 
-            $translations = $this->i18nPageRepository->getPageTranslations($collection->jumpTo);
+            $translations = $this->i18nPageRepository->getPageTranslations($faqCategory->jumpTo);
 
             foreach ($translations as $translation) {
                 // Skip FAQs outside the root nodes
@@ -84,7 +89,7 @@ class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsListene
                 }
 
                 $pages = $this->processTranslation(
-                    $collection->current(),
+                    $faqCategory,
                     $translation,
                     $pages,
                     $processed,
@@ -136,14 +141,17 @@ class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsListene
 
         // Get the items
         $faqRepository = $this->repositoryManager->getRepository(FaqModel::class);
-        $items         = $faqRepository->findPublishedByPid($category->id);
-        $url           = $processed[$category->jumpTo][$translation->id];
+        assert($faqRepository instanceof ContaoRepository);
+        $items = $faqRepository->findPublishedByPid($category->id);
+        $url   = $processed[$category->jumpTo][$translation->id];
 
-        if ($items !== null) {
-            while ($items->next()) {
+        if ($items instanceof Collection) {
+            foreach ($items as $faq) {
+                assert($faq instanceof FaqModel);
+
                 $pages[] = sprintf(
                     preg_replace('/%(?!s)/', '%%', $url),
-                    ($items->alias ?: $items->id)
+                    ($faq->alias ?: $faq->id)
                 );
             }
         }

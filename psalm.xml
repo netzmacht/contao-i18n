@@ -1,12 +1,46 @@
 <?xml version="1.0"?>
 <psalm
-    errorLevel="7"
+    errorLevel="3"
     hideExternalErrors="true"
+    findUnusedBaselineEntry="true"
+    findUnusedCode="false"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="https://getpsalm.org/schema/config"
     xsi:schemaLocation="https://getpsalm.org/schema/config https://getpsalm.org/schema/config"
 >
     <projectFiles>
         <directory name="src" />
+        <ignoreFiles>
+            <file name="src/DependencyInjection/Configuration.php"/>
+        </ignoreFiles>
     </projectFiles>
+    
+    <issueHandlers>
+        <DeprecatedMethod>
+            <errorLevel type="suppress">
+                <referencedMethod name="Contao\PageModel::findPublishedRegularWithoutGuestsByIds"/>
+            </errorLevel>
+        </DeprecatedMethod>
+        <InternalMethod>
+            <errorLevel type="suppress">
+                <referencedMethod name="Contao\CoreBundle\Framework\ContaoFramework::getAdapter"/>
+                <referencedMethod name="Contao\CoreBundle\Framework\ContaoFramework::isInitialized"/>
+                <referencedMethod name="Contao\CoreBundle\Framework\ContaoFramework::initialize"/>
+                <referencedMethod name="Contao\CoreBundle\Framework\ContaoFramework::createInstance"/>
+            </errorLevel>
+        </InternalMethod>
+    </issueHandlers>
+
+    <universalObjectCrates>
+        <class name="Contao\FrontendTemplate"/>
+        <class name="Contao\BackendTemplate"/>
+        <class name="Contao\Model"/>
+        <class name="Contao\ArticleModel"/>
+        <class name="Contao\PageModel"/>
+        <class name="Contao\PageRegular"/>
+        <class name="Contao\PageRegular"/>
+        <class name="Contao\PageError404"/>
+        <class name="Contao\PageError403"/>
+        <class name="Contao\PageError401"/>
+    </universalObjectCrates>
 </psalm>

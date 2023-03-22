@@ -9,14 +9,17 @@ use Contao\Config;
 use Contao\CoreBundle\Framework\Adapter;
 use Contao\Database;
 use Contao\Date;
+use Contao\Model\Collection;
 use Contao\NewsArchiveModel;
 use Contao\NewsModel;
 use Contao\PageModel;
 use Contao\StringUtil;
 use Netzmacht\Contao\I18n\Model\Article\TranslatedArticleFinder;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
+use Netzmacht\Contao\Toolkit\Data\Model\ContaoRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 
+use function assert;
 use function in_array;
 use function preg_replace;
 use function sprintf;
@@ -73,7 +76,8 @@ class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListen
 
         // Get all news archives
         $archiveRepository = $this->repositoryManager->getRepository(NewsArchiveModel::class);
-        $collection        = $archiveRepository->findByProtected('');
+        assert($archiveRepository instanceof ContaoRepository);
+        $collection = $archiveRepository->findByProtected('');
 
         // Walk through each archive
         if ($collection !== null) {
@@ -150,11 +154,13 @@ class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListen
 
         // Get the items
         $newsRepository = $this->repositoryManager->getRepository(NewsModel::class);
-        $objArticle     = $newsRepository->findPublishedDefaultByPid($newsArchiveModel->id);
+        assert($newsRepository instanceof ContaoRepository);
+        $collection = $newsRepository->findPublishedDefaultByPid($newsArchiveModel->id);
 
-        if ($objArticle !== null) {
-            while ($objArticle->next()) {
-                $pages[] = $this->getLink($objArticle, $url);
+        if ($collection instanceof Collection) {
+            foreach ($collection as $newsModel) {
+                assert($newsModel instanceof NewsModel);
+                $pages[] = $this->getLink($newsModel, $url);
             }
         }
 
@@ -180,7 +186,7 @@ class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListen
             // Link to an article
             case 'article':
                 $repository   = $this->repositoryManager->getRepository(ArticleModel::class);
-                $articleModel = $repository->findByPK((int) $newsModel->articleId, ['eager' => true]);
+                $articleModel = $repository->find((int) $newsModel->articleId);
 
                 if ($articleModel === null) {
                     break;

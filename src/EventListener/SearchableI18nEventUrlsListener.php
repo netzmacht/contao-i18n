@@ -10,10 +10,13 @@ use Contao\Config;
 use Contao\CoreBundle\Framework\Adapter;
 use Contao\Database;
 use Contao\Date;
+use Contao\Model\Collection;
 use Contao\PageModel;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
+use Netzmacht\Contao\Toolkit\Data\Model\ContaoRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 
+use function assert;
 use function in_array;
 use function preg_replace;
 use function sprintf;
@@ -62,20 +65,23 @@ final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrl
 
         // Get all calendars
         $calendarRepository = $this->repositoryManager->getRepository(CalendarModel::class);
-        $collection         = $calendarRepository->findByProtected('');
+        assert($calendarRepository instanceof ContaoRepository);
+        $collection = $calendarRepository->findByProtected('');
 
         // Walk through each calendar
-        if ($collection === null) {
+        if (! $collection instanceof Collection) {
             return $pages;
         }
 
-        while ($collection->next()) {
+        foreach ($collection as $calendar) {
+            assert($calendar instanceof CalendarModel);
+
             // Skip calendars without target page
-            if (! $collection->jumpTo) {
+            if (! $calendar->jumpTo) {
                 continue;
             }
 
-            $translations = $this->i18nPageRepository->getPageTranslations($collection->jumpTo);
+            $translations = $this->i18nPageRepository->getPageTranslations($calendar->jumpTo);
 
             foreach ($translations as $translation) {
                 // Skip calendars outside the root nodes
@@ -84,7 +90,7 @@ final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrl
                 }
 
                 $pages = $this->processTranslation(
-                    $collection->current(),
+                    $calendar,
                     $translation,
                     $pages,
                     $processed,
@@ -138,7 +144,8 @@ final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrl
 
         // Get the items
         $eventsRepository = $this->repositoryManager->getRepository(CalendarEventsModel::class);
-        $objEvents        = $eventsRepository->findPublishedDefaultByPid($calendar->id);
+        assert($eventsRepository instanceof ContaoRepository);
+        $objEvents = $eventsRepository->findPublishedDefaultByPid($calendar->id);
 
         if ($objEvents !== null) {
             while ($objEvents->next()) {

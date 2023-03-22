@@ -34,6 +34,6 @@ class ServiceFactory
     {
         $this->framework->initialize();
 
-        return $this->framework->createInstance(Database::getInstance());
+        return $this->framework->createInstance(Database::class);
     }
 }
