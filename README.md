@@ -1,13 +1,12 @@
 Contao I18n toolkit
 ==================
 
-[![Build Status](http://img.shields.io/travis/netzmacht/contao-i18n/master.svg?style=flat-square)](https://travis-ci.org/netzmacht/contao-i18n)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/netzmacht/contao-i18n/diagnostics.yml?style=flat-square&branch=master)](https://github.com/netzmacht/contao-i18n/actions/workflows/diagnostics.yml)
 [![Version](http://img.shields.io/packagist/v/netzmacht/contao-i18n.svg?style=flat-square)](http://packagist.com/packages/netzmacht/contao-i18n)
 [![License](http://img.shields.io/packagist/l/netzmacht/contao-i18n.svg?style=flat-square)](http://packagist.com/packages/netzmacht/contao-i18n)
 [![Downloads](http://img.shields.io/packagist/dt/netzmacht/contao-i18n.svg?style=flat-square)](http://packagist.com/packages/netzmacht/contao-i18n)
-[![Contao Community Alliance coding standard](http://img.shields.io/badge/cca-coding_standard-red.svg?style=flat-square)](https://github.com/contao-community-alliance/coding-standard)
 
-This extensions provides an flexible way for multilingual websites where parts of the main language should be reused on
+This extension provides a flexible way for multilingual websites where parts of the main language should be reused on
 the translated pages.
 
 Install
