@@ -273,9 +273,9 @@ final class PageDcaListener extends AbstractListener
      * @param mixed         $raw          Raw value.
      * @param DataContainer $datContainer Data container driver.
      *
-     * @return list<array<string,mixed>>
+     * @return list<array<string,mixed>>|mixed
      */
-    public function loadI18nArticles($raw, DataContainer $datContainer): array
+    public function loadI18nArticles($raw, DataContainer $datContainer)
     {
         if (Input::post('FORM_SUBMIT') === PageModel::getTable()) {
             return $raw;
