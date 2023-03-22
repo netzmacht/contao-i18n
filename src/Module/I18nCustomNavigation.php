@@ -1,15 +1,5 @@
 <?php
 
-/**
- * Contao I18n provides some i18n structures for easily l10n websites.
- *
- * @package    contao-18n
- * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
- * @filesource
- */
-
 declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\Module;
@@ -23,11 +13,21 @@ use Contao\PageModel;
 use Contao\PageRedirect;
 use Contao\PageRegular;
 use Contao\StringUtil;
-use Patchwork\Utf8;
+use Contao\System;
 
-/**
- * Class I18nCustomNavigation
- */
+use function array_filter;
+use function array_flip;
+use function array_intersect;
+use function array_map;
+use function array_values;
+use function count;
+use function get_class;
+use function in_array;
+use function is_array;
+use function str_replace;
+use function strncmp;
+use function trim;
+
 class I18nCustomNavigation extends Module
 {
     /**
@@ -35,22 +35,22 @@ class I18nCustomNavigation extends Module
      *
      * @var string
      */
+    // phpcs:ignore SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint
     protected $strTemplate = 'mod_customnav';
 
     /**
      * Redirect to the selected page
      *
-     * @return string
-     *
      * @SuppressWarnings(PHPMD.Superglobals)
      */
-    public function generate()
+    public function generate(): string
     {
-        if (TL_MODE == 'BE') {
-            /** @var BackendTemplate|object $template */
+        $request = System::getContainer()->get('request_stack')->getCurrentRequest();
+
+        if ($request && System::getContainer()->get('contao.routing.scope_matcher')->isBackendRequest($request)) {
             $template = new BackendTemplate('be_wildcard');
 
-            $template->wildcard = '### ' . Utf8::strtoupper($GLOBALS['TL_LANG']['FMD']['i18n_customnav'][0]) . ' ###';
+            $template->wildcard = '### ' . $GLOBALS['TL_LANG']['FMD']['i18n_customnav'][0] . ' ###';
             $template->title    = $this->headline;
             $template->id       = $this->id;
             $template->link     = $this->name;
@@ -60,27 +60,23 @@ class I18nCustomNavigation extends Module
         }
 
         // Always return an array (see #4616)
-        $this->pages = StringUtil::deserialize($this->pages, true);
+        $this->pages = array_filter(StringUtil::deserialize($this->pages, true));
 
-        if (empty($this->pages) || $this->pages[0] == '') {
+        if (empty($this->pages)) {
             return '';
         }
 
         $strBuffer = parent::generate();
 
-        return ($this->Template->items != '') ? $strBuffer : '';
+        return $this->Template->items !== '' ? $strBuffer : '';
     }
 
     /**
      * Generate the module.
      *
-     * @return void
-     *
-     * @throws \Exception If the jumpTo relation is broken.
-     *
      * @SuppressWarnings(PHPMD.Superglobals)
      */
-    protected function compile()
+    protected function compile(): void
     {
         $items  = [];
         $groups = $this->getUserGroups();
@@ -93,33 +89,34 @@ class I18nCustomNavigation extends Module
             return;
         }
 
-        $translatedPages = $this->loadTranslatedPages($objPages);
+        $translatedPages = $this->loadTranslatedPages($objPages->getModels());
         $arrPages        = $this->preparePagesOrder($translatedPages);
 
         // Set default template
-        if ($this->navigationTpl == '') {
+        if ($this->navigationTpl === '') {
             $this->navigationTpl = 'nav_default';
         }
 
-        /** @var FrontendTemplate|object $objTemplate */
         $objTemplate = new FrontendTemplate($this->navigationTpl);
 
-        $objTemplate->type  = \get_class($this);
+        $objTemplate->type  = get_class($this);
         $objTemplate->cssID = $this->cssID;
         $objTemplate->level = 'level_1';
 
-        /** @var PageModel[] $arrPages */
         foreach ($arrPages as $objModel) {
             $userGroups = StringUtil::deserialize($objModel->groups);
 
             // Do not show protected pages unless a front end user is logged in
-            if (!$objModel->protected
-                || (\is_array($userGroups) && \count(array_intersect($userGroups, $groups)))
-                || $this->showProtected
+            if (
+                $objModel->protected
+                && ! (is_array($userGroups) && count(array_intersect($userGroups, $groups)))
+                && ! $this->showProtected
             ) {
-                // Get href
-                $items[] = $this->compileItem($objModel, $GLOBALS['objPage']);
+                continue;
             }
+
+            // Get href
+            $items[] = $this->compileItem($objModel, $GLOBALS['objPage']);
         }
 
         $items              = $this->addCssClasses($items);
@@ -128,13 +125,13 @@ class I18nCustomNavigation extends Module
         $this->Template->request        = Environment::get('indexFreeRequest');
         $this->Template->skipId         = 'skipNavigation' . $this->id;
         $this->Template->skipNavigation = StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['skipNavigation']);
-        $this->Template->items          = !empty($items) ? $objTemplate->parse() : '';
+        $this->Template->items          = ! empty($items) ? $objTemplate->parse() : '';
     }
 
     /**
-     * The the user groups of the current user.
+     * The user groups of the current user.
      *
-     * @return array
+     * @return array<int|numeric-string>
      */
     protected function getUserGroups(): array
     {
@@ -152,27 +149,30 @@ class I18nCustomNavigation extends Module
     /**
      * Load all translated pages.
      *
-     * @param array $objPages Pages definition.
+     * @param list<PageModel> $objPages Pages definition.
      *
-     * @return array
+     * @return array<int, PageModel>
      */
-    protected function loadTranslatedPages($objPages): array
+    protected function loadTranslatedPages(array $objPages): array
     {
         $currentPage = $this->getContainer()->get('netzmacht.contao_i18n.page_provider')->getPage();
         $repository  = $this->getContainer()->get('netzmacht.contao_i18n.page_repository');
         $rootPage    = $repository->getRootPage($currentPage);
 
         // We are in the root language. No translation needed.
-        if ($rootPage->fallback && $rootPage->languageRoot == '') {
+        if ($rootPage && $rootPage->fallback && $rootPage->languageRoot === '') {
             return $objPages;
         }
 
         $translatedPages = [];
 
         foreach ($objPages as $index => $page) {
-            if ($page = $repository->getTranslatedPage($page)) {
-                $translatedPages[$index] = $page;
+            $page = $repository->getTranslatedPage($page);
+            if (! $page) {
+                continue;
             }
+
+            $translatedPages[$index] = $page;
         }
 
         return $translatedPages;
@@ -181,21 +181,21 @@ class I18nCustomNavigation extends Module
     /**
      * Prepare the order of the pages.
      *
-     * @param PageModel[]|array $translatedPages Translated pages.
+     * @param PageModel[] $translatedPages Translated pages.
      *
-     * @return array
+     * @return list<PageModel>
      */
     protected function preparePagesOrder(array $translatedPages): array
     {
         $pages = [];
 
         // Sort the array keys according to the given order
-        if ($this->orderPages != '') {
+        if (! empty($this->orderPages)) {
             $tmp = StringUtil::deserialize($this->orderPages);
 
-            if (!empty($tmp) && \is_array($tmp)) {
+            if (! empty($tmp) && is_array($tmp)) {
                 $pages = array_map(
-                    function () {
+                    static function (): void {
                     },
                     array_flip($tmp)
                 );
@@ -207,9 +207,7 @@ class I18nCustomNavigation extends Module
             $pages[$page->languageMain > 0 ? $page->languageMain : $page->id] = $page;
         }
 
-        $pages = array_values(array_filter($pages));
-
-        return $pages;
+        return array_values(array_filter($pages));
     }
 
     /**
@@ -218,17 +216,15 @@ class I18nCustomNavigation extends Module
      * @param PageModel                            $objModel The page model.
      * @param PageRegular|PageRedirect|PageForward $objPage  The current page object.
      *
-     * @throws \Exception In a model relation could not be handled.
-     *
-     * @return array
+     * @return array<string,mixed>
      */
     protected function compileItem($objModel, $objPage): array
     {
         $href  = $this->buildHref($objModel);
-        $trail = \in_array($objModel->id, $objPage->trail);
+        $trail = in_array($objModel->id, $objPage->trail);
 
         // Active page
-        if ($objPage->id == $objModel->id && $href == Environment::get('request')) {
+        if ((int) $objPage->id === (int) $objModel->id && $href === Environment::get('request')) {
             $strClass = trim($objModel->cssClass);
             $row      = $objModel->row();
 
@@ -244,7 +240,7 @@ class I18nCustomNavigation extends Module
             $row['description'] = str_replace(["\n", "\r"], [' ', ''], $objModel->description);
 
             // Override the link target
-            if ($objModel->type == 'redirect' && $objModel->target) {
+            if ($objModel->type === 'redirect' && $objModel->target) {
                 $row['target'] = ' target="_blank"';
             }
 
@@ -267,7 +263,7 @@ class I18nCustomNavigation extends Module
         $row['description'] = str_replace(["\n", "\r"], [' ', ''], $objModel->description);
 
         // Override the link target
-        if ($objModel->type == 'redirect' && $objModel->target) {
+        if ($objModel->type === 'redirect' && $objModel->target) {
             $row['target'] = ' target="_blank"';
         }
 
@@ -278,12 +274,8 @@ class I18nCustomNavigation extends Module
      * Build the href of the page.
      *
      * @param PageModel $objModel The current page.
-     *
-     * @return string
-     *
-     * @throws \Exception If any model relation could not be handled.
      */
-    protected function buildHref($objModel): string
+    protected function buildHref(PageModel $objModel): string
     {
         switch ($objModel->type) {
             case 'redirect':
@@ -291,10 +283,12 @@ class I18nCustomNavigation extends Module
                 break;
 
             case 'forward':
-                if (($objNext = $objModel->getRelated('jumpTo')) instanceof PageModel
-                    || ($objNext = PageModel::findFirstPublishedRegularByPid($objModel->id)) instanceof PageModel
-                ) {
-                    /** @var PageModel $objNext */
+                $objNext = $objModel->getRelated('jumpTo');
+                if (! $objNext instanceof PageModel) {
+                    $objNext = PageModel::findFirstPublishedRegularByPid($objModel->id);
+                }
+
+                if ($objNext instanceof PageModel) {
                     $href = $objNext->getFrontendUrl();
                     break;
                 }
@@ -310,16 +304,16 @@ class I18nCustomNavigation extends Module
     /**
      * Add css classes.
      *
-     * @param array $items Items.
+     * @param list<array<string,mixed>> $items Items.
      *
-     * @return array
+     * @return list<array<string,mixed>>
      */
-    private function addCssClasses($items): array
+    private function addCssClasses(array $items): array
     {
         if ($items) {
             // Add classes first and last
             $items[0]['class']     = trim($items[0]['class'] . ' first');
-            $last                  = (\count($items) - 1);
+            $last                  = count($items) - 1;
             $items[$last]['class'] = trim($items[$last]['class'] . ' last');
         }
 

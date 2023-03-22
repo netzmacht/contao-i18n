@@ -1,15 +1,5 @@
 <?php
 
-/**
- * Contao I18n provides some i18n structures for easily l10n websites.
- *
- * @package    contao-18n
- * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
- * @filesource
- */
-
 declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\EventListener;
@@ -22,48 +12,36 @@ use Contao\Database;
 use Contao\Date;
 use Contao\PageModel;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
-use Netzmacht\Contao\Toolkit\Data\Model\Repository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 
-/**
- * Class SearchableI18nEventUrlsListener
- */
+use function in_array;
+use function preg_replace;
+use function sprintf;
+
 final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrlsListener
 {
-    /**
-     * I18nPageRepository page repository.
-     *
-     * @var I18nPageRepository
-     */
-    private $i18nPageRepository;
+    private I18nPageRepository $i18nPageRepository;
 
     /**
      * Contao config adapter.
      *
-     * @var Config|Adapter
+     * @var Adapter<Config>
      */
-    private $config;
+    private Adapter $config;
+
+    private RepositoryManager $repositoryManager;
 
     /**
-     * Model repository manager.
-     *
-     * @var RepositoryManager
-     */
-    private $repositoryManager;
-
-    /**
-     * SearchableI18nEventUrlsListener constructor.
-     *
      * @param RepositoryManager  $repositoryManager  Model repository manager.
      * @param I18nPageRepository $i18nPageRepository I18n page repository.
      * @param Database           $database           Legacy contao database connection.
-     * @param Config|Adapter     $config             Contao config adpater.
+     * @param Adapter<Config>    $config             Contao config adpater.
      */
     public function __construct(
         RepositoryManager $repositoryManager,
         I18nPageRepository $i18nPageRepository,
         Database $database,
-        $config
+        Adapter $config
     ) {
         parent::__construct($database);
 
@@ -83,18 +61,17 @@ final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrl
         $pages     = [];
 
         // Get all calendars
-        /** @var CalendarModel|Repository $calendarRepository */
         $calendarRepository = $this->repositoryManager->getRepository(CalendarModel::class);
         $collection         = $calendarRepository->findByProtected('');
 
         // Walk through each calendar
-        if ($collection == null) {
+        if ($collection === null) {
             return $pages;
         }
 
         while ($collection->next()) {
             // Skip calendars without target page
-            if (!$collection->jumpTo) {
+            if (! $collection->jumpTo) {
                 continue;
             }
 
@@ -102,7 +79,7 @@ final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrl
 
             foreach ($translations as $translation) {
                 // Skip calendars outside the root nodes
-                if (!empty($root) && !\in_array($translation->id, $root) || $translation->type !== 'i18n_regular') {
+                if ((! empty($root) && ! in_array($translation->id, $root)) || $translation->type !== 'i18n_regular') {
                     continue;
                 }
 
@@ -123,14 +100,14 @@ final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrl
     /**
      * Process the translation.
      *
-     * @param CalendarModel $calendar    The calendar.
-     * @param PageModel     $translation The translation.
-     * @param array         $pages       List of page urls.
-     * @param array         $processed   Cache of processed paged.
-     * @param bool          $isSitemap   Sitemap.
-     * @param int           $time        The time.
+     * @param CalendarModel                              $calendar    The calendar.
+     * @param PageModel                                  $translation The translation.
+     * @param list<string>                               $pages       List of page urls.
+     * @param array<int|string,array<int|string,string>> $processed   Cache of processed paged.
+     * @param bool                                       $isSitemap   Sitemap.
+     * @param int                                        $time        The time.
      *
-     * @return array
+     * @return list<string>
      */
     private function processTranslation(
         CalendarModel $calendar,
@@ -141,13 +118,13 @@ final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrl
         int $time
     ) {
         // Get the URL of the jumpTo page
-        if (!isset($processed[$calendar->jumpTo][$translation->id])) {
+        if (! isset($processed[$calendar->jumpTo][$translation->id])) {
             // The target page has not been published (see #5520)
-            if (!$this->isPagePublished($translation, $time)) {
+            if (! $this->isPagePublished($translation, $time)) {
                 return $pages;
             }
 
-            if (!$this->shouldPageBeAddedToSitemap($translation, $isSitemap)) {
+            if (! $this->shouldPageBeAddedToSitemap($translation, $isSitemap)) {
                 return $pages;
             }
 
@@ -160,7 +137,6 @@ final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrl
         $strUrl = $processed[$calendar->jumpTo][$translation->id];
 
         // Get the items
-        /** @var CalendarEventsModel|Repository $eventsRepository */
         $eventsRepository = $this->repositoryManager->getRepository(CalendarEventsModel::class);
         $objEvents        = $eventsRepository->findPublishedDefaultByPid($calendar->id);
 

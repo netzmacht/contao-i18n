@@ -1,15 +1,5 @@
 <?php
 
-/**
- * Contao I18n provides some i18n structures for easily l10n websites.
- *
- * @package    contao-18n
- * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
- * @filesource
- */
-
 declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\Cleanup;
@@ -22,54 +12,35 @@ use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Netzmacht\Contao\Toolkit\Callback\Invoker;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
+use Netzmacht\Contao\Toolkit\Dca\DcaManager;
 use Netzmacht\Contao\Toolkit\Dca\Definition;
-use Netzmacht\Contao\Toolkit\Dca\Manager;
 
-/**
- * Class I18nArticleCleaner
- */
+use function is_array;
+use function serialize;
+use function strlen;
+use function time;
+
 final class I18nPageArticleCleaner
 {
-    /**
-     * Repository manager.
-     *
-     * @var RepositoryManager
-     */
-    private $repositoryManager;
+    private RepositoryManager $repositoryManager;
+
+    private DcaManager $dcaManager;
+
+    /** @var Adapter<BackendUser> */
+    private Adapter $backendUser;
+
+    private Invoker $callbackInvoker;
 
     /**
-     * Data container manager.
-     *
-     * @var Manager
-     */
-    private $dcaManager;
-
-    /**
-     * Backend user adapter.
-     *
-     * @var BackendUser|Adapter
-     */
-    private $backendUser;
-
-    /**
-     * Callback invoker.
-     *
-     * @var Invoker
-     */
-    private $callbackInvoker;
-
-    /**
-     * I18nArticleCleaner constructor.
-     *
-     * @param RepositoryManager   $repositoryManager Repository manager.
-     * @param Manager             $dcaManager        Repository manager.
-     * @param BackendUser|Adapter $backendUser       Backend user adapter.
-     * @param Invoker             $callbackInvoker   Callback invoker.
+     * @param RepositoryManager    $repositoryManager Repository manager.
+     * @param DcaManager           $dcaManager        Repository manager.
+     * @param Adapter<BackendUser> $backendUser       Backend user adapter.
+     * @param Invoker              $callbackInvoker   Callback invoker.
      */
     public function __construct(
         RepositoryManager $repositoryManager,
-        Manager $dcaManager,
-        $backendUser,
+        DcaManager $dcaManager,
+        Adapter $backendUser,
         Invoker $callbackInvoker
     ) {
         $this->repositoryManager = $repositoryManager;
@@ -83,16 +54,14 @@ final class I18nPageArticleCleaner
      *
      * @param DataContainer $dataContainer Data container driver of tl_page.
      *
-     * @return void
-     *
      * @throws InvalidArgumentException When an invalid argument is passed to the delete statement.
      */
-    public function cleanupUnrelatedArticles($dataContainer): void
+    public function cleanupUnrelatedArticles(DataContainer $dataContainer): void
     {
         $articleRepository = $this->repositoryManager->getRepository(ArticleModel::class);
         $collection        = $articleRepository->findBy(['.pid=?', '.languageMain=0'], [$dataContainer->id]);
 
-        foreach (($collection ?? []) as $articleModel) {
+        foreach ($collection ?? [] as $articleModel) {
             $this->deleteArticle($articleModel, $dataContainer);
         }
     }
@@ -103,41 +72,37 @@ final class I18nPageArticleCleaner
      * @param ArticleModel  $articleModel  Article model.
      * @param DataContainer $dataContainer Data container driver of tl_page.
      *
-     * @return void
-     *
      * @throws InvalidArgumentException When an invalid argument is passed to the delete statement.
      */
-    public function deleteArticle(ArticleModel $articleModel, $dataContainer): void
+    public function deleteArticle(ArticleModel $articleModel, DataContainer $dataContainer): void
     {
         $delete = [
             ArticleModel::getTable() => [$articleModel->id],
         ];
 
-        $this->collectChildren(ArticleModel::getTable(), $articleModel->id, $delete);
-        $this->deleteRecords($delete, $articleModel->id, $dataContainer);
+        $this->collectChildren(ArticleModel::getTable(), (int) $articleModel->id, $delete);
+        $this->deleteRecords($delete, (int) $articleModel->id, $dataContainer);
     }
 
     /**
      * Recursively get all related table names and records which has to be deleted.
      *
-     * @param string  $table    The current table name.
-     * @param integer $recordId The record id.
-     * @param array   $delete   Array of all collected delete statements.
-     *
-     * @return void
+     * @param string                         $table    The current table name.
+     * @param int                            $recordId The record id.
+     * @param array<string,list<int|string>> $delete   Array of all collected delete statements.
      */
-    private function collectChildren($table, $recordId, &$delete): void
+    private function collectChildren(string $table, int $recordId, array &$delete): void
     {
         $cctable = [];
         $ctables = $this->dcaManager->getDefinition($table)->get(['config', 'ctable']);
 
-        if (!\is_array($ctables)) {
+        if (! is_array($ctables)) {
             return;
         }
 
         // Walk through each child table
         foreach ($ctables as $ctable) {
-            if (!strlen($ctable)) {
+            if (! strlen($ctable)) {
                 continue;
             }
 
@@ -147,16 +112,18 @@ final class I18nPageArticleCleaner
             $builder = $this->buildCollectChildrenQuery($definition, $recordId, $ctable);
             $result  = $builder->execute();
 
-            if ($definition->get(['config', 'doNotDeleteRecords']) || !$result->rowCount()) {
+            if ($definition->get(['config', 'doNotDeleteRecords']) || ! $result->rowCount()) {
                 continue;
             }
 
-            while ($deleteId = $result->fetchColumn()) {
+            while ($deleteId = $result->fetchOne()) {
                 $delete[$ctable][] = $deleteId;
 
-                if (!empty($cctable[$ctable])) {
-                    $this->collectChildren($ctable, $deleteId, $delete);
+                if (empty($cctable[$ctable])) {
+                    continue;
                 }
+
+                $this->collectChildren($ctable, $deleteId, $delete);
             }
         }
     }
@@ -164,21 +131,19 @@ final class I18nPageArticleCleaner
     /**
      * Delete all records.
      *
-     * @param array         $delete        Records to delete.
-     * @param int           $articleId     The article id.
-     * @param DataContainer $dataContainer Data container driver of tl_page.
-     *
-     * @return void
+     * @param array<string,list<int|string>> $delete        Records to delete.
+     * @param int                            $articleId     The article id.
+     * @param DataContainer                  $dataContainer Data container driver of tl_page.
      *
      * @throws InvalidArgumentException When an invalid argument is passed to the delete statement.
      */
-    private function deleteRecords(array $delete, $articleId, $dataContainer): void
+    private function deleteRecords(array $delete, int $articleId, DataContainer $dataContainer): void
     {
         $connection   = $this->repositoryManager->getConnection();
         $affectedRows = $this->updateUndoRecord($delete, $articleId);
 
         // Delete the records
-        if (!$affectedRows) {
+        if (! $affectedRows) {
             return;
         }
 
@@ -199,12 +164,10 @@ final class I18nPageArticleCleaner
     /**
      * Update the undo record with all child content.
      *
-     * @param array $delete    Records to delete.
-     * @param int   $articleId The article id.
-     *
-     * @return int
+     * @param array<string,array<string,mixed>> $delete    Records to delete.
+     * @param int                               $articleId The article id.
      */
-    private function updateUndoRecord(array $delete, $articleId): int
+    private function updateUndoRecord(array $delete, int $articleId): int
     {
         $connection = $this->repositoryManager->getConnection();
         $affected   = 0;
@@ -220,10 +183,12 @@ final class I18nPageArticleCleaner
                     ->setParameter('id', $value)
                     ->execute();
 
-                if ($statement->rowCount()) {
-                    $data[$table][$key] = $statement->fetch(\PDO::FETCH_ASSOC);
-                    $affected++;
+                if (! $statement->rowCount()) {
+                    continue;
                 }
+
+                $data[$table][$key] = $statement->fetchAssociative();
+                $affected++;
             }
         }
 
@@ -244,12 +209,10 @@ final class I18nPageArticleCleaner
      * Build the children collection query.
      *
      * @param Definition $definition The dca definition.
-     * @param string|int $recordId   The record id.
+     * @param int        $recordId   The record id.
      * @param string     $ctable     The children table.
-     *
-     * @return QueryBuilder
      */
-    private function buildCollectChildrenQuery($definition, $recordId, $ctable): QueryBuilder
+    private function buildCollectChildrenQuery(Definition $definition, int $recordId, string $ctable): QueryBuilder
     {
         $builder = $this->repositoryManager->getConnection()->createQueryBuilder()
             ->select('id')

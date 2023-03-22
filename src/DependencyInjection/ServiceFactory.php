@@ -1,40 +1,17 @@
 <?php
 
-/**
- * Contao I18n provides some i18n structures for easily l10n websites.
- *
- * @package    contao-18n
- * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
- * @filesource
- */
-
 declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\DependencyInjection;
 
-use Contao\CoreBundle\Framework\ContaoFrameworkInterface as ContaoFramework;
+use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\Database;
 use Contao\Model\Registry;
 
-/**
- * Class ServiceFactory
- */
 class ServiceFactory
 {
-    /**
-     * The contao framework.
-     *
-     * @var ContaoFramework
-     */
-    private $framework;
+    private ContaoFramework $framework;
 
-    /**
-     * ServiceFactory constructor.
-     *
-     * @param ContaoFramework $framework Contao framework.
-     */
     public function __construct(ContaoFramework $framework)
     {
         $this->framework = $framework;
@@ -42,8 +19,6 @@ class ServiceFactory
 
     /**
      * Create the model registry.
-     *
-     * @return Registry
      */
     public function createModelRegistry(): Registry
     {
@@ -54,8 +29,6 @@ class ServiceFactory
 
     /**
      * Create the database connection.
-     *
-     * @return Database
      */
     public function createDatabaseConnection(): Database
     {

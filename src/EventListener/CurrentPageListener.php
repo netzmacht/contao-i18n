@@ -1,15 +1,5 @@
 <?php
 
-/**
- * Contao I18n provides some i18n structures for easily l10n websites.
- *
- * @package    contao-18n
- * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
- * @filesource
- */
-
 declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\EventListener;
@@ -17,23 +7,10 @@ namespace Netzmacht\Contao\I18n\EventListener;
 use Contao\PageModel;
 use Netzmacht\Contao\I18n\PageProvider\PageProvider;
 
-/**
- * Class CurrentPageListener
- */
 class CurrentPageListener
 {
-    /**
-     * Page provider.
-     *
-     * @var PageProvider
-     */
-    private $pageProvider;
+    private PageProvider $pageProvider;
 
-    /**
-     * CurrentPageListener constructor.
-     *
-     * @param PageProvider $pageProvider The page provider.
-     */
     public function __construct(PageProvider $pageProvider)
     {
         $this->pageProvider = $pageProvider;
@@ -43,8 +20,6 @@ class CurrentPageListener
      * Set the page layout.
      *
      * @param PageModel $pageModel The page layout.
-     *
-     * @return void
      */
     public function onGetPageLayout(PageModel $pageModel): void
     {

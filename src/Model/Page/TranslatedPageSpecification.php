@@ -1,46 +1,26 @@
 <?php
 
-/**
- * Contao I18n provides some i18n structures for easily l10n websites.
- *
- * @package    contao-18n
- * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
- * @filesource
- */
-
 declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\Model\Page;
 
 use Contao\Model;
 use Netzmacht\Contao\Toolkit\Data\Model\Specification;
+use RuntimeException;
 
-/**
- * Class TranslatedPageSpecification
- *
- * @package Netzmacht\Contao\I18n\Model\Page
- */
 class TranslatedPageSpecification implements Specification
 {
     /**
      * The language.
-     *
-     * @var string
      */
-    private $language;
+    private string $language;
 
     /**
      * Page id of the page in the main language.
-     *
-     * @var int
      */
-    private $mainLanguage;
+    private int $mainLanguage;
 
     /**
-     * TranslatedPageSpecification constructor.
-     *
      * @param int    $mainLanguage Page id of the page in the main language.
      * @param string $language     The current language.
      */
@@ -53,11 +33,11 @@ class TranslatedPageSpecification implements Specification
     /**
      * {@inheritdoc}
      *
-     * @throws \RuntimeException Method is not implemented yet.
+     * @throws RuntimeException Method is not implemented yet.
      */
-    public function isSatisfiedBy(Model $model)
+    public function isSatisfiedBy(Model $model): bool
     {
-        throw new \RuntimeException('isSatisfiedBy not implemented yet.');
+        throw new RuntimeException('isSatisfiedBy not implemented yet.');
     }
 
     /**

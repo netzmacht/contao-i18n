@@ -1,14 +1,6 @@
 <?php
 
-/**
- * Contao I18n provides some i18n structures for easily l10n websites.
- *
- * @package    contao-18n
- * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
- * @filesource
- */
+declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\PageType;
 
@@ -23,6 +15,16 @@ use Contao\PageModel;
 use Contao\PageRegular;
 use Contao\System;
 
+use function assert;
+use function class_exists;
+use function explode;
+use function is_array;
+use function is_object;
+use function is_string;
+use function preg_match;
+use function sprintf;
+use function strlen;
+
 /**
  * Regular i18n page load the content of the base page.
  */
@@ -33,28 +35,28 @@ class I18nRegular extends PageRegular
      */
     public static function getFrontendModule($moduleId, $column = 'main')
     {
-        if (!is_object($moduleId) && !strlen($moduleId)) {
+        if (! is_object($moduleId) && ! strlen((string) $moduleId)) {
             return '';
         }
 
         $currentPage = static::getContainer()->get('netzmacht.contao_i18n.page_provider')->getPage();
         $i18n        = static::getContainer()->get('netzmacht.contao_i18n.page_repository');
 
-        if (!$i18n->isI18nPage($currentPage->type)) {
+        if (! $i18n->isI18nPage($currentPage->type)) {
             return parent::getFrontendModule($moduleId, $column);
         }
 
         $basePage = $i18n->getBasePage($currentPage);
-        if (!$basePage) {
+        if (! $basePage) {
             return '';
         }
 
-        if ($moduleId == 0) {
+        if ((int) $moduleId === 0) {
             // Articles
             return self::getArticles($currentPage, $basePage, $column);
-        } else {
-            return self::generateFrontendModule($moduleId, $column);
         }
+
+        return self::generateFrontendModule((int) $moduleId, $column);
     }
 
     /**
@@ -64,32 +66,30 @@ class I18nRegular extends PageRegular
      * @param PageModel $basePage    Base page.
      * @param string    $column      Article column.
      *
-     * @return string
-     *
      * @SuppressWarnings(PHPMD.Superglobals)
      */
-    private static function getArticles($currentPage, $basePage, $column = 'main')
+    private static function getArticles($currentPage, $basePage, string $column = 'main'): string
     {
         // Show a particular article only
-        if ($basePage->type == 'regular' && Input::get('articles')) {
-            list($section, $article) = explode(':', Input::get('articles'));
+        if ($basePage->type === 'regular' && Input::get('articles')) {
+            [$section, $article] = explode(':', Input::get('articles'));
 
             if ($article === null) {
                 $article = $section;
                 $section = 'main';
             }
 
-            if ($section == $column) {
+            if ($section === $column) {
                 return self::generateSectionArticle($basePage, $article);
             }
         }
 
         // HOOK: add custom logic
-        if (isset($GLOBALS['TL_HOOKS']['getArticles']) && \is_array($GLOBALS['TL_HOOKS']['getArticles'])) {
+        if (isset($GLOBALS['TL_HOOKS']['getArticles']) && is_array($GLOBALS['TL_HOOKS']['getArticles'])) {
             foreach ($GLOBALS['TL_HOOKS']['getArticles'] as $callback) {
                 $return = static::importStatic($callback[0])->{$callback[1]}($basePage->id, $column);
 
-                if (\is_string($return)) {
+                if (is_string($return)) {
                     return $return;
                 }
             }
@@ -104,34 +104,34 @@ class I18nRegular extends PageRegular
      * @param int    $moduleId Module id.
      * @param string $column   Layout column.
      *
-     * @return string
-     *
      * @SuppressWarnings(PHPMD.Superglobals)
      */
-    private static function generateFrontendModule($moduleId, $column)
+    private static function generateFrontendModule(int $moduleId, string $column): string
     {
         $moduleModel = static::getModuleModel($moduleId);
 
         // Check the visibility (see #6311)
-        if (!$moduleModel || !static::isVisibleElement($moduleModel)) {
+        if (! $moduleModel || ! static::isVisibleElement($moduleModel)) {
             return '';
         }
 
         $moduleClass = Module::findClass($moduleModel->type);
 
         // Return if the class does not exist
-        if (!class_exists($moduleClass)) {
+        if (! class_exists($moduleClass)) {
             static::log(
                 sprintf('Module class "%s" (module "%s") does not exist', $moduleClass, $moduleModel->type),
                 __METHOD__,
                 TL_ERROR
             );
+
             return '';
         }
 
         $moduleModel->typePrefix = 'mod_';
-        /** @var Module $module */
+
         $module = new $moduleClass($moduleModel, $column);
+        assert($module instanceof Module);
         $buffer = $module->generate();
 
         // HOOK: add custom logic
@@ -142,28 +142,26 @@ class I18nRegular extends PageRegular
         }
 
         // Disable indexing if protected
-        if ($module->protected && !preg_match('/^\s*<!-- indexer::stop/', $buffer)) {
-            $buffer = "\n<!-- indexer::stop -->". $buffer ."<!-- indexer::continue -->\n";
+        if ($module->protected && ! preg_match('/^\s*<!-- indexer::stop/', $buffer)) {
+            $buffer = "\n<!-- indexer::stop -->" . $buffer . "<!-- indexer::continue -->\n";
         }
 
         return $buffer;
     }
 
     /**
-     * Get a model model.
+     * Get a module model.
      *
      * @param int|ModuleModel $moduleId Module model or id.
-     *
-     * @return ModuleModel|null
      */
-    private static function getModuleModel($moduleId)
+    private static function getModuleModel($moduleId): ?ModuleModel
     {
         // Other modules
         if (is_object($moduleId)) {
             return $moduleId;
         }
 
-        return \ModuleModel::findByPk($moduleId);
+        return ModuleModel::findByPk($moduleId);
     }
 
     /**
@@ -187,7 +185,7 @@ class I18nRegular extends PageRegular
         }
 
         // Send a 403 header if the article cannot be accessed
-        if (!static::isVisibleElement($articleModel)) {
+        if (! static::isVisibleElement($articleModel)) {
             throw new AccessDeniedException('Access denied: ' . Environment::get('uri'));
         }
 
@@ -203,10 +201,8 @@ class I18nRegular extends PageRegular
      * @param PageModel $currentPage I18n page model.
      * @param PageModel $basePage    Page model.
      * @param string    $column      Section column.
-     *
-     * @return string
      */
-    private static function generateArticleList(PageModel $currentPage, PageModel $basePage, $column)
+    private static function generateArticleList(PageModel $currentPage, PageModel $basePage, string $column): string
     {
         // Show all articles (no else block here, see #4740)
         $articles = ArticleModel::findPublishedByPidAndColumn($basePage->id, $column);
@@ -220,8 +216,8 @@ class I18nRegular extends PageRegular
         $overrides = $finder->getOverrides($currentPage);
         $return    = '';
         $count     = 0;
-        $multiMode = ($articles->count() > 1);
-        $last      = ($articles->count() - 1);
+        $multiMode = $articles->count() > 1;
+        $last      = $articles->count() - 1;
 
         foreach ($articles as $articleModel) {
             // Article should be overridden. So replace it.
@@ -234,14 +230,14 @@ class I18nRegular extends PageRegular
             }
 
             // Add the "first" and "last" classes (see #2583)
-            if ($count == 0 || $count == $last) {
-                $arrCss = array();
+            if ($count === 0 || $count === $last) {
+                $arrCss = [];
 
-                if ($count == 0) {
+                if ($count === 0) {
                     $arrCss[] = 'first';
                 }
 
-                if ($count == $last) {
+                if ($count === $last) {
                     $arrCss[] = 'last';
                 }
 

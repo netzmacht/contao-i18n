@@ -1,22 +1,12 @@
 <?php
 
-/**
- * Contao I18n provides some i18n structures for easily l10n websites.
- *
- * @package    contao-18n
- * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
- * @filesource
- */
-
 declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\Context;
 
-/**
- * Class ContextStack
- */
+use function array_slice;
+use function count;
+
 final class ContextStack
 {
     /**
@@ -24,14 +14,10 @@ final class ContextStack
      *
      * @var Context[]|array
      */
-    private $contexts = [];
+    private array $contexts = [];
 
     /**
      * Enter a new context.
-     *
-     * @param Context $context The context.
-     *
-     * @return void
      */
     public function enterContext(Context $context): void
     {
@@ -45,8 +31,6 @@ final class ContextStack
      *
      * @param Context $context The context.
      * @param bool    $strict  Strict mode. Some contexts supports strict mode comparison.
-     *
-     * @return bool
      */
     public function matchCurrentContext(Context $context, bool $strict = false): bool
     {
@@ -54,7 +38,7 @@ final class ContextStack
             return false;
         }
 
-        $index   = (count($this->contexts) - 1);
+        $index   = count($this->contexts) - 1;
         $current = $this->contexts[$index];
 
         return $current->match($context, $strict);
@@ -66,16 +50,16 @@ final class ContextStack
      * If the context is not the last one, all contexts entered after the given one will be left.
      *
      * @param Context $context The context.
-     *
-     * @return void
      */
     public function leaveContext(Context $context): void
     {
         foreach ($this->contexts as $index => $value) {
-            if ($value->match($context, true)) {
-                $this->contexts = array_slice($this->contexts, 0, $index);
-                break;
+            if (! $value->match($context, true)) {
+                continue;
             }
+
+            $this->contexts = array_slice($this->contexts, 0, $index);
+            break;
         }
     }
 }

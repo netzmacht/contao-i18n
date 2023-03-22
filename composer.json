@@ -1,7 +1,8 @@
 {
   "name": "netzmacht/contao-i18n",
-  "type": "contao-bundle",
   "description": "This library provides a toolkit for flexible i18n websites..",
+  "license": "LGPL-3.0-or-later",
+  "type": "contao-bundle",
   "keywords": [
     "contao",
     "i18n",
@@ -9,7 +10,6 @@
     "multilingual",
     "language"
   ],
-  "license": "LGPL-3.0-or-later",
   "authors": [
     {
       "name": "David Molineus",
@@ -18,43 +18,53 @@
       "role": "Developer"
     }
   ],
+  "support": {
+    "email": "mail@netzmacht.de",
+    "issues": "https://github.com/netzmacht/contao-i18n/issues",
+    "source": "https://github.com/netzmacht/contao-i18n"
+  },
   "require": {
-    "php": "^7.1",
-    "contao/core-bundle": "~4.4",
-    "hofff/contao-root-relations": "^2.2.0",
-    "menatwork/contao-multicolumnwizard-bundle": "^3.4",
-    "netzmacht/contao-toolkit": "~3.0",
-    "terminal42/contao-changelanguage": "~3.0"
+    "php": "^7.4 || ^8.0",
+    "contao/core-bundle": "^4.13",
+    "doctrine/dbal": "^3.3",
+    "hofff/contao-root-relations": "^3.0",
+    "menatwork/contao-multicolumnwizard-bundle": "^3.5",
+    "netzmacht/contao-toolkit": "^3.8",
+    "symfony/config": "^4.4 || ^5.0",
+    "symfony/dependency-injection": "^4.4 || ^5.0",
+    "symfony/http-foundation": "^4.4 || ^5.0",
+    "symfony/http-kernel": "^4.4 || ^5.0",
+    "symfony/translation-contracts": "^1.1 || ^2.0",
+    "terminal42/contao-changelanguage": "^3.0"
   },
   "require-dev": {
     "contao/calendar-bundle": "~4.4",
     "contao/faq-bundle": "~4.4",
     "contao/manager-plugin": "~2.0",
     "contao/news-bundle": "~4.4",
-    "phpcq/all-tasks": "~1.2"
+    "doctrine/coding-standard": "^9.0.",
+    "phpcq/runner-bootstrap": "^1.0@dev"
   },
   "suggest": {},
-  "extra": {
-    "branch-alias": {
-      "dev-support/1.0.x": "1.0.x-dev",
-      "dev-master": "2.0.x-dev",
-      "dev-develop": "2.1.x-dev"
-    },
-    "contao-manager-plugin": "Netzmacht\\Contao\\I18n\\ContaoManager\\Plugin"
-  },
   "autoload": {
     "psr-4": {
       "Netzmacht\\Contao\\I18n\\": "src/"
     }
   },
-  "autoload-dev": {
-    "files": [
-      "vendor/phpcq/autoload-validation/hacks/contao-hack.php"
-    ]
+  "config": {
+    "allow-plugins": {
+      "contao-components/installer": true,
+      "php-http/discovery": true,
+      "contao/manager-plugin": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
   },
-  "support": {
-    "email": "mail@netzmacht.de",
-    "issues": "https://github.com/netzmacht/contao-i18n/issues",
-    "source": "https://github.com/netzmacht/contao-i18n"
+  "extra": {
+    "branch-alias": {
+      "dev-develop": "2.1.x-dev",
+      "dev-master": "2.0.x-dev",
+      "dev-support/1.0.x": "1.0.x-dev"
+    },
+    "contao-manager-plugin": "Netzmacht\\Contao\\I18n\\ContaoManager\\Plugin"
   }
 }

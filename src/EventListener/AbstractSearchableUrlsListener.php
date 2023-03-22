@@ -1,37 +1,25 @@
 <?php
 
-/**
- * Contao I18n provides some i18n structures for easily l10n websites.
- *
- * @package    contao-18n
- * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
- * @filesource
- */
-
 declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\EventListener;
 
-/**
- * Class AbstractSearchableUrlsListener
- *
- * @package Netzmacht\Contao\I18n\EventListener
- */
+use function array_merge;
+use function array_unique;
+use function array_values;
+
 abstract class AbstractSearchableUrlsListener
 {
-
     /**
      * Build the sitemap and searchable pages list.
      *
-     * @param array $pages      Page array.
-     * @param null  $rootPageId Root page.
-     * @param bool  $isSitemap  Collect pages for the sitemap.
+     * @param list<string> $pages      Page array.
+     * @param null         $rootPageId Root page.
+     * @param bool         $isSitemap  Collect pages for the sitemap.
      *
-     * @return array
+     * @return list<string>
      */
-    public function onGetSearchablePages(array $pages, $rootPageId = null, $isSitemap = false): array
+    public function onGetSearchablePages(array $pages, $rootPageId = null, bool $isSitemap = false): array
     {
         $pages = array_merge(
             $pages,
@@ -48,14 +36,13 @@ abstract class AbstractSearchableUrlsListener
     /**
      * Get all searchable i18n pages and return them as array.
      *
-     * Stolen from Backend::findSearchablePages
+     * @see https://github.com/contao/core/blob/master/system/modules/core/classes/Backend.php
      *
      * @param int    $pid       Parent id.
      * @param string $domain    Domain name.
      * @param bool   $isSitemap Fetch for the sitemap Sitemap.
      *
-     * @see    https://github.com/contao/core/blob/master/system/modules/core/classes/Backend.php
-     * @return array
+     * @return list<string>
      */
-    abstract protected function collectPages($pid = 0, string $domain = '', bool $isSitemap = false): array;
+    abstract protected function collectPages(int $pid = 0, string $domain = '', bool $isSitemap = false): array;
 }

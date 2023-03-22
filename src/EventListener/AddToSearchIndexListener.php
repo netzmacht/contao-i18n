@@ -1,53 +1,31 @@
 <?php
 
-/**
- * Contao I18n provides some i18n structures for easily l10n websites.
- *
- * @package    contao-18n
- * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
- * @filesource
- */
-
 declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\EventListener;
 
 use Contao\Config;
-use Contao\CoreBundle\Framework\Adapter;
-use Contao\CoreBundle\Framework\ContaoFrameworkInterface as ContaoFramework;
+use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\Environment;
 use Contao\PageModel;
 use Contao\Search;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\PostResponseEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
-/**
- * Class AddToSearchIndexListener
- *
- * @package Netzmacht\Contao\I18n\EventListener
- */
+use function array_keys;
+use function in_array;
+use function preg_match;
+use function preg_quote;
+use function strncmp;
+
 class AddToSearchIndexListener
 {
-    /**
-     * Contao framework.
-     *
-     * @var ContaoFramework
-     */
-    private $framework;
+    private ContaoFramework $framework;
+
+    private string $fragmentPath;
 
     /**
-     * Fragment path.
-     *
-     * @var string
-     */
-    private $fragmentPath;
-
-    /**
-     * Construct.
-     *
      * @param ContaoFramework $framework    Contao framework.
      * @param string          $fragmentPath Fragment path.
      */
@@ -60,20 +38,18 @@ class AddToSearchIndexListener
     /**
      * Checks if the request can be indexed and forwards it accordingly.
      *
-     * @param PostResponseEvent $event The subscribed event.
-     *
-     * @return void
+     * @param ResponseEvent $event The subscribed event.
      */
-    public function onKernelTerminate(PostResponseEvent $event): void
+    public function onKernelTerminate(ResponseEvent $event): void
     {
-        if (!$this->framework->isInitialized()) {
+        if (! $this->framework->isInitialized()) {
             return;
         }
 
         $request = $event->getRequest();
 
         // Only index GET requests (see #1194)
-        if (!$request->isMethod(Request::METHOD_GET)) {
+        if (! $request->isMethod(Request::METHOD_GET)) {
             return;
         }
 
@@ -90,8 +66,6 @@ class AddToSearchIndexListener
      *
      * @param Response $response The http response.
      *
-     * @return void
-     *
      * @SuppressWarnings(PHPMD.Superglobals)
      */
     private function indexPageIfApplicable(Response $response): void
@@ -102,41 +76,36 @@ class AddToSearchIndexListener
             return;
         }
 
-        /** @var Environment $environment */
-        $environment = $this->framework->getAdapter(Environment::class);
-
         // Index page if searching is allowed and there is no back end user
-        if ($this->isIndexingAllowed($page)) {
-            $data = [
-                'url'       => $environment->get('base') . $environment->get('relativeRequest'),
-                'content'   => $response->getContent(),
-                'title'     => $page->pageTitle ?: $page->title,
-                'protected' => ($page->protected ? '1' : ''),
-                'groups'    => $page->groups,
-                'pid'       => $page->id,
-                'language'  => $page->language,
-            ];
-
-            /** @var Adapter|Search $search */
-            $search = $this->framework->getAdapter(Search::class);
-            $search->indexPage($data);
+        if (! $this->isIndexingAllowed($page)) {
+            return;
         }
+
+        $environment = $this->framework->getAdapter(Environment::class);
+        $data        = [
+            'url'       => $environment->get('base') . $environment->get('relativeRequest'),
+            'content'   => $response->getContent(),
+            'title'     => $page->pageTitle ?: $page->title,
+            'protected' => ($page->protected ? '1' : ''),
+            'groups'    => $page->groups,
+            'pid'       => $page->id,
+            'language'  => $page->language,
+        ];
+
+        $search = $this->framework->getAdapter(Search::class);
+        $search->indexPage($data);
     }
 
     /**
      * Check if indexing is allowed.
      *
      * @param PageModel $page The page model.
-     *
-     * @return bool
      */
     private function isIndexingAllowed($page): bool
     {
-        /** @var Adapter|Config $config */
-
         $config = $this->framework->getAdapter(Config::class);
 
-        if (!$config->get('enableSearch')) {
+        if (! $config->get('enableSearch')) {
             return false;
         }
 
@@ -145,17 +114,15 @@ class AddToSearchIndexListener
         }
 
         // Index protected pages if enabled
-        if (!$config->get('indexProtected') && FE_USER_LOGGED_IN && $page->protected) {
+        if (! $config->get('indexProtected') && FE_USER_LOGGED_IN && $page->protected) {
             return false;
         }
 
-        return !$this->hasNoIndexKeys();
+        return ! $this->hasNoIndexKeys();
     }
 
     /**
      * Check if query has some no index keys.
-     *
-     * @return bool
      *
      * @SuppressWarnings(PHPMD.Superglobals)
      */
@@ -163,7 +130,7 @@ class AddToSearchIndexListener
     {
         // Do not index the page if certain parameters are set
         foreach (array_keys($_GET) as $key) {
-            if (\in_array($key, $GLOBALS['TL_NOINDEX_KEYS']) || strncmp($key, 'page_', 5) === 0) {
+            if (in_array($key, $GLOBALS['TL_NOINDEX_KEYS']) || strncmp($key, 'page_', 5) === 0) {
                 return true;
             }
         }
