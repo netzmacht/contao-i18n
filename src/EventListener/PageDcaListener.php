@@ -221,14 +221,8 @@ final class PageDcaListener extends AbstractListener
             return;
         }
 
-        // Reload the page. Active record stores the version before the changes are applied.
-        $page = $this->repositoryManager->getRepository(PageModel::class)->find((int) $dataContainer->id);
-        if (! $page instanceof PageModel) {
-            return;
-        }
-
-        $modes     = $this->articleFinder->getArticleModes($page, 'override');
-        $overrides = $this->articleFinder->getOverrides($page);
+        $modes     = $this->articleFinder->getArticleModes($dataContainer->activeRecord, 'override');
+        $overrides = $this->articleFinder->getOverrides($dataContainer->activeRecord);
         $deletes   = $overrides;
 
         foreach (array_keys($modes) as $articleId) {
@@ -286,7 +280,7 @@ final class PageDcaListener extends AbstractListener
         $articles   = [];
         $collection = $this->repositoryManager
             ->getRepository(ArticleModel::class)
-            ->findBy(['.pid=?', 'languageMain != 0'], [$datContainer->id]);
+            ->findBy(['.pid=?', '.languageMain != 0'], [$datContainer->id]);
 
         if ($collection) {
             foreach ($collection as $article) {
