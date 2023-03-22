@@ -57,7 +57,7 @@ final class TranslatedArticleFinder
     public function getOverrides($currentPage): array
     {
         $repository = $this->repositoryManager->getRepository(ArticleModel::class);
-        $collection = $repository->findBy(['.languageMain != \'\'', '.pid=?'], [$currentPage->id]);
+        $collection = $repository->findBy(['.languageMain != \'0\'', '.pid=?'], [$currentPage->id]);
 
         if (! $collection) {
             return [];
