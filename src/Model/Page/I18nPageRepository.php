@@ -146,7 +146,7 @@ class I18nPageRepository
         }
 
         $language = $this->getPageLanguage($mainPage);
-        if (! $language) {
+        if ($language === null) {
             return $pages;
         }
 
@@ -184,8 +184,8 @@ class I18nPageRepository
         }
 
         // Page with loaded details.
-        if ($page->language) {
-            return $page->language;
+        if ($page->rootLanguage !== null) {
+            return $page->rootLanguage;
         }
 
         $root = $this->getRootPage($page);
