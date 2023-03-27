@@ -6,6 +6,6 @@ namespace Netzmacht\Contao\I18n;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-class NetzmachtContaoI18nBundle extends Bundle
+final class NetzmachtContaoI18nBundle extends Bundle
 {
 }

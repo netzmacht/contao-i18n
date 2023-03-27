@@ -24,7 +24,7 @@ use function in_array;
 use function preg_replace;
 use function sprintf;
 
-class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListener
+final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListener
 {
     /**
      * Model repository manager.

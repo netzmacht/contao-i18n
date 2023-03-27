@@ -11,7 +11,7 @@ use Netzmacht\Contao\I18n\Context\ContextStack;
 use Netzmacht\Contao\I18n\Context\FrontendModuleContext;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 
-class ContextListener
+final class ContextListener
 {
     private ContextStack $contextStack;
 

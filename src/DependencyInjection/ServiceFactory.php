@@ -8,7 +8,7 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\Database;
 use Contao\Model\Registry;
 
-class ServiceFactory
+final class ServiceFactory
 {
     private ContaoFramework $framework;
 

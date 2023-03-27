@@ -11,7 +11,7 @@ use function array_key_exists;
 use function assert;
 use function in_array;
 
-class I18nPageRepository
+final class I18nPageRepository
 {
     /**
      * Set of supported i18n pages.

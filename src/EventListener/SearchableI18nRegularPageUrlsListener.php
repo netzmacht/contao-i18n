@@ -18,7 +18,7 @@ use function array_merge;
 use function get_class;
 use function sprintf;
 
-class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListener
+final class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListener
 {
     private Connection $connection;
 

@@ -37,7 +37,7 @@ use function strncmp;
 use function trim;
 
 /** @psalm-suppress PropertyNotSetInConstructor */
-class I18nCustomNavigation extends Module
+final class I18nCustomNavigation extends Module
 {
     /**
      * Template name.

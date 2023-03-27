@@ -6,7 +6,7 @@ namespace Netzmacht\Contao\I18n\EventListener;
 
 use Contao\PageModel;
 
-class PageStatusIconListener
+final class PageStatusIconListener
 {
     /**
      * Get the page status icon.

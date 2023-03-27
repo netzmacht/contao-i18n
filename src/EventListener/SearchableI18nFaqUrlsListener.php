@@ -21,7 +21,7 @@ use function in_array;
 use function preg_replace;
 use function sprintf;
 
-class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsListener
+final class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsListener
 {
     private RepositoryManager $repositoryManager;
 

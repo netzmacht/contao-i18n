@@ -9,7 +9,7 @@ use Netzmacht\Contao\I18n\Context\FrontendModuleContext;
 use Netzmacht\Contao\I18n\Context\TranslatePageUrlContext;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 
-class TranslatePageUrlListener
+final class TranslatePageUrlListener
 {
     private I18nPageRepository $i18nPageRepository;
 

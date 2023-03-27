@@ -6,7 +6,7 @@ namespace Netzmacht\Contao\I18n\Context;
 
 use Contao\ModuleModel;
 
-class FrontendModuleContext implements Context
+final class FrontendModuleContext implements Context
 {
     /**
      * The module type.

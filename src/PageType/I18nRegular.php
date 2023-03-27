@@ -38,7 +38,7 @@ use function strlen;
  *
  * @psalm-suppress PropertyNotSetInConstructor
  */
-class I18nRegular extends PageRegular
+final class I18nRegular extends PageRegular
 {
     /**
      * {@inheritDoc}

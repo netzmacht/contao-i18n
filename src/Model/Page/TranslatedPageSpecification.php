@@ -8,7 +8,7 @@ use Contao\Model;
 use Netzmacht\Contao\Toolkit\Data\Model\Specification;
 use RuntimeException;
 
-class TranslatedPageSpecification implements Specification
+final class TranslatedPageSpecification implements Specification
 {
     /**
      * The language.

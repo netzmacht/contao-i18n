@@ -7,7 +7,7 @@ namespace Netzmacht\Contao\I18n\Model\Page;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Result;
 
-class PublishedI18nRegularPagesQuery
+final class PublishedI18nRegularPagesQuery
 {
     /**
      * Database connection.

@@ -10,7 +10,7 @@ use Contao\ManagerPlugin\Bundle\Config\BundleConfig;
 use Contao\ManagerPlugin\Bundle\Parser\ParserInterface;
 use Netzmacht\Contao\I18n\NetzmachtContaoI18nBundle;
 
-class Plugin implements BundlePluginInterface
+final class Plugin implements BundlePluginInterface
 {
     /**
      * {@inheritdoc}

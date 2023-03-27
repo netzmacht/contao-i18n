@@ -14,7 +14,7 @@ use function array_pad;
 use function explode;
 use function in_array;
 
-class TranslateInsertTagListener extends AbstractInsertTagParser
+final class TranslateInsertTagListener extends AbstractInsertTagParser
 {
     private I18nPageRepository $i18nPageRepository;
 

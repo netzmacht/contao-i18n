@@ -18,7 +18,7 @@ use function assert;
  * @property string|bool defineRoot If true a root page should be used.
  * @psalm-suppress PropertyNotSetInConstructor
  */
-class I18nNavigation extends ModuleNavigation
+final class I18nNavigation extends ModuleNavigation
 {
     /**
      * Translated page of the redirect page.
