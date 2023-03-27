@@ -27,6 +27,7 @@ use function assert;
 use function class_exists;
 use function explode;
 use function is_array;
+use function is_int;
 use function is_object;
 use function is_string;
 use function preg_match;
@@ -65,12 +66,20 @@ final class I18nRegular extends PageRegular
             return '';
         }
 
-        if ((int) $intId === 0) {
+        if (is_object($intId)) {
+            $intId = $intId->id;
+        }
+
+        if (! is_int($intId)) {
+            $intId = (int) $intId;
+        }
+
+        if ($intId === 0) {
             // Articles
             return self::getArticles($currentPage, $basePage, $strColumn);
         }
 
-        return self::generateFrontendModule((int) $intId, $strColumn);
+        return self::generateFrontendModule($intId, $strColumn);
     }
 
     /**
