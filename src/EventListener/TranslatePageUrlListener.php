@@ -36,7 +36,7 @@ final class TranslatePageUrlListener
             return $url;
         }
 
-        if ($this->contextStack->matchCurrentContext(new FrontendModuleContext('changelanguage', 0))) {
+        if ($this->contextStack->matchCurrentContext(FrontendModuleContext::ofType('changelanguage'))) {
             return $url;
         }
 

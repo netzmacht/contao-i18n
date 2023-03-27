@@ -28,11 +28,8 @@ final class ContextStack
      * Match a given context to a current context.
      *
      * If no current context is in the stack, false is returned.
-     *
-     * @param Context $context The context.
-     * @param bool    $strict  Strict mode. Some contexts supports strict mode comparison.
      */
-    public function matchCurrentContext(Context $context, bool $strict = false): bool
+    public function matchCurrentContext(Context $context): bool
     {
         if (empty($this->contexts)) {
             return false;
@@ -41,7 +38,7 @@ final class ContextStack
         $index   = count($this->contexts) - 1;
         $current = $this->contexts[$index];
 
-        return $current->match($context, $strict);
+        return $context->match($current);
     }
 
     /**
@@ -54,7 +51,7 @@ final class ContextStack
     public function leaveContext(Context $context): void
     {
         foreach ($this->contexts as $index => $value) {
-            if (! $value->match($context, true)) {
+            if (! $value->match($context)) {
                 continue;
             }
 

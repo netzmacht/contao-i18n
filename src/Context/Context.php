@@ -9,8 +9,7 @@ interface Context
     /**
      * Compare two contexts.
      *
-     * @param Context $context Check context to compare with.
-     * @param bool    $strict  Some contexts may provide a strict mode to compare.
+     * @param Context $context Context to compare with.
      */
-    public function match(Context $context, bool $strict = false): bool;
+    public function match(Context $context): bool;
 }

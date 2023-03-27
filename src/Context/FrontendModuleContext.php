@@ -24,7 +24,12 @@ final class FrontendModuleContext implements Context
         $this->moduleId   = $moduleId;
     }
 
-    public function match(Context $context, bool $strict = false): bool
+    public static function ofType(string $moduleType): self
+    {
+        return new self($moduleType, 0);
+    }
+
+    public function match(Context $context): bool
     {
         if (! $context instanceof self) {
             return false;
@@ -34,7 +39,11 @@ final class FrontendModuleContext implements Context
             return false;
         }
 
-        return ! $strict || $this->moduleId === $context->moduleId;
+        if ($this->moduleId === 0) {
+            return true;
+        }
+
+        return $this->moduleId === $context->moduleId;
     }
 
     /**
