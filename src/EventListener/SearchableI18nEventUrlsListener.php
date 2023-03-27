@@ -23,16 +23,12 @@ use function sprintf;
 
 final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrlsListener
 {
-    private I18nPageRepository $i18nPageRepository;
-
     /**
      * Contao config adapter.
      *
      * @var Adapter<Config>
      */
     private Adapter $config;
-
-    private RepositoryManager $repositoryManager;
 
     /**
      * @param RepositoryManager  $repositoryManager  Model repository manager.
@@ -41,16 +37,14 @@ final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrl
      * @param Adapter<Config>    $config             Contao config adpater.
      */
     public function __construct(
-        RepositoryManager $repositoryManager,
-        I18nPageRepository $i18nPageRepository,
+        private RepositoryManager $repositoryManager,
+        private I18nPageRepository $i18nPageRepository,
         Database $database,
-        Adapter $config
+        Adapter $config,
     ) {
         parent::__construct($database);
 
-        $this->repositoryManager  = $repositoryManager;
-        $this->i18nPageRepository = $i18nPageRepository;
-        $this->config             = $config;
+        $this->config = $config;
     }
 
     /**
@@ -95,7 +89,7 @@ final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrl
                     $pages,
                     $processed,
                     $isSitemap,
-                    $time
+                    $time,
                 );
             }
         }
@@ -121,8 +115,8 @@ final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrl
         array $pages,
         array &$processed,
         bool $isSitemap,
-        int $time
-    ) {
+        int $time,
+    ): array {
         // Get the URL of the jumpTo page
         if (! isset($processed[$calendar->jumpTo][$translation->id])) {
             // The target page has not been published (see #5520)
@@ -136,7 +130,7 @@ final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrl
 
             // Generate the URL
             $processed[$calendar->jumpTo][$translation->id] = $translation->getAbsoluteUrl(
-                $this->config->get('useAutoItem') ? '/%s' : '/events/%s'
+                $this->config->get('useAutoItem') ? '/%s' : '/events/%s',
             );
         }
 
@@ -151,7 +145,7 @@ final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrl
             while ($objEvents->next()) {
                 $pages[] = sprintf(
                     preg_replace('/%(?!s)/', '%%', $strUrl),
-                    ($objEvents->alias ?: $objEvents->id)
+                    ($objEvents->alias ?: $objEvents->id),
                 );
             }
         }

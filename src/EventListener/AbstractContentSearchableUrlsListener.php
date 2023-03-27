@@ -23,11 +23,11 @@ abstract class AbstractContentSearchableUrlsListener extends AbstractSearchableU
     /**
      * Get page child records.
      *
-     * @param string|int $pid The parent page id.
+     * @param int|string $pid The parent page id.
      *
      * @return array<int|string>
      */
-    protected function getPageChildRecords($pid): array
+    protected function getPageChildRecords(int|string $pid): array
     {
         if ($pid > 0) {
             return $this->database->getChildRecords($pid, 'tl_page');

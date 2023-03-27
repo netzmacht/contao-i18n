@@ -21,14 +21,6 @@ use function time;
 
 final class I18nPageArticleCleaner
 {
-    private RepositoryManager $repositoryManager;
-
-    private DcaManager $dcaManager;
-
-    private BackendUser $backendUser;
-
-    private Invoker $callbackInvoker;
-
     /**
      * @param RepositoryManager $repositoryManager Repository manager.
      * @param DcaManager        $dcaManager        Repository manager.
@@ -36,15 +28,11 @@ final class I18nPageArticleCleaner
      * @param Invoker           $callbackInvoker   Callback invoker.
      */
     public function __construct(
-        RepositoryManager $repositoryManager,
-        DcaManager $dcaManager,
-        BackendUser $backendUser,
-        Invoker $callbackInvoker
+        private RepositoryManager $repositoryManager,
+        private DcaManager $dcaManager,
+        private BackendUser $backendUser,
+        private Invoker $callbackInvoker,
     ) {
-        $this->repositoryManager = $repositoryManager;
-        $this->dcaManager        = $dcaManager;
-        $this->backendUser       = $backendUser;
-        $this->callbackInvoker   = $callbackInvoker;
     }
 
     /**
@@ -199,7 +187,7 @@ final class I18nPageArticleCleaner
                 'query'        => 'DELETE FROM tl_article WHERE id=' . $articleId,
                 'affectedRows' => $affected,
                 'data'         => serialize($data),
-            ]
+            ],
         );
 
         return (int) $connection->lastInsertId();

@@ -16,20 +16,11 @@ use function in_array;
 
 final class TranslateInsertTagListener extends AbstractInsertTagParser
 {
-    private I18nPageRepository $i18nPageRepository;
-
-    private PageProvider $pageProvider;
-
-    private Translator $translator;
-
     public function __construct(
-        I18nPageRepository $i18nPageRepository,
-        PageProvider $pageProvider,
-        Translator $translator
+        private I18nPageRepository $i18nPageRepository,
+        private PageProvider $pageProvider,
+        private Translator $translator,
     ) {
-        $this->i18nPageRepository = $i18nPageRepository;
-        $this->pageProvider       = $pageProvider;
-        $this->translator         = $translator;
     }
 
     /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
@@ -81,7 +72,7 @@ final class TranslateInsertTagListener extends AbstractInsertTagParser
     /**
      * Get the page alias of the current page.
      */
-    private function getPageAlias(): ?string
+    private function getPageAlias(): string|null
     {
         $page = $this->getPage();
 
@@ -95,7 +86,7 @@ final class TranslateInsertTagListener extends AbstractInsertTagParser
     /**
      * Get the page.
      */
-    private function getPage(): ?PageModel
+    private function getPage(): PageModel|null
     {
         $page = $this->pageProvider->getPage();
         if ($page) {

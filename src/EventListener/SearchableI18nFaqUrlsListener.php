@@ -23,10 +23,6 @@ use function sprintf;
 
 final class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsListener
 {
-    private RepositoryManager $repositoryManager;
-
-    private I18nPageRepository $i18nPageRepository;
-
     /**
      * Contao config adapter.
      *
@@ -41,16 +37,14 @@ final class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsL
      * @param Adapter<Config>    $config             Contao config adapter.
      */
     public function __construct(
-        RepositoryManager $repositoryManager,
-        I18nPageRepository $i18nPageRepository,
+        private RepositoryManager $repositoryManager,
+        private I18nPageRepository $i18nPageRepository,
         Database $database,
-        Adapter $config
+        Adapter $config,
     ) {
         parent::__construct($database);
 
-        $this->repositoryManager  = $repositoryManager;
-        $this->i18nPageRepository = $i18nPageRepository;
-        $this->config             = $config;
+        $this->config = $config;
     }
 
     /**
@@ -94,7 +88,7 @@ final class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsL
                     $pages,
                     $processed,
                     $isSitemap,
-                    $time
+                    $time,
                 );
             }
         }
@@ -120,7 +114,7 @@ final class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsL
         array $pages,
         array &$processed,
         bool $isSitemap,
-        int $time
+        int $time,
     ): array {
         // Get the URL of the jumpTo page
         if (! isset($processed[$category->jumpTo][$translation->id])) {
@@ -135,7 +129,7 @@ final class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsL
 
             // Generate the URL
             $processed[$category->jumpTo][$translation->id] = $translation->getAbsoluteUrl(
-                $this->config->get('useAutoItem') ? '/%s' : '/items/%s'
+                $this->config->get('useAutoItem') ? '/%s' : '/items/%s',
             );
         }
 
@@ -151,7 +145,7 @@ final class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsL
 
                 $pages[] = sprintf(
                     preg_replace('/%(?!s)/', '%%', $url),
-                    ($faq->alias ?: $faq->id)
+                    ($faq->alias ?: $faq->id),
                 );
             }
         }

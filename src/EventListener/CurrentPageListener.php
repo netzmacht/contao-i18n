@@ -9,11 +9,8 @@ use Netzmacht\Contao\I18n\PageProvider\PageProvider;
 
 final class CurrentPageListener
 {
-    private PageProvider $pageProvider;
-
-    public function __construct(PageProvider $pageProvider)
+    public function __construct(private PageProvider $pageProvider)
     {
-        $this->pageProvider = $pageProvider;
     }
 
     /**

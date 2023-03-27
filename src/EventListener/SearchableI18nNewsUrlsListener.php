@@ -40,8 +40,6 @@ final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrls
      */
     private Adapter $config;
 
-    private TranslatedArticleFinder $articleFinder;
-
     /**
      * @param RepositoryManager       $repositoryManager  Model repository manager.
      * @param I18nPageRepository      $i18nPageRepository I18n page repository.
@@ -52,16 +50,15 @@ final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrls
     public function __construct(
         RepositoryManager $repositoryManager,
         I18nPageRepository $i18nPageRepository,
-        TranslatedArticleFinder $articleFinder,
+        private TranslatedArticleFinder $articleFinder,
         Database $database,
-        Adapter $config
+        Adapter $config,
     ) {
         parent::__construct($database);
 
         $this->repositoryManager = $repositoryManager;
         $this->i18n              = $i18nPageRepository;
         $this->config            = $config;
-        $this->articleFinder     = $articleFinder;
     }
 
     /**
@@ -104,7 +101,7 @@ final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrls
                         $pages,
                         $isSitemap,
                         $processed,
-                        $time
+                        $time,
                     );
                 }
             }
@@ -131,7 +128,7 @@ final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrls
         array $pages,
         bool $isSitemap,
         array &$processed,
-        int $time
+        int $time,
     ): array {
         // Get the URL of the jumpTo page
         if (! isset($processed[$newsArchiveModel->jumpTo][$translation->id])) {
@@ -146,7 +143,7 @@ final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrls
 
             // Generate the URL
             $processed[$newsArchiveModel->jumpTo][$translation->id] = $translation->getAbsoluteUrl(
-                $this->config->get('useAutoItem') ? '/%s' : '/items/%s'
+                $this->config->get('useAutoItem') ? '/%s' : '/items/%s',
             );
         }
 
@@ -197,7 +194,7 @@ final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrls
                     $articleModel = $this->getTranslatedArticle($parentPage, $articleModel);
 
                     return StringUtil::ampersand(
-                        $parentPage->getAbsoluteUrl('/articles/' . ($articleModel->alias ?: $articleModel->id))
+                        $parentPage->getAbsoluteUrl('/articles/' . ($articleModel->alias ?: $articleModel->id)),
                     );
                 }
 

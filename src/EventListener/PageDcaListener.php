@@ -41,20 +41,10 @@ final class PageDcaListener extends AbstractListener
     // phpcs:ignore SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint
     protected static $name = 'tl_page';
 
-    private RepositoryManager $repositoryManager;
-
-    private BackendUser $user;
-
-    private TranslatedArticleFinder $articleFinder;
-
     /**
      * If true all unrelated articles get removed.
      */
     private bool $articleCleanup;
-
-    private I18nPageArticleCleaner $articleCleaner;
-
-    private Invoker $callbackInvoker;
 
     /**
      * @param Manager                 $dcaManager        Data container definition manager.
@@ -67,21 +57,16 @@ final class PageDcaListener extends AbstractListener
      */
     public function __construct(
         Manager $dcaManager,
-        RepositoryManager $repositoryManager,
-        BackendUser $user,
-        TranslatedArticleFinder $articleFinder,
-        I18nPageArticleCleaner $articleCleaner,
-        Invoker $callbackInvoker,
-        bool $articleCleanup
+        private RepositoryManager $repositoryManager,
+        private BackendUser $user,
+        private TranslatedArticleFinder $articleFinder,
+        private I18nPageArticleCleaner $articleCleaner,
+        private Invoker $callbackInvoker,
+        bool $articleCleanup,
     ) {
         parent::__construct($dcaManager);
 
-        $this->repositoryManager = $repositoryManager;
-        $this->user              = $user;
-        $this->articleFinder     = $articleFinder;
-        $this->articleCleaner    = $articleCleaner;
-        $this->callbackInvoker   = $callbackInvoker;
-        $this->articleCleanup    = $articleCleanup;
+        $this->articleCleanup = $articleCleanup;
     }
 
     /**
@@ -128,7 +113,7 @@ final class PageDcaListener extends AbstractListener
             [
                 'netzmacht.contao_i18n.listeners.dca.page',
                 'pageTypeOptions',
-            ]
+            ],
         );
     }
 
@@ -139,7 +124,7 @@ final class PageDcaListener extends AbstractListener
      *
      * @return list<string>
      */
-    public function pageTypeOptions(?DataContainer $dataContainer = null): array
+    public function pageTypeOptions(DataContainer|null $dataContainer = null): array
     {
         $callback = $this->getDefinition()->get(['fields', 'type', 'options_callback_original']);
         if (! $callback || ! $dataContainer) {
@@ -197,7 +182,7 @@ final class PageDcaListener extends AbstractListener
                 '%s (ID %s) [%s]',
                 $article->title,
                 $article->id,
-                $article->inColumn
+                $article->inColumn,
             );
         }
 
@@ -211,7 +196,7 @@ final class PageDcaListener extends AbstractListener
      *
      * @throws InvalidArgumentException When an invalid query was built.
      */
-    public function createI18nArticles(?DataContainer $dataContainer = null): void
+    public function createI18nArticles(DataContainer|null $dataContainer = null): void
     {
         if (
             ! $dataContainer
@@ -266,10 +251,8 @@ final class PageDcaListener extends AbstractListener
      *
      * @param mixed         $raw          Raw value.
      * @param DataContainer $datContainer Data container driver.
-     *
-     * @return list<array<string,mixed>>|mixed
      */
-    public function loadI18nArticles($raw, DataContainer $datContainer)
+    public function loadI18nArticles(mixed $raw, DataContainer $datContainer): mixed
     {
         if (Input::post('FORM_SUBMIT') === PageModel::getTable()) {
             return $raw;
@@ -332,7 +315,7 @@ final class PageDcaListener extends AbstractListener
         string $label,
         string $title,
         string $icon,
-        string $attributes
+        string $attributes,
     ): string {
         if (! $this->user->hasAccess('article', 'modules')) {
             return '';
@@ -347,7 +330,7 @@ final class PageDcaListener extends AbstractListener
             Backend::addToUrl($href . '&amp;pn=' . $row['id']),
             StringUtil::specialchars($title),
             $attributes,
-            Image::getHtml($icon, $label)
+            Image::getHtml($icon, $label),
         );
     }
 
@@ -357,7 +340,7 @@ final class PageDcaListener extends AbstractListener
      * @param int|string $pageId    Page id of the target page.
      * @param int|string $articleId Article id of the source article.
      */
-    private function copyArticle($pageId, $articleId): void
+    private function copyArticle(int|string $pageId, int|string $articleId): void
     {
         $copy         = new ArticleModel();
         $articleModel = $this->repositoryManager->getRepository(ArticleModel::class)->find((int) $articleId);
@@ -375,7 +358,7 @@ final class PageDcaListener extends AbstractListener
 
         $contentElements = $this->repositoryManager->getRepository(ContentModel::class)->findBy(
             ['.pid=?', '( .ptable=? OR .ptable = \'\')'],
-            [$articleId, ArticleModel::getTable()]
+            [$articleId, ArticleModel::getTable()],
         );
 
         if (! $contentElements) {

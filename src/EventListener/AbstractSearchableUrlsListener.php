@@ -19,15 +19,18 @@ abstract class AbstractSearchableUrlsListener
      *
      * @return list<string>
      */
-    public function onGetSearchablePages(array $pages, $rootPageId = null, bool $isSitemap = false): array
-    {
+    public function onGetSearchablePages(
+        array $pages,
+        int|string|null $rootPageId = null,
+        bool $isSitemap = false,
+    ): array {
         $pages = array_merge(
             $pages,
-            $this->collectPages((int) $rootPageId ?: 0, '', $isSitemap)
+            $this->collectPages((int) $rootPageId ?: 0, '', $isSitemap),
         );
 
         $pages = array_values(
-            array_unique($pages)
+            array_unique($pages),
         );
 
         return $pages;

@@ -11,7 +11,7 @@ final class PageProvider
     /**
      * Current page.
      */
-    private ?PageModel $page = null;
+    private PageModel|null $page = null;
 
     /**
      * Set a page model as current page.
@@ -26,7 +26,7 @@ final class PageProvider
     /**
      * Get the current page.
      */
-    public function getPage(): ?PageModel
+    public function getPage(): PageModel|null
     {
         return $this->page;
     }

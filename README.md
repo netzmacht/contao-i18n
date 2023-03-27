@@ -15,14 +15,14 @@ Install
 You can install this extension using Composer.
 
 ```
-$ php composer.phar require netzmacht/contao-i18n:~2.0
+$ php composer.phar require netzmacht/contao-i18n:^3.0
 ```
 
 Requirements
 ------------
 
- * >= PHP 7.1
- * Contao 4.4 
+ * PHP `^8.1`
+ * Contao `4.12`
  * Usage of [terminal42/contao-changelanguage](https://github.com/terminal42/contao-changelanguage)
  
 Features

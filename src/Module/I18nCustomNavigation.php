@@ -29,7 +29,6 @@ use function array_values;
 use function assert;
 use function count;
 use function defined;
-use function get_class;
 use function in_array;
 use function is_array;
 use function str_replace;
@@ -115,7 +114,7 @@ final class I18nCustomNavigation extends Module
 
         $objTemplate = new FrontendTemplate($this->navigationTpl);
 
-        $objTemplate->type  = get_class($this);
+        $objTemplate->type  = self::class;
         $objTemplate->cssID = $this->cssID;
         $objTemplate->level = 'level_1';
 
@@ -221,7 +220,7 @@ final class I18nCustomNavigation extends Module
                 $pages = array_map(
                     static function (): void {
                     },
-                    array_flip($tmp)
+                    array_flip($tmp),
                 );
             }
         }
@@ -237,12 +236,12 @@ final class I18nCustomNavigation extends Module
     /**
      * Compile an item.
      *
-     * @param PageModel                                          $objModel The page model.
-     * @param PageRegular|PageError404|PageError401|PageError403 $objPage  The current page object.
+     * @param PageModel                                                 $objModel The page model.
+     * @param PageRegular|PageError404|PageError401|PageError403|object $objPage  The current page object.
      *
      * @return array<string,mixed>
      */
-    protected function compileItem($objModel, $objPage): array
+    protected function compileItem(PageModel $objModel, object $objPage): array
     {
         $href  = $this->buildHref($objModel);
         $trail = in_array($objModel->id, $objPage->trail);

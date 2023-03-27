@@ -73,9 +73,9 @@ final class I18nPageRepository
     /**
      * Get the base page for a given page id. If the page is not an 18n page the page for the page id is returned.
      *
-     * @param PageModel|int|string $page The page as model or id/alias.
+     * @param int|string|PageModel $page The page as model or id/alias.
      */
-    public function getBasePage($page): ?PageModel
+    public function getBasePage(PageModel|int|string $page): PageModel|null
     {
         if (! $page instanceof PageModel) {
             if (array_key_exists($page, $this->basePages)) {
@@ -101,9 +101,9 @@ final class I18nPageRepository
     /**
      * Get the main page of a connected language page.
      *
-     * @param PageModel|int|string $page The page as model or id/alias.
+     * @param int|string|PageModel $page The page as model or id/alias.
      */
-    public function getMainPage($page): ?PageModel
+    public function getMainPage(PageModel|int|string $page): PageModel|null
     {
         if (! $page instanceof PageModel) {
             $repository = $this->repositoryManager->getRepository(PageModel::class);
@@ -120,19 +120,18 @@ final class I18nPageRepository
         }
 
         $repository = $this->repositoryManager->getRepository(PageModel::class);
-        $page       = $repository->find((int) $page->languageMain);
 
-        return $page;
+        return $repository->find((int) $page->languageMain);
     }
 
     /**
      * Get all translations of a page.
      *
-     * @param PageModel|int|string $page The page as model or id/alias.
+     * @param int|string|PageModel $page The page as model or id/alias.
      *
      * @return PageModel[]
      */
-    public function getPageTranslations($page): array
+    public function getPageTranslations(PageModel|int|string $page): array
     {
         $pages    = [];
         $mainPage = $this->getMainPage($page);
@@ -153,13 +152,13 @@ final class I18nPageRepository
         $pages[$language] = $mainPage;
         $repository       = $this->repositoryManager->getRepository(PageModel::class);
 
-        foreach ($repository->findBy(['.languageMain = ?'], [$mainPage->id]) ?: [] as $page) {
-            $language = $this->getPageLanguage($page);
+        foreach ($repository->findBy(['.languageMain = ?'], [$mainPage->id]) ?: [] as $translatedPage) {
+            $language = $this->getPageLanguage($translatedPage);
             if (! $language) {
                 continue;
             }
 
-            $pages[$language] = $page;
+            $pages[$language] = $translatedPage;
         }
 
         $this->translations[$mainPage->id] = $pages;
@@ -170,9 +169,9 @@ final class I18nPageRepository
     /**
      * Get the language of a page.
      *
-     * @param PageModel|int|string $page The page as model or id/alias.
+     * @param int|string|PageModel $page The page as model or id/alias.
      */
-    public function getPageLanguage($page): ?string
+    public function getPageLanguage(PageModel|int|string $page): string|null
     {
         if (! $page instanceof PageModel) {
             $repository = $this->repositoryManager->getRepository(PageModel::class);
@@ -199,10 +198,10 @@ final class I18nPageRepository
     /**
      * Get the translated page for a given page.
      *
-     * @param PageModel|int|string $page     The page as model or id/alias.
-     * @param string               $language If set a specific language is loaded. Otherwise the current language.
+     * @param int|string|PageModel $page     The page as model or id/alias.
+     * @param string|null          $language If set a specific language is loaded. Otherwise the current language.
      */
-    public function getTranslatedPage($page, $language = null): ?PageModel
+    public function getTranslatedPage(PageModel|int|string $page, string|null $language = null): PageModel|null
     {
         $language = $language ?: $this->getCurrentLanguage();
         $page     = $this->loadTranslatedPage($page, $language);
@@ -250,9 +249,9 @@ final class I18nPageRepository
     /**
      * Get the root page for a page.
      *
-     * @param PageModel|string|int $page The page model.
+     * @param int|string|PageModel $page The page model.
      */
-    public function getRootPage($page): ?PageModel
+    public function getRootPage(PageModel|int|string $page): PageModel|null
     {
         if (! $page instanceof PageModel) {
             $repository = $this->repositoryManager->getRepository(PageModel::class);
@@ -281,10 +280,10 @@ final class I18nPageRepository
     /**
      * Load a translated page and cache the results.
      *
-     * @param PageModel|string|int $page     The page.
+     * @param int|string|PageModel $page     The page.
      * @param string               $language The required language.
      */
-    private function loadTranslatedPage($page, string $language): ?PageModel
+    private function loadTranslatedPage(PageModel|int|string $page, string $language): PageModel|null
     {
         if (! $page instanceof PageModel) {
             if (isset($this->translatedPages[$language][$page])) {

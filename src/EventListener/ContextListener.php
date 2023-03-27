@@ -13,14 +13,8 @@ use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 
 final class ContextListener
 {
-    private ContextStack $contextStack;
-
-    private RepositoryManager $repositoryManager;
-
-    public function __construct(ContextStack $contextStack, RepositoryManager $repositoryManager)
+    public function __construct(private ContextStack $contextStack, private RepositoryManager $repositoryManager)
     {
-        $this->contextStack      = $contextStack;
-        $this->repositoryManager = $repositoryManager;
     }
 
     /**

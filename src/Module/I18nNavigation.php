@@ -23,12 +23,12 @@ final class I18nNavigation extends ModuleNavigation
     /**
      * Translated page of the redirect page.
      */
-    private ?PageModel $translatedPage = null;
+    private PageModel|null $translatedPage = null;
 
     /**
      * Current page.
      */
-    private ?PageModel $currentPage = null;
+    private PageModel|null $currentPage = null;
 
     protected function compile(): void
     {

@@ -15,13 +15,10 @@ use Netzmacht\Contao\I18n\Model\Page\PublishedI18nRegularPagesQuery;
 use RuntimeException;
 
 use function array_merge;
-use function get_class;
 use function sprintf;
 
 final class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListener
 {
-    private Connection $connection;
-
     /**
      * Model registry.
      */
@@ -41,11 +38,10 @@ final class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrls
      * @param Registry        $registry   Model registry.
      * @param Adapter<Config> $config     Contao config adapter.
      */
-    public function __construct(Connection $connection, Registry $registry, Adapter $config)
+    public function __construct(private Connection $connection, Registry $registry, Adapter $config)
     {
-        $this->connection = $connection;
-        $this->registry   = $registry;
-        $this->config     = $config;
+        $this->registry = $registry;
+        $this->config   = $config;
     }
 
     /**
@@ -61,7 +57,7 @@ final class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrls
      *
      * @return list<string>
      */
-    protected function collectPages($pid = 0, string $domain = '', bool $isSitemap = false): array
+    protected function collectPages(int $pid = 0, string $domain = '', bool $isSitemap = false): array
     {
         $time   = Date::floorToMinute();
         $query  = new PublishedI18nRegularPagesQuery($this->connection);
@@ -92,7 +88,7 @@ final class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrls
                         ($article['alias'] !== '' && ! $this->config->get('disableAlias')
                             ? $article['alias']
                             : $article['id']
-                        )
+                        ),
                     );
                 }
             }
@@ -120,7 +116,7 @@ final class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrls
      * @param bool      $isSitemap Is sitemap.
      * @param int       $time      Current time stamp.
      */
-    private function shouldPageBeAdded(PageModel $page, $isSitemap, int $time): bool
+    private function shouldPageBeAdded(PageModel $page, bool $isSitemap, int $time): bool
     {
         // Only handle i18n pages.
         if ($page->type !== 'i18n_regular' || ! $this->isPublished($page, $time)) {
@@ -182,7 +178,7 @@ final class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrls
 
         if (! $page instanceof PageModel) {
             throw new RuntimeException(
-                'Unexpected model found. Expected \Contao\PageModel but got ' . get_class($page)
+                'Unexpected model found. Expected \Contao\PageModel but got ' . $page::class,
             );
         }
 
