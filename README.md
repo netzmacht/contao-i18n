@@ -1,5 +1,5 @@
-Contao I18n toolkit
-==================
+Contao I18n
+===========
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/netzmacht/contao-i18n/diagnostics.yml?style=flat-square&branch=master)](https://github.com/netzmacht/contao-i18n/actions/workflows/diagnostics.yml)
 [![Version](http://img.shields.io/packagist/v/netzmacht/contao-i18n.svg?style=flat-square)](http://packagist.com/packages/netzmacht/contao-i18n)
