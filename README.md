@@ -1,13 +1,12 @@
-Contao I18n toolkit
-==================
+Contao I18n
+===========
 
-[![Build Status](http://img.shields.io/travis/netzmacht/contao-i18n/master.svg?style=flat-square)](https://travis-ci.org/netzmacht/contao-i18n)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/netzmacht/contao-i18n/diagnostics.yml?style=flat-square&branch=master)](https://github.com/netzmacht/contao-i18n/actions/workflows/diagnostics.yml)
 [![Version](http://img.shields.io/packagist/v/netzmacht/contao-i18n.svg?style=flat-square)](http://packagist.com/packages/netzmacht/contao-i18n)
 [![License](http://img.shields.io/packagist/l/netzmacht/contao-i18n.svg?style=flat-square)](http://packagist.com/packages/netzmacht/contao-i18n)
 [![Downloads](http://img.shields.io/packagist/dt/netzmacht/contao-i18n.svg?style=flat-square)](http://packagist.com/packages/netzmacht/contao-i18n)
-[![Contao Community Alliance coding standard](http://img.shields.io/badge/cca-coding_standard-red.svg?style=flat-square)](https://github.com/contao-community-alliance/coding-standard)
 
-This extensions provides an flexible way for multilingual websites where parts of the main language should be reused on
+This extension provides a flexible way for multilingual websites where parts of the main language should be reused on
 the translated pages.
 
 Install
@@ -16,14 +15,14 @@ Install
 You can install this extension using Composer.
 
 ```
-$ php composer.phar require netzmacht/contao-i18n:~2.0
+$ php composer.phar require netzmacht/contao-i18n:^3.0
 ```
 
 Requirements
 ------------
 
- * >= PHP 7.1
- * Contao 4.4 
+ * PHP `^8.1`
+ * Contao `4.12`
  * Usage of [terminal42/contao-changelanguage](https://github.com/terminal42/contao-changelanguage)
  
 Features
@@ -100,7 +99,7 @@ you use an individual navigation.
 Configuration
 -------------
 
-By default contao-i18n does not delete any articles in the contao i18n regular page. If they are not connected as 
+By default, contao-i18n does not delete any articles in the contao i18n regular page. If they are not connected as 
 page to override other pages, they are simply ignored. However, you can enable the cleanup. If cleanup is enabled all
 articles are deleted which are not configured as an article override.
 
@@ -110,3 +109,21 @@ articles are deleted which are not configured as an article override.
 netzmacht_contao_i18n:
     article_cleanup: true
 ```
+
+Development
+-----------
+
+This repository contains a [ddev](https://github.com/ddev/ddev) configuration for a local test and development 
+environment of this extension. It also provides a snapshot of the database. So it's easy to set up a local instance for 
+yourself. For the general usage of ddev read the [ddev documentation](https://ddev.readthedocs.io).
+
+Following credentials are used:
+
+**Backend user**
+
+ - Username: `admin`
+ - Password: `adminuser`
+
+**Install tool**
+
+ - Password: `adminuser`

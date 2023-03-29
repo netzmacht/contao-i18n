@@ -1,15 +1,5 @@
 <?php
 
-/**
- * Contao I18n provides some i18n structures for easily l10n websites.
- *
- * @package    contao-18n
- * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
- * @filesource
- */
-
 declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\EventListener;
@@ -19,69 +9,38 @@ use Contao\Config;
 use Contao\CoreBundle\Framework\Adapter;
 use Contao\Database;
 use Contao\Date;
+use Contao\Model\Collection;
 use Contao\NewsArchiveModel;
 use Contao\NewsModel;
 use Contao\PageModel;
+use Contao\StringUtil;
 use Netzmacht\Contao\I18n\Model\Article\TranslatedArticleFinder;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
-use Netzmacht\Contao\Toolkit\Data\Model\Repository;
+use Netzmacht\Contao\Toolkit\Data\Model\ContaoRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 
-/**
- * Class SearchableI18nNewsUrlsListener
- */
-class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListener
+use function assert;
+use function in_array;
+use function preg_replace;
+use function sprintf;
+
+final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListener
 {
     /**
-     * Model repository manager.
-     *
-     * @var RepositoryManager
-     */
-    private $repositoryManager;
-
-    /**
-     * I18n page repository.
-     *
-     * @var I18nPageRepository
-     */
-    private $i18n;
-
-    /**
-     * Contao config adapter.
-     *
-     * @var Config|Adapter
-     */
-    private $config;
-
-    /**
-     * Translated article finder.
-     *
-     * @var TranslatedArticleFinder
-     */
-    private $articleFinder;
-
-    /**
-     * SearchableI18nNewsUrlsListener constructor.
-     *
      * @param RepositoryManager       $repositoryManager  Model repository manager.
      * @param I18nPageRepository      $i18nPageRepository I18n page repository.
      * @param TranslatedArticleFinder $articleFinder      Translated article finder.
      * @param Database                $database           Legacy contao database connection.
-     * @param Config|Adapter          $config             Contao config adpater.
+     * @param Adapter<Config>         $config             Contao config adpater.
      */
     public function __construct(
-        RepositoryManager $repositoryManager,
-        I18nPageRepository $i18nPageRepository,
-        TranslatedArticleFinder $articleFinder,
+        private readonly RepositoryManager $repositoryManager,
+        private readonly I18nPageRepository $i18nPageRepository,
+        private readonly TranslatedArticleFinder $articleFinder,
         Database $database,
-        $config
+        private readonly Adapter $config,
     ) {
         parent::__construct($database);
-
-        $this->repositoryManager = $repositoryManager;
-        $this->i18n              = $i18nPageRepository;
-        $this->config            = $config;
-        $this->articleFinder     = $articleFinder;
     }
 
     /**
@@ -95,23 +54,26 @@ class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListen
         $pages     = [];
 
         // Get all news archives
-        /** @var NewsArchiveModel|Repository $archiveRepository */
         $archiveRepository = $this->repositoryManager->getRepository(NewsArchiveModel::class);
-        $collection        = $archiveRepository->findByProtected('');
+        assert($archiveRepository instanceof ContaoRepository);
+        $collection = $archiveRepository->findByProtected('');
 
         // Walk through each archive
         if ($collection !== null) {
             while ($collection->next()) {
                 // Skip news archives without target page
-                if (!$collection->jumpTo) {
+                if (! $collection->jumpTo) {
                     continue;
                 }
 
-                $translations = $this->i18n->getPageTranslations($collection->jumpTo);
+                $translations = $this->i18nPageRepository->getPageTranslations($collection->jumpTo);
 
                 foreach ($translations as $translation) {
                     // Skip news archives outside the root nodes
-                    if (!empty($root) && !\in_array($translation->id, $root) || $translation->type !== 'i18n_regular') {
+                    if (
+                        (! empty($root) && ! in_array($translation->id, $root))
+                        || $translation->type !== 'i18n_regular'
+                    ) {
                         continue;
                     }
 
@@ -121,7 +83,7 @@ class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListen
                         $pages,
                         $isSitemap,
                         $processed,
-                        $time
+                        $time,
                     );
                 }
             }
@@ -130,18 +92,17 @@ class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListen
         return $pages;
     }
 
-
     /**
      * Process a page translation.
      *
-     * @param NewsArchiveModel $newsArchiveModel The page.
-     * @param PageModel        $translation      The page translation.
-     * @param array            $pages            List of all added pages.
-     * @param bool             $isSitemap        If true the sitemap is generated.
-     * @param array            $processed        Cache of processed pages.
-     * @param int              $time             Start time.
+     * @param NewsArchiveModel                           $newsArchiveModel The page.
+     * @param PageModel                                  $translation      The page translation.
+     * @param list<string>                               $pages            List of all added pages.
+     * @param bool                                       $isSitemap        If true the sitemap is generated.
+     * @param array<int|string,array<int|string,string>> $processed        Cache of processed pages.
+     * @param int                                        $time             Start time.
      *
-     * @return array
+     * @return list<string>
      */
     private function processTranslation(
         NewsArchiveModel $newsArchiveModel,
@@ -149,50 +110,43 @@ class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListen
         array $pages,
         bool $isSitemap,
         array &$processed,
-        int $time
+        int $time,
     ): array {
         // Get the URL of the jumpTo page
-        if (!isset($processed[$newsArchiveModel->jumpTo][$translation->id])) {
+        if (! isset($processed[$newsArchiveModel->jumpTo][$translation->id])) {
             // The target page has not been published (see #5520)
-            if (!$this->isPagePublished($translation, $time)) {
+            if (! $this->isPagePublished($translation, $time)) {
                 return $pages;
             }
 
-            if (!$this->shouldPageBeAddedToSitemap($translation, $isSitemap)) {
+            if (! $this->shouldPageBeAddedToSitemap($translation, $isSitemap)) {
                 return $pages;
             }
 
             // Generate the URL
             $processed[$newsArchiveModel->jumpTo][$translation->id] = $translation->getAbsoluteUrl(
-                $this->config->get('useAutoItem') ? '/%s' : '/items/%s'
+                $this->config->get('useAutoItem') ? '/%s' : '/items/%s',
             );
         }
 
         $url = $processed[$newsArchiveModel->jumpTo][$translation->id];
 
         // Get the items
-        /** @var NewsModel|Repository $newsRepository */
         $newsRepository = $this->repositoryManager->getRepository(NewsModel::class);
-        $objArticle     = $newsRepository->findPublishedDefaultByPid($newsArchiveModel->id);
+        assert($newsRepository instanceof ContaoRepository);
+        $collection = $newsRepository->findPublishedDefaultByPid($newsArchiveModel->id);
 
-        if ($objArticle !== null) {
-            while ($objArticle->next()) {
-                $pages[] = $this->getLink($objArticle, $url);
+        if ($collection instanceof Collection) {
+            foreach ($collection as $newsModel) {
+                assert($newsModel instanceof NewsModel);
+                $pages[] = $this->getLink($newsModel, $url);
             }
         }
 
         return $pages;
     }
 
-    /**
-     * Return the link of a news article
-     *
-     * @param NewsModel $newsModel The news model.
-     * @param string    $url       The given url.
-     *
-     * @return string
-     */
-    protected function getLink($newsModel, $url)
+    protected function getLink(NewsModel $newsModel, string $url): string
     {
         switch ($newsModel->source) {
             // Link to an external page
@@ -201,28 +155,31 @@ class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListen
 
             // Link to an internal page
             case 'internal':
-                if (($target = $this->i18n->getTranslatedPage($newsModel->jumpTo)) instanceof PageModel) {
-                    /** @var PageModel $target */
+                $target = $this->i18nPageRepository->getTranslatedPage($newsModel->jumpTo);
+                if ($target instanceof PageModel) {
                     return $target->getAbsoluteUrl();
                 }
+
                 break;
 
             // Link to an article
             case 'article':
-                /** @var ArticleModel|Repository $repository */
                 $repository   = $this->repositoryManager->getRepository(ArticleModel::class);
-                $articleModel = $articleModel = $repository->findByPK((int) $newsModel->articleId, ['eager' => true]);
+                $articleModel = $repository->find((int) $newsModel->articleId);
 
-                if ($articleModel !== null
-                    && ($objPid = $this->i18n->getTranslatedPage($articleModel->pid)) instanceof PageModel
-                ) {
-                    $articleModel = $this->getTranslatedArticle($objPid, $articleModel);
+                if ($articleModel === null) {
+                    break;
+                }
 
-                    /** @var PageModel $objPid */
-                    return ampersand(
-                        $objPid->getAbsoluteUrl('/articles/' . ($articleModel->alias ?: $articleModel->id))
+                $parentPage = $this->i18nPageRepository->getTranslatedPage($articleModel->pid);
+                if ($parentPage instanceof PageModel) {
+                    $articleModel = $this->getTranslatedArticle($parentPage, $articleModel);
+
+                    return StringUtil::ampersand(
+                        $parentPage->getAbsoluteUrl('/articles/' . ($articleModel->alias ?: $articleModel->id)),
                     );
                 }
+
                 break;
 
             default:
@@ -234,14 +191,9 @@ class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListen
     }
 
     /**
-     * Get the translation of an article. If the article is not an translated article, return the passed article.
-     *
-     * @param PageModel    $pageModel    The page model.
-     * @param ArticleModel $articleModel The article model.
-     *
-     * @return ArticleModel
+     * Get the translation of an article. If the article is not a translated article, return the passed article.
      */
-    private function getTranslatedArticle($pageModel, $articleModel): ArticleModel
+    private function getTranslatedArticle(PageModel $pageModel, ArticleModel $articleModel): ArticleModel
     {
         // Replace article with the translation
         if ($pageModel->type === 'i18n_regular') {

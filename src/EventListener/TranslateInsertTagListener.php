@@ -1,15 +1,5 @@
 <?php
 
-/**
- * Contao I18n provides some i18n structures for easily l10n websites.
- *
- * @package    contao-18n
- * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
- * @filesource
- */
-
 declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\EventListener;
@@ -18,54 +8,22 @@ use Contao\PageModel;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 use Netzmacht\Contao\I18n\PageProvider\PageProvider;
 use Netzmacht\Contao\Toolkit\InsertTag\AbstractInsertTagParser;
-use Symfony\Component\Translation\TranslatorInterface as Translator;
+use Symfony\Contracts\Translation\TranslatorInterface as Translator;
 
-/**
- * Class TranslateInsertTagListener
- */
-class TranslateInsertTagListener extends AbstractInsertTagParser
+use function array_pad;
+use function explode;
+use function in_array;
+
+final class TranslateInsertTagListener extends AbstractInsertTagParser
 {
-    /**
-     * I18n page repository.
-     *
-     * @var I18nPageRepository
-     */
-    private $i18nPageRepository;
-
-    /**
-     * Page provider.
-     *
-     * @var PageProvider
-     */
-    private $pageProvider;
-
-    /**
-     * Translator.
-     *
-     * @var Translator
-     */
-    private $translator;
-
-    /**
-     * TranslateInsertTagListener constructor.
-     *
-     * @param I18nPageRepository $i18nPageRepository I18n page repository.
-     * @param PageProvider       $pageProvider       Current page provider.
-     * @param Translator         $translator         Translator.
-     */
     public function __construct(
-        I18nPageRepository $i18nPageRepository,
-        PageProvider $pageProvider,
-        Translator $translator
+        private readonly I18nPageRepository $i18nPageRepository,
+        private readonly PageProvider $pageProvider,
+        private readonly Translator $translator,
     ) {
-        $this->i18nPageRepository = $i18nPageRepository;
-        $this->pageProvider       = $pageProvider;
-        $this->translator         = $translator;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
     protected function supports(string $tag, bool $cache): bool
     {
         return in_array($tag, ['t', 'translate']);
@@ -83,7 +41,7 @@ class TranslateInsertTagListener extends AbstractInsertTagParser
             ];
         }
 
-        list($domain, $key) = explode(':', $query, 2);
+        [$domain, $key] = array_pad(explode(':', $query, 2), 2, null);
 
         if ($key === null) {
             $pageAlias = $this->getPageAlias();
@@ -100,7 +58,7 @@ class TranslateInsertTagListener extends AbstractInsertTagParser
     /**
      * {@inheritdoc}
      */
-    protected function parseTag(array $arguments, string $tag, string $raw): ?string
+    protected function parseTag(array $arguments, string $tag, string $raw)
     {
         $translated = $this->translator->trans($arguments['key'], [], $arguments['domain']);
 
@@ -108,19 +66,13 @@ class TranslateInsertTagListener extends AbstractInsertTagParser
             $translated = $this->translator->trans($arguments['key'], [], 'contao_website');
         }
 
-        if (is_array($translated)) {
-            return null;
-        }
-
-        return (string) $translated;
+        return $translated;
     }
 
     /**
      * Get the page alias of the current page.
-     *
-     * @return null|string
      */
-    private function getPageAlias(): ?string
+    private function getPageAlias(): string|null
     {
         $page = $this->getPage();
 
@@ -133,10 +85,8 @@ class TranslateInsertTagListener extends AbstractInsertTagParser
 
     /**
      * Get the page.
-     *
-     * @return PageModel|null
      */
-    private function getPage(): ?PageModel
+    private function getPage(): PageModel|null
     {
         $page = $this->pageProvider->getPage();
         if ($page) {

@@ -44,7 +44,6 @@
                  class="Netzmacht\Contao\I18n\EventListener\TranslatePageUrlListener">
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
             <argument type="service" id="netzmacht.contao_i18n.context_stack"/>
-            <argument type="service" id="contao.framework"/>
             <tag name="contao.hook" hook="generateFrontendUrl"/>
         </service>
 
@@ -64,6 +63,7 @@
 
         <service id="netzmacht.contao_i18n.listeners.page_status_icon"
                  class="Netzmacht\Contao\I18n\EventListener\PageStatusIconListener">
+            <argument type="service" id="assets.packages"/>
             <tag name="contao.hook" hook="getPageStatusIcon"/>
         </service>
 
@@ -132,13 +132,6 @@
             <argument type="service" id="netzmacht.contao_toolkit.dca.manager" />
             <argument type="service" id="netzmacht.contao_toolkit.contao.backend_user" />
             <argument type="service" id="netzmacht.contao_toolkit.callback_invoker" />
-        </service>
-
-        <service id="netzmacht.contao_i18n.listeners.add_to_search_index"
-                 class="Netzmacht\Contao\I18n\EventListener\AddToSearchIndexListener">
-            <argument type="service" id="contao.framework" />
-            <argument type="string" >%fragment.path%</argument>
-            <tag name="kernel.event_listener" event="kernel.terminate" method="onKernelTerminate" />
         </service>
     </services>
 </container>

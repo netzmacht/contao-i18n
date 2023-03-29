@@ -1,42 +1,16 @@
 <?php
 
-/**
- * Contao I18n provides some i18n structures for easily l10n websites.
- *
- * @package    contao-18n
- * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
- * @filesource
- */
-
 declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\Model\Article;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Driver\Statement;
+use Doctrine\DBAL\Result;
 
-/**
- * Class ArticleWithTeasersQuery
- */
 final class PageArticlesWithTeasersQuery
 {
-    /**
-     * Database connection.
-     *
-     * @var Connection
-     */
-    private $connection;
-
-    /**
-     * PageArticlesWithTeasersQuery constructor.
-     *
-     * @param Connection $connection Database connection.
-     */
-    public function __construct(Connection $connection)
+    public function __construct(private readonly Connection $connection)
     {
-        $this->connection = $connection;
     }
 
     /**
@@ -44,10 +18,8 @@ final class PageArticlesWithTeasersQuery
      *
      * @param int $pageId The page id of the articles.
      * @param int $start  Start time.
-     *
-     * @return Statement
      */
-    public function execute(int $pageId, int $start)
+    public function execute(int $pageId, int $start): Result
     {
         return $this->connection->createQueryBuilder()
             ->select('*')
@@ -59,8 +31,8 @@ final class PageArticlesWithTeasersQuery
             ->andWhere('showTeaser=\'1\'')
             ->setParameter('pid', $pageId)
             ->setParameter('start', $start)
-            ->setParameter('stop', ($start + 60))
+            ->setParameter('stop', $start + 60)
             ->orderBy('sorting')
-            ->execute();
+            ->executeQuery();
     }
 }

@@ -1,60 +1,85 @@
 <?php
 
-/**
- * Contao I18n provides some i18n structures for easily l10n websites.
- *
- * @package    contao-18n
- * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
- * @filesource
- */
+declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\PageType;
 
 use Contao\ArticleModel;
 use Contao\CoreBundle\Exception\AccessDeniedException;
 use Contao\CoreBundle\Exception\PageNotFoundException;
+use Contao\CoreBundle\Monolog\ContaoContext;
 use Contao\Environment;
 use Contao\Input;
+use Contao\Model\Collection;
 use Contao\Module;
 use Contao\ModuleModel;
 use Contao\PageModel;
 use Contao\PageRegular;
 use Contao\System;
+use Netzmacht\Contao\I18n\Model\Article\TranslatedArticleFinder;
+use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
+use Netzmacht\Contao\I18n\PageProvider\PageProvider;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
+
+use function array_pad;
+use function assert;
+use function class_exists;
+use function explode;
+use function is_array;
+use function is_int;
+use function is_object;
+use function is_string;
+use function preg_match;
+use function sprintf;
+use function strlen;
 
 /**
  * Regular i18n page load the content of the base page.
+ *
+ * @psalm-suppress PropertyNotSetInConstructor
  */
-class I18nRegular extends PageRegular
+final class I18nRegular extends PageRegular
 {
     /**
      * {@inheritDoc}
      */
-    public static function getFrontendModule($moduleId, $column = 'main')
+    public static function getFrontendModule($intId, $strColumn = 'main')
     {
-        if (!is_object($moduleId) && !strlen($moduleId)) {
+        if (! is_object($intId) && ! strlen((string) $intId)) {
             return '';
         }
 
-        $currentPage = static::getContainer()->get('netzmacht.contao_i18n.page_provider')->getPage();
-        $i18n        = static::getContainer()->get('netzmacht.contao_i18n.page_repository');
+        $pageProvider = self::getContainer()->get('netzmacht.contao_i18n.page_provider');
+        assert($pageProvider instanceof PageProvider);
 
-        if (!$i18n->isI18nPage($currentPage->type)) {
-            return parent::getFrontendModule($moduleId, $column);
+        $currentPage = $pageProvider->getPage();
+        $i18n        = self::getContainer()->get('netzmacht.contao_i18n.page_repository');
+        assert($i18n instanceof I18nPageRepository);
+
+        if (! $currentPage || ! $i18n->isI18nPage($currentPage->type)) {
+            return parent::getFrontendModule($intId, $strColumn);
         }
 
         $basePage = $i18n->getBasePage($currentPage);
-        if (!$basePage) {
+        if (! $basePage) {
             return '';
         }
 
-        if ($moduleId == 0) {
-            // Articles
-            return self::getArticles($currentPage, $basePage, $column);
-        } else {
-            return self::generateFrontendModule($moduleId, $column);
+        if (is_object($intId)) {
+            $intId = $intId->id;
         }
+
+        if (! is_int($intId)) {
+            $intId = (int) $intId;
+        }
+
+        if ($intId === 0) {
+            // Articles
+            return self::getArticles($currentPage, $basePage, $strColumn);
+        }
+
+        return self::generateFrontendModule($intId, $strColumn);
     }
 
     /**
@@ -64,38 +89,37 @@ class I18nRegular extends PageRegular
      * @param PageModel $basePage    Base page.
      * @param string    $column      Article column.
      *
-     * @return string
-     *
      * @SuppressWarnings(PHPMD.Superglobals)
      */
-    private static function getArticles($currentPage, $basePage, $column = 'main')
+    private static function getArticles(PageModel $currentPage, PageModel $basePage, string $column = 'main'): string
     {
         // Show a particular article only
-        if ($basePage->type == 'regular' && Input::get('articles')) {
-            list($section, $article) = explode(':', Input::get('articles'));
+        if ($basePage->type === 'regular' && Input::get('articles')) {
+            [$section, $article] = array_pad(explode(':', Input::get('articles')), 2, null);
+            assert(is_string($section));
 
             if ($article === null) {
                 $article = $section;
                 $section = 'main';
             }
 
-            if ($section == $column) {
+            if ($section === $column) {
                 return self::generateSectionArticle($basePage, $article);
             }
         }
 
         // HOOK: add custom logic
-        if (isset($GLOBALS['TL_HOOKS']['getArticles']) && \is_array($GLOBALS['TL_HOOKS']['getArticles'])) {
+        if (isset($GLOBALS['TL_HOOKS']['getArticles']) && is_array($GLOBALS['TL_HOOKS']['getArticles'])) {
             foreach ($GLOBALS['TL_HOOKS']['getArticles'] as $callback) {
-                $return = static::importStatic($callback[0])->{$callback[1]}($basePage->id, $column);
+                $return = self::importStatic($callback[0])->{$callback[1]}($basePage->id, $column);
 
-                if (\is_string($return)) {
+                if (is_string($return)) {
                     return $return;
                 }
             }
         }
 
-        return static::generateArticleList($currentPage, $basePage, $column);
+        return self::generateArticleList($currentPage, $basePage, $column);
     }
 
     /**
@@ -104,66 +128,61 @@ class I18nRegular extends PageRegular
      * @param int    $moduleId Module id.
      * @param string $column   Layout column.
      *
-     * @return string
-     *
      * @SuppressWarnings(PHPMD.Superglobals)
      */
-    private static function generateFrontendModule($moduleId, $column)
+    private static function generateFrontendModule(int $moduleId, string $column): string
     {
-        $moduleModel = static::getModuleModel($moduleId);
+        $moduleModel = self::getModuleModel($moduleId);
 
         // Check the visibility (see #6311)
-        if (!$moduleModel || !static::isVisibleElement($moduleModel)) {
+        if (! $moduleModel || ! self::isVisibleElement($moduleModel)) {
             return '';
         }
 
         $moduleClass = Module::findClass($moduleModel->type);
 
         // Return if the class does not exist
-        if (!class_exists($moduleClass)) {
-            static::log(
+        if (! class_exists($moduleClass)) {
+            $logger = self::getContainer()->get('monolog.logger.contao');
+            assert($logger instanceof LoggerInterface);
+            $logger->log(
+                LogLevel::ERROR,
                 sprintf('Module class "%s" (module "%s") does not exist', $moduleClass, $moduleModel->type),
-                __METHOD__,
-                TL_ERROR
+                ['contao' => new ContaoContext(__METHOD__, 'ERROR')],
             );
+
             return '';
         }
 
         $moduleModel->typePrefix = 'mod_';
-        /** @var Module $module */
+
         $module = new $moduleClass($moduleModel, $column);
+        assert($module instanceof Module);
         $buffer = $module->generate();
 
         // HOOK: add custom logic
         if (isset($GLOBALS['TL_HOOKS']['getFrontendModule']) && is_array($GLOBALS['TL_HOOKS']['getFrontendModule'])) {
             foreach ($GLOBALS['TL_HOOKS']['getFrontendModule'] as $callback) {
-                $buffer = static::importStatic($callback[0])->{$callback[1]}($moduleModel, $buffer, $module);
+                $buffer = self::importStatic($callback[0])->{$callback[1]}($moduleModel, $buffer, $module);
             }
         }
 
         // Disable indexing if protected
-        if ($module->protected && !preg_match('/^\s*<!-- indexer::stop/', $buffer)) {
-            $buffer = "\n<!-- indexer::stop -->". $buffer ."<!-- indexer::continue -->\n";
+        if ($module->protected && ! preg_match('/^\s*<!-- indexer::stop/', $buffer)) {
+            $buffer = "\n<!-- indexer::stop -->" . $buffer . "<!-- indexer::continue -->\n";
         }
 
         return $buffer;
     }
 
     /**
-     * Get a model model.
+     * Get a module model.
      *
-     * @param int|ModuleModel $moduleId Module model or id.
-     *
-     * @return ModuleModel|null
+     * @param int $moduleId Module model or id.
      */
-    private static function getModuleModel($moduleId)
+    private static function getModuleModel(int $moduleId): ModuleModel|null
     {
-        // Other modules
-        if (is_object($moduleId)) {
-            return $moduleId;
-        }
-
-        return \ModuleModel::findByPk($moduleId);
+        return ModuleModel::findByPk($moduleId);
     }
 
     /**
@@ -172,12 +191,10 @@ class I18nRegular extends PageRegular
      * @param PageModel  $basePage Base page.
      * @param int|string $article  Article alias or id.
      *
-     * @return bool|string
-     *
      * @throws PageNotFoundException If page does not exist.
      * @throws AccessDeniedException If article is not visible.
      */
-    private static function generateSectionArticle(PageModel $basePage, $article)
+    private static function generateSectionArticle(PageModel $basePage, int|string $article): string
     {
         $articleModel = ArticleModel::findByIdOrAliasAndPid($article, $basePage->id);
 
@@ -187,14 +204,19 @@ class I18nRegular extends PageRegular
         }
 
         // Send a 403 header if the article cannot be accessed
-        if (!static::isVisibleElement($articleModel)) {
+        if (! self::isVisibleElement($articleModel)) {
             throw new AccessDeniedException('Access denied: ' . Environment::get('uri'));
         }
 
         // Add the "first" and "last" classes (see #2583)
         $articleModel->classes = ['first', 'last'];
 
-        return static::getArticle($articleModel);
+        $article = self::getArticle($articleModel);
+        if (is_string($article)) {
+            return $article;
+        }
+
+        return '';
     }
 
     /**
@@ -203,27 +225,29 @@ class I18nRegular extends PageRegular
      * @param PageModel $currentPage I18n page model.
      * @param PageModel $basePage    Page model.
      * @param string    $column      Section column.
-     *
-     * @return string
      */
-    private static function generateArticleList(PageModel $currentPage, PageModel $basePage, $column)
+    private static function generateArticleList(PageModel $currentPage, PageModel $basePage, string $column): string
     {
         // Show all articles (no else block here, see #4740)
         $articles = ArticleModel::findPublishedByPidAndColumn($basePage->id, $column);
 
-        if ($articles === null) {
+        if (! $articles instanceof Collection) {
             return '';
         }
 
-        $finder    = System::getContainer()->get('netzmacht.contao_i18n.translated_article_finder');
+        $finder = System::getContainer()->get('netzmacht.contao_i18n.translated_article_finder');
+        assert($finder instanceof TranslatedArticleFinder);
+
         $modes     = $finder->getArticleModes($currentPage);
         $overrides = $finder->getOverrides($currentPage);
         $return    = '';
         $count     = 0;
-        $multiMode = ($articles->count() > 1);
-        $last      = ($articles->count() - 1);
+        $multiMode = $articles->count() > 1;
+        $last      = $articles->count() - 1;
 
         foreach ($articles as $articleModel) {
+            assert($articleModel instanceof ArticleModel);
+
             // Article should be overridden. So replace it.
             if (isset($overrides[$articleModel->id])) {
                 $articleModel = $overrides[$articleModel->id];
@@ -234,14 +258,14 @@ class I18nRegular extends PageRegular
             }
 
             // Add the "first" and "last" classes (see #2583)
-            if ($count == 0 || $count == $last) {
-                $arrCss = array();
+            if ($count === 0 || $count === $last) {
+                $arrCss = [];
 
-                if ($count == 0) {
+                if ($count === 0) {
                     $arrCss[] = 'first';
                 }
 
-                if ($count == $last) {
+                if ($count === $last) {
                     $arrCss[] = 'last';
                 }
 

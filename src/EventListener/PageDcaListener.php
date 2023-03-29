@@ -1,15 +1,5 @@
 <?php
 
-/**
- * Contao I18n provides some i18n structures for easily l10n websites.
- *
- * @package    contao-18n
- * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
- * @filesource
- */
-
 declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\EventListener;
@@ -28,14 +18,19 @@ use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Netzmacht\Contao\I18n\Cleanup\I18nPageArticleCleaner;
 use Netzmacht\Contao\I18n\Model\Article\TranslatedArticleFinder;
 use Netzmacht\Contao\Toolkit\Callback\Invoker;
-use Netzmacht\Contao\Toolkit\Data\Model\Repository;
+use Netzmacht\Contao\Toolkit\Data\Model\ContaoRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 use Netzmacht\Contao\Toolkit\Dca\Listener\AbstractListener;
 use Netzmacht\Contao\Toolkit\Dca\Manager;
 
-/**
- * Class PageDcaListener
- */
+use function array_filter;
+use function array_keys;
+use function assert;
+use function in_array;
+use function preg_replace;
+use function sprintf;
+use function time;
+
 final class PageDcaListener extends AbstractListener
 {
     /**
@@ -43,53 +38,10 @@ final class PageDcaListener extends AbstractListener
      *
      * @var string
      */
+    // phpcs:ignore SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint
     protected static $name = 'tl_page';
 
     /**
-     * Repository manager.
-     *
-     * @var RepositoryManager
-     */
-    private $repositoryManager;
-
-    /**
-     * Backend user.
-     *
-     * @var BackendUser
-     */
-    private $user;
-
-    /**
-     * Translated article finder.
-     *
-     * @var TranslatedArticleFinder
-     */
-    private $articleFinder;
-
-    /**
-     * If true all unrelated articles get removed.
-     *
-     * @var bool
-     */
-    private $articleCleanup;
-
-    /**
-     * Article cleaner.
-     *
-     * @var I18nPageArticleCleaner
-     */
-    private $articleCleaner;
-
-    /**
-     * Callback invoker.
-     *
-     * @var Invoker
-     */
-    private $callbackInvoker;
-
-    /**
-     * PageDcaListener constructor.
-     *
      * @param Manager                 $dcaManager        Data container definition manager.
      * @param RepositoryManager       $repositoryManager Repository manager.
      * @param BackendUser             $user              Backend user.
@@ -100,31 +52,22 @@ final class PageDcaListener extends AbstractListener
      */
     public function __construct(
         Manager $dcaManager,
-        RepositoryManager $repositoryManager,
-        BackendUser $user,
-        TranslatedArticleFinder $articleFinder,
-        I18nPageArticleCleaner $articleCleaner,
-        Invoker $callbackInvoker,
-        bool $articleCleanup
+        private readonly RepositoryManager $repositoryManager,
+        private readonly BackendUser $user,
+        private readonly TranslatedArticleFinder $articleFinder,
+        private readonly I18nPageArticleCleaner $articleCleaner,
+        private readonly Invoker $callbackInvoker,
+        private readonly bool $articleCleanup,
     ) {
         parent::__construct($dcaManager);
-
-        $this->repositoryManager = $repositoryManager;
-        $this->user              = $user;
-        $this->articleFinder     = $articleFinder;
-        $this->articleCleaner    = $articleCleaner;
-        $this->callbackInvoker   = $callbackInvoker;
-        $this->articleCleanup    = $articleCleanup;
     }
 
     /**
      * Initialize the palette.
      *
      * @param DataContainer $dataContainer Data container driver.
-     *
-     * @return void
      */
-    public function initializePalette($dataContainer): void
+    public function initializePalette(DataContainer $dataContainer): void
     {
         $definition = $this->getDefinition();
         $definition->set(['palettes', 'i18n_regular'], $definition->get(['palettes', 'regular']));
@@ -141,7 +84,7 @@ final class PageDcaListener extends AbstractListener
         $repository = $this->repositoryManager->getRepository(PageModel::class);
         $page       = $repository->find((int) $dataContainer->id);
 
-        if (!$page || $page->type === 'root' || $page->type === 'i18n_regular' || $page->languageMain > 0) {
+        if (! $page || $page->type === 'root' || $page->type === 'i18n_regular' || $page->languageMain > 0) {
             return;
         }
 
@@ -152,8 +95,6 @@ final class PageDcaListener extends AbstractListener
 
     /**
      * Initialize the page type options.
-     *
-     * @return void
      */
     public function initializePageTypeOptionsCallback(): void
     {
@@ -164,22 +105,22 @@ final class PageDcaListener extends AbstractListener
             ['fields', 'type', 'options_callback'],
             [
                 'netzmacht.contao_i18n.listeners.dca.page',
-                'pageTypeOptions'
-            ]
+                'pageTypeOptions',
+            ],
         );
     }
 
     /**
      * Get the page type options.
      *
-     * @param DataContainer $dataContainer Data container driver.
+     * @param DataContainer|null $dataContainer Data container driver.
      *
-     * @return array
+     * @return list<string>
      */
-    public function pageTypeOptions($dataContainer = null)
+    public function pageTypeOptions(DataContainer|null $dataContainer = null): array
     {
         $callback = $this->getDefinition()->get(['fields', 'type', 'options_callback_original']);
-        if (!$callback || !$dataContainer) {
+        if (! $callback || ! $dataContainer) {
             return [];
         }
 
@@ -187,33 +128,29 @@ final class PageDcaListener extends AbstractListener
         $repository = $this->repositoryManager->getRepository(PageModel::class);
 
         $page = $repository->find((int) $dataContainer->id);
-        if (!$page) {
+        if (! $page) {
             return $options;
         }
 
         $rootPage = $repository->find((int) $page->hofff_root_page_id);
-        if (!$rootPage) {
+        if (! $rootPage) {
             return $options;
         }
 
         if ($rootPage->fallback === '1' && $rootPage->languageRoot === '0') {
-            $options = array_filter(
-                $options,
-                function ($value) {
-                    return $value !== 'i18n_regular';
-                }
-            );
+            $options = array_filter($options, static fn (string $value): bool => $value !== 'i18n_regular');
         }
 
+        /** @psalm-suppress LessSpecificReturnStatement */
         return $options;
     }
 
     /**
      * Get all articles of the base page as options array.
      *
-     * @return array
+     * @return array<string|int,string>
      */
-    public function getBasePageArticlesOptions()
+    public function getBasePageArticlesOptions(): array
     {
         if (Input::get('act') !== 'edit') {
             return [];
@@ -221,14 +158,14 @@ final class PageDcaListener extends AbstractListener
 
         $pageRepository = $this->repositoryManager->getRepository(PageModel::class);
         $pageModel      = $pageRepository->find((int) Input::get('id'));
-        if (!$pageModel) {
+        if (! $pageModel instanceof PageModel) {
             return [];
         }
 
-        /** @var Repository|ArticleModel $repository */
         $repository = $this->repositoryManager->getRepository(ArticleModel::class);
+        assert($repository instanceof ContaoRepository);
         $collection = $repository->findByPid($pageModel->languageMain);
-        if (!$collection) {
+        if (! $collection) {
             return [];
         }
 
@@ -238,7 +175,7 @@ final class PageDcaListener extends AbstractListener
                 '%s (ID %s) [%s]',
                 $article->title,
                 $article->id,
-                $article->inColumn
+                $article->inColumn,
             );
         }
 
@@ -250,28 +187,30 @@ final class PageDcaListener extends AbstractListener
      *
      * @param DataContainer|null $dataContainer The data container.
      *
-     * @return void
-     *
      * @throws InvalidArgumentException When an invalid query was built.
      */
-    public function createI18nArticles($dataContainer = null): void
+    public function createI18nArticles(DataContainer|null $dataContainer = null): void
     {
-        if (!$dataContainer || !$dataContainer->activeRecord || $dataContainer->activeRecord->type !== 'i18n_regular') {
+        if (
+            ! $dataContainer
+            || ! $dataContainer->activeRecord
+            || $dataContainer->activeRecord->type !== 'i18n_regular'
+        ) {
             return;
         }
 
-        // Reload the page. Active record stores the version before the changes are applied.
-        $page      = $this->repositoryManager->getRepository(PageModel::class)->find((int) $dataContainer->id);
-        $modes     = $this->articleFinder->getArticleModes($page, 'override');
-        $overrides = $this->articleFinder->getOverrides($page);
+        $modes     = $this->articleFinder->getArticleModes($dataContainer->activeRecord, 'override');
+        $overrides = $this->articleFinder->getOverrides($dataContainer->activeRecord);
         $deletes   = $overrides;
 
         foreach (array_keys($modes) as $articleId) {
             unset($deletes[$articleId]);
 
-            if (!isset($overrides[$articleId])) {
-                $this->copyArticle($dataContainer->id, $articleId);
+            if (isset($overrides[$articleId])) {
+                continue;
             }
+
+            $this->copyArticle($dataContainer->id, $articleId);
         }
 
         // Remove connection between the languages. Do not delete the article.
@@ -280,18 +219,22 @@ final class PageDcaListener extends AbstractListener
         foreach ($deletes as $article) {
             if ($this->articleCleanup) {
                 $this->articleCleaner->deleteArticle($article, $dataContainer);
-            } else {
-                $article->languageMain = 0;
-                $article->tstamp       = time();
 
-                $articleRepository->save($article);
+                continue;
             }
+
+            $article->languageMain = 0;
+            $article->tstamp       = time();
+
+            $articleRepository->save($article);
         }
 
         // Delete all unrelated articles.
-        if ($this->articleCleanup) {
-            $this->articleCleaner->cleanupUnrelatedArticles($dataContainer);
+        if (! $this->articleCleanup) {
+            return;
         }
+
+        $this->articleCleaner->cleanupUnrelatedArticles($dataContainer);
     }
 
     /**
@@ -301,12 +244,10 @@ final class PageDcaListener extends AbstractListener
      *
      * @param mixed         $raw          Raw value.
      * @param DataContainer $datContainer Data container driver.
-     *
-     * @return array
      */
-    public function loadI18nArticles($raw, $datContainer)
+    public function loadI18nArticles(mixed $raw, DataContainer $datContainer): mixed
     {
-        if (\Input::post('FORM_SUBMIT') === PageModel::getTable()) {
+        if (Input::post('FORM_SUBMIT') === PageModel::getTable()) {
             return $raw;
         }
 
@@ -315,7 +256,7 @@ final class PageDcaListener extends AbstractListener
         $articles   = [];
         $collection = $this->repositoryManager
             ->getRepository(ArticleModel::class)
-            ->findBy(['.pid=?', 'languageMain != 0'], [$datContainer->id]);
+            ->findBy(['.pid=?', '.languageMain != 0'], [$datContainer->id]);
 
         if ($collection) {
             foreach ($collection as $article) {
@@ -324,7 +265,7 @@ final class PageDcaListener extends AbstractListener
         }
 
         foreach ($configured as $config) {
-            if ($config['article'] == '') {
+            if ($config['article'] === '') {
                 continue;
             }
 
@@ -332,10 +273,12 @@ final class PageDcaListener extends AbstractListener
                 $values[] = $config;
             }
 
-            if (isset($articles[$config['article']])) {
-                $values[] = $config;
-                unset($articles[$config['article']]);
+            if (! isset($articles[$config['article']])) {
+                continue;
             }
+
+            $values[] = $config;
+            unset($articles[$config['article']]);
         }
 
         foreach (array_keys($articles) as $articleId) {
@@ -345,28 +288,33 @@ final class PageDcaListener extends AbstractListener
             ];
         }
 
+        /** @psalm-suppress LessSpecificReturnStatement */
         return $values;
     }
 
     /**
      * Generate an "edit articles" button and return it as string.
      *
-     * @param array  $row        Current data row.
-     * @param string $href       The pre generated link.
-     * @param string $label      The label.
-     * @param string $title      The title attribute.
-     * @param string $icon       The icon path.
-     * @param string $attributes Html attributes.
-     *
-     * @return string
+     * @param array<string,mixed> $row        Current data row.
+     * @param string              $href       The pre generated link.
+     * @param string              $label      The label.
+     * @param string              $title      The title attribute.
+     * @param string              $icon       The icon path.
+     * @param string              $attributes Html attributes.
      */
-    public function editArticles($row, $href, $label, $title, $icon, $attributes): string
-    {
-        if (!$this->user->hasAccess('article', 'modules')) {
+    public function editArticles(
+        array $row,
+        string $href,
+        string $label,
+        string $title,
+        string $icon,
+        string $attributes,
+    ): string {
+        if (! $this->user->hasAccess('article', 'modules')) {
             return '';
         }
 
-        if (!in_array($row['type'], ['regular', 'error_403', 'error_404', 'i18n_regular'])) {
+        if (! in_array($row['type'], ['regular', 'error_403', 'error_404', 'i18n_regular'])) {
             return Image::getHtml(preg_replace('/\.svg$/i', '_.svg', $icon));
         }
 
@@ -375,7 +323,7 @@ final class PageDcaListener extends AbstractListener
             Backend::addToUrl($href . '&amp;pn=' . $row['id']),
             StringUtil::specialchars($title),
             $attributes,
-            Image::getHtml($icon, $label)
+            Image::getHtml($icon, $label),
         );
     }
 
@@ -384,10 +332,8 @@ final class PageDcaListener extends AbstractListener
      *
      * @param int|string $pageId    Page id of the target page.
      * @param int|string $articleId Article id of the source article.
-     *
-     * @return void
      */
-    private function copyArticle($pageId, $articleId): void
+    private function copyArticle(int|string $pageId, int|string $articleId): void
     {
         $copy         = new ArticleModel();
         $articleModel = $this->repositoryManager->getRepository(ArticleModel::class)->find((int) $articleId);
@@ -405,10 +351,10 @@ final class PageDcaListener extends AbstractListener
 
         $contentElements = $this->repositoryManager->getRepository(ContentModel::class)->findBy(
             ['.pid=?', '( .ptable=? OR .ptable = \'\')'],
-            [$articleId, ArticleModel::getTable()]
+            [$articleId, ArticleModel::getTable()],
         );
 
-        if (!$contentElements) {
+        if (! $contentElements) {
             return;
         }
 

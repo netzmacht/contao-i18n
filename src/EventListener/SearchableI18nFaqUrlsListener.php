@@ -1,15 +1,5 @@
 <?php
 
-/**
- * Contao I18n provides some i18n structures for easily l10n websites.
- *
- * @package    contao-18n
- * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  2015-2018 netzmacht David Molineus
- * @license    LGPL-3.0-or-later https://github.com/netzmacht/contao-i18n/blob/master/LICENSE
- * @filesource
- */
-
 declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\EventListener;
@@ -20,58 +10,32 @@ use Contao\Database;
 use Contao\Date;
 use Contao\FaqCategoryModel;
 use Contao\FaqModel;
+use Contao\Model\Collection;
 use Contao\PageModel;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
-use Netzmacht\Contao\Toolkit\Data\Model\Repository;
+use Netzmacht\Contao\Toolkit\Data\Model\ContaoRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 
-/**
- * Class SearchableI18nFaqUrlsListener
- *
- * @package Netzmacht\Contao\I18n\EventListener
- */
-class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsListener
+use function assert;
+use function in_array;
+use function preg_replace;
+use function sprintf;
+
+final class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsListener
 {
     /**
-     * Model repository manager.
-     *
-     * @var RepositoryManager
-     */
-    private $repositoryManager;
-
-    /**
-     * I18n page repository.
-     *
-     * @var I18nPageRepository
-     */
-    private $i18nPageRepository;
-
-    /**
-     * Contao config adapter.
-     *
-     * @var Config|Adapter
-     */
-    private $config;
-
-    /**
-     * SearchableI18nNewsUrlsListener constructor.
-     *
      * @param RepositoryManager  $repositoryManager  Model repository manager.
      * @param I18nPageRepository $i18nPageRepository I18n page repository.
      * @param Database           $database           Legacy contao database connection.
-     * @param Config|Adapter     $config             Contao config adapter.
+     * @param Adapter<Config>    $config             Contao config adapter.
      */
     public function __construct(
-        RepositoryManager $repositoryManager,
-        I18nPageRepository $i18nPageRepository,
+        private readonly RepositoryManager $repositoryManager,
+        private readonly I18nPageRepository $i18nPageRepository,
         Database $database,
-        $config
+        private readonly Adapter $config,
     ) {
         parent::__construct($database);
-
-        $this->repositoryManager  = $repositoryManager;
-        $this->i18nPageRepository = $i18nPageRepository;
-        $this->config             = $config;
     }
 
     /**
@@ -85,36 +49,37 @@ class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsListene
         $time      = Date::floorToMinute();
 
         // Get all categories
-        /** @var Repository|FaqCategoryModel $categoryRepository */
         $categoryRepository = $this->repositoryManager->getRepository(FaqCategoryModel::class);
         $collection         = $categoryRepository->findAll();
 
         // Walk through each category
-        if ($collection === null) {
+        if (! $collection instanceof Collection) {
             return $pages;
         }
 
-        while ($collection->next()) {
+        foreach ($collection as $faqCategory) {
+            assert($faqCategory instanceof FaqCategoryModel);
+
             // Skip FAQs without target page
-            if (!$collection->jumpTo) {
+            if (! $faqCategory->jumpTo) {
                 continue;
             }
 
-            $translations = $this->i18nPageRepository->getPageTranslations($collection->jumpTo);
+            $translations = $this->i18nPageRepository->getPageTranslations($faqCategory->jumpTo);
 
             foreach ($translations as $translation) {
                 // Skip FAQs outside the root nodes
-                if (!empty($root) && !\in_array($translation->id, $root) || $translation->type !== 'i18n_regular') {
+                if ((! empty($root) && ! in_array($translation->id, $root)) || $translation->type !== 'i18n_regular') {
                     continue;
                 }
 
                 $pages = $this->processTranslation(
-                    $collection->current(),
+                    $faqCategory,
                     $translation,
                     $pages,
                     $processed,
                     $isSitemap,
-                    $time
+                    $time,
                 );
             }
         }
@@ -125,14 +90,14 @@ class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsListene
     /**
      * Process the translation.
      *
-     * @param FaqCategoryModel $category    The faq category.
-     * @param PageModel        $translation The translation.
-     * @param array            $pages       List of page urls.
-     * @param array            $processed   Cache of processed paged.
-     * @param bool             $isSitemap   Sitemap.
-     * @param int              $time        The time.
+     * @param FaqCategoryModel                           $category    The faq category.
+     * @param PageModel                                  $translation The translation.
+     * @param list<string>                               $pages       List of page urls.
+     * @param array<int|string,array<int|string,string>> $processed   Cache of processed paged.
+     * @param bool                                       $isSitemap   Sitemap.
+     * @param int                                        $time        The time.
      *
-     * @return array
+     * @return list<string>
      */
     private function processTranslation(
         FaqCategoryModel $category,
@@ -140,36 +105,38 @@ class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsListene
         array $pages,
         array &$processed,
         bool $isSitemap,
-        int $time
+        int $time,
     ): array {
         // Get the URL of the jumpTo page
-        if (!isset($processed[$category->jumpTo][$translation->id])) {
+        if (! isset($processed[$category->jumpTo][$translation->id])) {
             // The target page has not been published (see #5520)
-            if (!$this->isPagePublished($translation, $time)) {
+            if (! $this->isPagePublished($translation, $time)) {
                 return $pages;
             }
 
-            if (!$this->shouldPageBeAddedToSitemap($translation, $isSitemap)) {
+            if (! $this->shouldPageBeAddedToSitemap($translation, $isSitemap)) {
                 return $pages;
             }
 
             // Generate the URL
             $processed[$category->jumpTo][$translation->id] = $translation->getAbsoluteUrl(
-                $this->config->get('useAutoItem') ? '/%s' : '/items/%s'
+                $this->config->get('useAutoItem') ? '/%s' : '/items/%s',
             );
         }
 
         // Get the items
-        /** @var FaqModel|Repository $faqRepository */
         $faqRepository = $this->repositoryManager->getRepository(FaqModel::class);
-        $items         = $faqRepository->findPublishedByPid($category->id);
-        $url           = $processed[$category->jumpTo][$translation->id];
+        assert($faqRepository instanceof ContaoRepository);
+        $items = $faqRepository->findPublishedByPid($category->id);
+        $url   = $processed[$category->jumpTo][$translation->id];
 
-        if ($items !== null) {
-            while ($items->next()) {
+        if ($items instanceof Collection) {
+            foreach ($items as $faq) {
+                assert($faq instanceof FaqModel);
+
                 $pages[] = sprintf(
                     preg_replace('/%(?!s)/', '%%', $url),
-                    ($items->alias ?: $items->id)
+                    ($faq->alias ?: $faq->id),
                 );
             }
         }
