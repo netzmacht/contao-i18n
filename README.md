@@ -99,7 +99,7 @@ you use an individual navigation.
 Configuration
 -------------
 
-By default contao-i18n does not delete any articles in the contao i18n regular page. If they are not connected as 
+By default, contao-i18n does not delete any articles in the contao i18n regular page. If they are not connected as 
 page to override other pages, they are simply ignored. However, you can enable the cleanup. If cleanup is enabled all
 articles are deleted which are not configured as an article override.
 
@@ -109,3 +109,21 @@ articles are deleted which are not configured as an article override.
 netzmacht_contao_i18n:
     article_cleanup: true
 ```
+
+Development
+-----------
+
+This repository contains a [ddev](https://github.com/ddev/ddev) configuration for a local test and development 
+environment of this extension. It also provides a snapshot of the database. So it's easy to set up a local instance for 
+yourself. For the general usage of ddev read the [ddev documentation](https://ddev.readthedocs.io).
+
+Following credentials are used:
+
+**Backend user**
+
+ - Username: `admin`
+ - Password: `adminuser`
+
+**Install tool**
+
+ - Password: `adminuser`

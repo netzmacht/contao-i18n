@@ -1,0 +1,7 @@
+contao:
+  localconfig:
+    licenseAccepted: true
+    installPassword: '$2y$10$BWAdFwfxhoJQgrCDf8rMtO5o3s3HRsQ9NRrq4oqlD.Dl5h3Mi3TTK'
+  legacy_routing: false
+netzmacht_contao_i18n:
+  article_cleanup: true
