@@ -9,7 +9,7 @@ use Doctrine\DBAL\Result;
 
 final class PageArticlesWithTeasersQuery
 {
-    public function __construct(private Connection $connection)
+    public function __construct(private readonly Connection $connection)
     {
     }
 

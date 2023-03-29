@@ -12,7 +12,7 @@ final class ContextStack
     /**
      * Context stack.
      *
-     * @var Context[]|array
+     * @var Context[]
      */
     private array $contexts = [];
 

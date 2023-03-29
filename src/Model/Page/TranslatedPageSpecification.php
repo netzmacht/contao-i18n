@@ -11,23 +11,11 @@ use RuntimeException;
 final class TranslatedPageSpecification implements Specification
 {
     /**
-     * The language.
-     */
-    private string $language;
-
-    /**
-     * Page id of the page in the main language.
-     */
-    private int $mainLanguage;
-
-    /**
      * @param int    $mainLanguage Page id of the page in the main language.
      * @param string $language     The current language.
      */
-    public function __construct(int $mainLanguage, string $language)
+    public function __construct(private readonly int $mainLanguage, private readonly string $language)
     {
-        $this->mainLanguage = $mainLanguage;
-        $this->language     = $language;
     }
 
     /**

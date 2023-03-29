@@ -11,8 +11,10 @@ use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 
 final class TranslatePageUrlListener
 {
-    public function __construct(private I18nPageRepository $i18nPageRepository, private ContextStack $contextStack)
-    {
+    public function __construct(
+        private readonly I18nPageRepository $i18nPageRepository,
+        private readonly ContextStack $contextStack
+    ) {
     }
 
     /**

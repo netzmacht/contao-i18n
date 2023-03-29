@@ -31,11 +31,12 @@
     "menatwork/contao-multicolumnwizard-bundle": "^3.5",
     "netzmacht/contao-toolkit": "^3.8",
     "psr/log": "^1.0",
-    "symfony/config": "^4.4 || ^5.0",
-    "symfony/dependency-injection": "^4.4 || ^5.0",
-    "symfony/http-foundation": "^4.4 || ^5.0",
-    "symfony/http-kernel": "^4.4 || ^5.0",
-    "symfony/translation-contracts": "^1.1 || ^2.0",
+    "symfony/asset": "^5.4",
+    "symfony/config": "^5.4",
+    "symfony/dependency-injection": "^5.4",
+    "symfony/http-foundation": "^5.4",
+    "symfony/http-kernel": "^5.4",
+    "symfony/translation-contracts": "^2.3",
     "terminal42/contao-changelanguage": "^3.0"
   },
   "require-dev": {

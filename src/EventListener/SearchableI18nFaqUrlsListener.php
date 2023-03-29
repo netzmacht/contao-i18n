@@ -24,27 +24,18 @@ use function sprintf;
 final class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsListener
 {
     /**
-     * Contao config adapter.
-     *
-     * @var Adapter<Config>
-     */
-    private Adapter $config;
-
-    /**
      * @param RepositoryManager  $repositoryManager  Model repository manager.
      * @param I18nPageRepository $i18nPageRepository I18n page repository.
      * @param Database           $database           Legacy contao database connection.
      * @param Adapter<Config>    $config             Contao config adapter.
      */
     public function __construct(
-        private RepositoryManager $repositoryManager,
-        private I18nPageRepository $i18nPageRepository,
+        private readonly RepositoryManager $repositoryManager,
+        private readonly I18nPageRepository $i18nPageRepository,
         Database $database,
-        Adapter $config,
+        private readonly Adapter $config,
     ) {
         parent::__construct($database);
-
-        $this->config = $config;
     }
 
     /**

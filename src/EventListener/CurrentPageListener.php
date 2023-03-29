@@ -9,7 +9,7 @@ use Netzmacht\Contao\I18n\PageProvider\PageProvider;
 
 final class CurrentPageListener
 {
-    public function __construct(private PageProvider $pageProvider)
+    public function __construct(private readonly PageProvider $pageProvider)
     {
     }
 

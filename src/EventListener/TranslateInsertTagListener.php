@@ -17,9 +17,9 @@ use function in_array;
 final class TranslateInsertTagListener extends AbstractInsertTagParser
 {
     public function __construct(
-        private I18nPageRepository $i18nPageRepository,
-        private PageProvider $pageProvider,
-        private Translator $translator,
+        private readonly I18nPageRepository $i18nPageRepository,
+        private readonly PageProvider $pageProvider,
+        private readonly Translator $translator,
     ) {
     }
 

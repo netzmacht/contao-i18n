@@ -28,10 +28,10 @@ final class I18nPageArticleCleaner
      * @param Invoker           $callbackInvoker   Callback invoker.
      */
     public function __construct(
-        private RepositoryManager $repositoryManager,
-        private DcaManager $dcaManager,
-        private BackendUser $backendUser,
-        private Invoker $callbackInvoker,
+        private readonly RepositoryManager $repositoryManager,
+        private readonly DcaManager $dcaManager,
+        private readonly BackendUser $backendUser,
+        private readonly Invoker $callbackInvoker,
     ) {
     }
 

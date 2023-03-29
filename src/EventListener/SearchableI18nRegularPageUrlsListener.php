@@ -20,28 +20,17 @@ use function sprintf;
 final class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrlsListener
 {
     /**
-     * Model registry.
-     */
-    private Registry $registry;
-
-    /**
-     * Contao config adapter.
-     *
-     * @var Adapter<Config>
-     */
-    private Adapter $config;
-
-    /**
      * Construct.
      *
      * @param Connection      $connection Database connection.
      * @param Registry        $registry   Model registry.
      * @param Adapter<Config> $config     Contao config adapter.
      */
-    public function __construct(private Connection $connection, Registry $registry, Adapter $config)
-    {
-        $this->registry = $registry;
-        $this->config   = $config;
+    public function __construct(
+        private readonly Connection $connection,
+        private readonly Registry $registry,
+        private readonly Adapter $config
+    ) {
     }
 
     /**

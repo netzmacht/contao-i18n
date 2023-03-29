@@ -9,15 +9,9 @@ use Doctrine\DBAL\Result;
 
 final class PublishedI18nRegularPagesQuery
 {
-    /**
-     * Database connection.
-     */
-    private Connection $connection;
-
     /** @param Connection $connection Database connection. */
-    public function __construct(Connection $connection)
+    public function __construct(private readonly Connection $connection)
     {
-        $this->connection = $connection;
     }
 
     /**

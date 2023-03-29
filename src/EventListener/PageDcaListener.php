@@ -42,11 +42,6 @@ final class PageDcaListener extends AbstractListener
     protected static $name = 'tl_page';
 
     /**
-     * If true all unrelated articles get removed.
-     */
-    private bool $articleCleanup;
-
-    /**
      * @param Manager                 $dcaManager        Data container definition manager.
      * @param RepositoryManager       $repositoryManager Repository manager.
      * @param BackendUser             $user              Backend user.
@@ -57,16 +52,14 @@ final class PageDcaListener extends AbstractListener
      */
     public function __construct(
         Manager $dcaManager,
-        private RepositoryManager $repositoryManager,
-        private BackendUser $user,
-        private TranslatedArticleFinder $articleFinder,
-        private I18nPageArticleCleaner $articleCleaner,
-        private Invoker $callbackInvoker,
-        bool $articleCleanup,
+        private readonly RepositoryManager $repositoryManager,
+        private readonly BackendUser $user,
+        private readonly TranslatedArticleFinder $articleFinder,
+        private readonly I18nPageArticleCleaner $articleCleaner,
+        private readonly Invoker $callbackInvoker,
+        private readonly bool $articleCleanup,
     ) {
         parent::__construct($dcaManager);
-
-        $this->articleCleanup = $articleCleanup;
     }
 
     /**

@@ -11,7 +11,7 @@ use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 
 final class TranslatedArticleFinder
 {
-    public function __construct(private RepositoryManager $repositoryManager)
+    public function __construct(private readonly RepositoryManager $repositoryManager)
     {
     }
 

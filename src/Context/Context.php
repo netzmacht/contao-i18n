@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\Context;
 
+/** @psalm-immutable */
 interface Context
 {
     /**

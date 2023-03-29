@@ -27,20 +27,6 @@ use function sprintf;
 final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrlsListener
 {
     /**
-     * Model repository manager.
-     */
-    private RepositoryManager $repositoryManager;
-
-    private I18nPageRepository $i18n;
-
-    /**
-     * Contao config adapter.
-     *
-     * @var Adapter<Config>
-     */
-    private Adapter $config;
-
-    /**
      * @param RepositoryManager       $repositoryManager  Model repository manager.
      * @param I18nPageRepository      $i18nPageRepository I18n page repository.
      * @param TranslatedArticleFinder $articleFinder      Translated article finder.
@@ -48,17 +34,13 @@ final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrls
      * @param Adapter<Config>         $config             Contao config adpater.
      */
     public function __construct(
-        RepositoryManager $repositoryManager,
-        I18nPageRepository $i18nPageRepository,
-        private TranslatedArticleFinder $articleFinder,
+        private readonly RepositoryManager $repositoryManager,
+        private readonly I18nPageRepository $i18nPageRepository,
+        private readonly TranslatedArticleFinder $articleFinder,
         Database $database,
-        Adapter $config,
+        private readonly Adapter $config,
     ) {
         parent::__construct($database);
-
-        $this->repositoryManager = $repositoryManager;
-        $this->i18n              = $i18nPageRepository;
-        $this->config            = $config;
     }
 
     /**
@@ -84,7 +66,7 @@ final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrls
                     continue;
                 }
 
-                $translations = $this->i18n->getPageTranslations($collection->jumpTo);
+                $translations = $this->i18nPageRepository->getPageTranslations($collection->jumpTo);
 
                 foreach ($translations as $translation) {
                     // Skip news archives outside the root nodes
@@ -173,7 +155,7 @@ final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrls
 
             // Link to an internal page
             case 'internal':
-                $target = $this->i18n->getTranslatedPage($newsModel->jumpTo);
+                $target = $this->i18nPageRepository->getTranslatedPage($newsModel->jumpTo);
                 if ($target instanceof PageModel) {
                     return $target->getAbsoluteUrl();
                 }
@@ -189,7 +171,7 @@ final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrls
                     break;
                 }
 
-                $parentPage = $this->i18n->getTranslatedPage($articleModel->pid);
+                $parentPage = $this->i18nPageRepository->getTranslatedPage($articleModel->pid);
                 if ($parentPage instanceof PageModel) {
                     $articleModel = $this->getTranslatedArticle($parentPage, $articleModel);
 

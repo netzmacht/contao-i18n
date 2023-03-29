@@ -9,15 +9,9 @@ use Contao\PageModel;
 
 abstract class AbstractContentSearchableUrlsListener extends AbstractSearchableUrlsListener
 {
-    /**
-     * Legacy contao database connection.
-     */
-    private Database $database;
-
     /** @param Database $database Legacy contao database connection. */
-    public function __construct(Database $database)
+    public function __construct(private readonly Database $database)
     {
-        $this->database = $database;
     }
 
     /**

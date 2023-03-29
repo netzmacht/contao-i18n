@@ -6,6 +6,7 @@ namespace Netzmacht\Contao\I18n\Context;
 
 use Contao\ModuleModel;
 
+/** @psalm-immutable */
 final class FrontendModuleContext implements Context
 {
     /**

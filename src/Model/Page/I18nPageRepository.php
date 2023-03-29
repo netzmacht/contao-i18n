@@ -14,13 +14,6 @@ use function in_array;
 final class I18nPageRepository
 {
     /**
-     * Set of supported i18n pages.
-     *
-     * @var list<string>
-     */
-    private array $i18nPageTypes;
-
-    /**
      * I18n page cache for base pages.
      *
      * For each language page the base page get cached at runtime.
@@ -46,18 +39,13 @@ final class I18nPageRepository
     private array $translations = [];
 
     /**
-     * Repository manager.
-     */
-    private RepositoryManager $repositoryManager;
-
-    /**
      * @param list<string>      $i18nPageTypes     Set of supported i18n pages.
      * @param RepositoryManager $repositoryManager Repository manager.
      */
-    public function __construct(array $i18nPageTypes, RepositoryManager $repositoryManager)
-    {
-        $this->i18nPageTypes     = $i18nPageTypes;
-        $this->repositoryManager = $repositoryManager;
+    public function __construct(
+        private readonly array $i18nPageTypes,
+        private readonly RepositoryManager $repositoryManager,
+    ) {
     }
 
     /**

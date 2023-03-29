@@ -63,6 +63,7 @@
 
         <service id="netzmacht.contao_i18n.listeners.page_status_icon"
                  class="Netzmacht\Contao\I18n\EventListener\PageStatusIconListener">
+            <argument type="service" id="assets.packages"/>
             <tag name="contao.hook" hook="getPageStatusIcon"/>
         </service>
 
