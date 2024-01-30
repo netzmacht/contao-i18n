@@ -29,7 +29,7 @@ final class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrls
     public function __construct(
         private readonly Connection $connection,
         private readonly Registry $registry,
-        private readonly Adapter $config
+        private readonly Adapter $config,
     ) {
     }
 

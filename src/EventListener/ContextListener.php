@@ -15,7 +15,7 @@ final class ContextListener
 {
     public function __construct(
         private readonly ContextStack $contextStack,
-        private readonly RepositoryManager $repositoryManager
+        private readonly RepositoryManager $repositoryManager,
     ) {
     }
 

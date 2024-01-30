@@ -13,7 +13,7 @@ final class TranslatePageUrlListener
 {
     public function __construct(
         private readonly I18nPageRepository $i18nPageRepository,
-        private readonly ContextStack $contextStack
+        private readonly ContextStack $contextStack,
     ) {
     }
 
