@@ -30,7 +30,7 @@
     "hofff/contao-root-relations": "^3.0",
     "menatwork/contao-multicolumnwizard-bundle": "^3.5",
     "netzmacht/contao-toolkit": "^3.8",
-    "psr/log": "^1.0",
+    "psr/log": "^1.0 || ^2.0 || ^3.0",
     "symfony/asset": "^5.4",
     "symfony/config": "^5.4",
     "symfony/dependency-injection": "^5.4",
