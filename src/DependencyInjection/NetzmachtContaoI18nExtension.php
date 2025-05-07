@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\DependencyInjection;
 
+use Netzmacht\Contao\I18n\Routing\Content\I18nCalendarEventsResolver;
+use Netzmacht\Contao\I18n\Routing\Content\I18nFaqResolver;
+use Netzmacht\Contao\I18n\Routing\Content\I18nNewsResolver;
 use Override;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -25,6 +28,17 @@ final class NetzmachtContaoI18nExtension extends Extension
         'ContaoCalendarBundle' => 'netzmacht.contao_i18n.listeners.searchable_events',
         'ContaoFaqBundle'      => 'netzmacht.contao_i18n.listeners.searchable_faqs',
         'ContaoNewsBundle'     => 'netzmacht.contao_i18n.listeners.searchable_news',
+    ];
+
+    /**
+     * Map of the bundle and the corresponding url resolver.
+     *
+     * @var array<string,string>
+     */
+    private array $urlResolvers = [
+        'ContaoCalendarBundle' => I18nCalendarEventsResolver::class,
+        'ContaoFaqBundle'      => I18nFaqResolver::class,
+        'ContaoNewsBundle'     => I18nNewsResolver::class,
     ];
 
     /** {@inheritDoc} */
@@ -57,6 +71,14 @@ final class NetzmachtContaoI18nExtension extends Extension
         assert(is_array($bundles));
 
         foreach ($this->searchablePagesListeners as $bundleName => $serviceId) {
+            if (isset($bundles[$bundleName])) {
+                continue;
+            }
+
+            $container->removeDefinition($serviceId);
+        }
+
+        foreach ($this->urlResolvers as $bundleName => $serviceId) {
             if (isset($bundles[$bundleName])) {
                 continue;
             }

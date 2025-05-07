@@ -2,7 +2,7 @@
 <container xmlns="http://symfony.com/schema/dic/services"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services
-        http://symfony.com/schema/dic/services/services-1.0.xsd">
+        https://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <parameters>
         <parameter key="netzmacht.contao_i18n.pages" type="collection">
@@ -38,13 +38,6 @@
         <service id="netzmacht.contao_i18n.translated_article_finder"
                  class="Netzmacht\Contao\I18n\Model\Article\TranslatedArticleFinder">
             <argument type="service" id="netzmacht.contao_toolkit.repository_manager"/>
-        </service>
-
-        <service id="netzmacht.contao_18n.listeners.translate_page_url"
-                 class="Netzmacht\Contao\I18n\EventListener\TranslatePageUrlListener">
-            <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
-            <argument type="service" id="netzmacht.contao_i18n.context_stack"/>
-            <tag name="contao.hook" hook="generateFrontendUrl"/>
         </service>
 
         <service id="netzmacht.contao_i18m.listeners.current_page"
@@ -119,7 +112,7 @@
                  class="Netzmacht\Contao\I18n\EventListener\PageDcaListener">
             <argument type="service" id="netzmacht.contao_toolkit.dca.manager"/>
             <argument type="service" id="netzmacht.contao_toolkit.repository_manager"/>
-            <argument type="service" id="netzmacht.contao_toolkit.contao.backend_user"/>
+            <argument type="service" id="security.helper"/>
             <argument type="service" id="netzmacht.contao_i18n.translated_article_finder" />
             <argument type="service" id="netzmacht.contao_i18n.article_cleaner" />
             <argument type="service" id="netzmacht.contao_toolkit.callback_invoker" />
@@ -132,6 +125,34 @@
             <argument type="service" id="netzmacht.contao_toolkit.dca.manager" />
             <argument type="service" id="netzmacht.contao_toolkit.contao.backend_user" />
             <argument type="service" id="netzmacht.contao_toolkit.callback_invoker" />
+        </service>
+
+        <service id="Netzmacht\Contao\I18n\Routing\Content\I18nCalendarEventsResolver">
+            <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
+            <argument type="service" id="contao.framework"/>
+            <argument type="service" id="contao_calendar.routing.calendar_events_resolver"/>
+            <tag name="contao.content_url_resolver" priority="100"/>
+        </service>
+
+        <service id="Netzmacht\Contao\I18n\Routing\Content\I18nFaqResolver">
+            <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
+            <argument type="service" id="contao.framework"/>
+            <argument type="service" id="contao_faq.routing.faq_resolver"/>
+            <tag name="contao.content_url_resolver" priority="100"/>
+        </service>
+
+        <service id="Netzmacht\Contao\I18n\Routing\Content\I18nNewsResolver">
+            <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
+            <argument type="service" id="contao.framework"/>
+            <argument type="service" id="contao_news.routing.news_resolver"/>
+            <tag name="contao.content_url_resolver" priority="100"/>
+        </service>
+
+        <service id="Netzmacht\Contao\I18n\Routing\Content\I18nPageResolver">
+            <argument type="service" id="netzmacht.contao_i18n.context_stack"/>
+            <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
+            <argument type="service" id="contao.routing.content.page_resolver"/>
+            <tag name="contao.content_url_resolver" priority="100"/>
         </service>
     </services>
 </container>

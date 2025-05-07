@@ -10,12 +10,14 @@
     "Contao\\ManagerPlugin\\Config\\ContainerBuilder",
     "Contao\\ManagerPlugin\\Config\\ExtensionPluginInterface",
     "Contao\\ManagerPlugin\\Dependency\\DependentPluginInterface",
+    "Contao\\CalendarBundle\\Routing\\CalendarEventsResolver",
     "Contao\\CalendarEventsModel",
     "Contao\\CalendarModel",
+    "Contao\\FaqBundle\\Routing\\FaqResolver",
     "Contao\\FaqCategoryModel",
     "Contao\\FaqModel",
+    "Contao\\NewsBundle\\Routing\\NewsResolver",
     "Contao\\NewsArchiveModel",
-    "Contao\\NewsModel",
-    "TL_ERROR"
+    "Contao\\NewsModel"
   ]
 }
