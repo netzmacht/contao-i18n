@@ -31,28 +31,28 @@ Features
 ### Language aware redirects
 
 The main idea of the repository is you want to reuse modules or content from the main page in the translations. If you 
-do so - most links or redirects would go back to the main language.
+do so, most links or redirects would go back to the main language.
 
-That's where this extension hook into. It detects references to pages in another language tree. If the it's the case it
-try to find the translation and manipulates the target page to the translation.
+That's where this extension hooks into. It detects references to pages in another language tree. If it's the case, it
+tries to find the translation and manipulates the target page to the translation.
 
 It works for all page references. No matter if you have a jumpTo in your form or module. But you stay in control. You can 
 disable this behaviour by disable it in the page of the main language. Also the change language module is blacklisted, so
 you are still able to link to another language.
 
- 1. Setup the pages and connect pages as usual with changelanguage.
+ 1. Set up the pages and connect pages as usual with changelanguage.
  2. Set the redirect page to the fallback language.
- 3. In you want to disable the *"page translation"* you may configure it in your page setting.
+ 3. If you want to disable the *"page translation"*, you may configure it in your page setting.
 
-So you only have to define once the language relations! And you keep control if language redirects is required.
+So you only have to define the language relations once! And you keep control if language redirects are required.
 
 ### Same pages in different languages
 
-Sometimes you have to translate your website but some pages stays identical. If you use different page aliases in your 
+Sometimes you have to translate your website, but some pages stay identical. If you use different page aliases in your 
 language tree the fallback page is not loaded. 
 
 The `I18n Regular page` is designed to solve this issue. It simply loads all the content of the fallback page. So it's 
-possible to have language aware aliases but use same content without duplication. 
+possible to have language-aware aliases but use the same content without duplication. 
 
 On top of it the language is kept. This means that Contao uses the language defined in the page settings. This enables
  you to use insert tags to translate contents.
