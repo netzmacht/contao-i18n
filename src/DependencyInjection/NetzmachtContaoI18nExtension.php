@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\DependencyInjection;
 
+use Netzmacht\Contao\I18n\EventListener\I18nEventSitemapListener;
+use Netzmacht\Contao\I18n\EventListener\I18nFaqSitemapListener;
 use Netzmacht\Contao\I18n\Routing\Content\I18nCalendarEventsResolver;
 use Netzmacht\Contao\I18n\Routing\Content\I18nFaqResolver;
 use Netzmacht\Contao\I18n\Routing\Content\I18nNewsResolver;
@@ -20,25 +22,14 @@ use function is_array;
 final class NetzmachtContaoI18nExtension extends Extension
 {
     /**
-     * Map of the bundle and the corresponding searchable pages listener.
+     * Map of the bundle and the corresponding optional services.
      *
-     * @var array<string,string>
+     * @var array<string,list<string>>
      */
-    private array $searchablePagesListeners = [
-        'ContaoCalendarBundle' => 'netzmacht.contao_i18n.listeners.searchable_events',
-        'ContaoFaqBundle'      => 'netzmacht.contao_i18n.listeners.searchable_faqs',
-        'ContaoNewsBundle'     => 'netzmacht.contao_i18n.listeners.searchable_news',
-    ];
-
-    /**
-     * Map of the bundle and the corresponding url resolver.
-     *
-     * @var array<string,string>
-     */
-    private array $urlResolvers = [
-        'ContaoCalendarBundle' => I18nCalendarEventsResolver::class,
-        'ContaoFaqBundle'      => I18nFaqResolver::class,
-        'ContaoNewsBundle'     => I18nNewsResolver::class,
+    private array $optionalServices = [
+        'ContaoCalendarBundle' => [I18nEventSitemapListener::class, I18nCalendarEventsResolver::class],
+        'ContaoFaqBundle'      => [I18nFaqSitemapListener::class, I18nFaqResolver::class],
+        'ContaoNewsBundle'     => [I18nNewsResolver::class, I18nEventSitemapListener::class],
     ];
 
     /** {@inheritDoc} */
@@ -52,7 +43,7 @@ final class NetzmachtContaoI18nExtension extends Extension
 
         $loader->load('services.xml');
 
-        $this->configureSearchablePagesListeners($container);
+        $this->removeUnusedServices($container);
 
         $configuration = new Configuration();
         $config        = $this->processConfiguration($configuration, $configs);
@@ -61,29 +52,23 @@ final class NetzmachtContaoI18nExtension extends Extension
     }
 
     /**
-     * Disable searchable pages listeners if the bundle is not available in the installation.
+     * Remove unused services if the corresponding contao bundle is not there
      *
      * @param ContainerBuilder $container The container builder.
      */
-    private function configureSearchablePagesListeners(ContainerBuilder $container): void
+    private function removeUnusedServices(ContainerBuilder $container): void
     {
         $bundles = $container->getParameter('kernel.bundles');
         assert(is_array($bundles));
 
-        foreach ($this->searchablePagesListeners as $bundleName => $serviceId) {
+        foreach ($this->optionalServices as $bundleName => $listeners) {
             if (isset($bundles[$bundleName])) {
                 continue;
             }
 
-            $container->removeDefinition($serviceId);
-        }
-
-        foreach ($this->urlResolvers as $bundleName => $serviceId) {
-            if (isset($bundles[$bundleName])) {
-                continue;
+            foreach ($listeners as $serviceId) {
+                $container->removeDefinition($serviceId);
             }
-
-            $container->removeDefinition($serviceId);
         }
     }
 }

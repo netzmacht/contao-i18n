@@ -4,31 +4,33 @@ declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\EventListener;
 
-use Contao\Database;
+use Contao\CoreBundle\Event\SitemapEvent;
+use Contao\CoreBundle\Routing\ContentUrlGenerator;
 use Contao\PageModel;
+use Generator;
 
-abstract class AbstractContentSearchableUrlsListener extends AbstractSearchableUrlsListener
+abstract class ContentSitemapListener
 {
-    /** @param Database $database Legacy contao database connection. */
-    public function __construct(private readonly Database $database)
+    public function __construct(protected readonly ContentUrlGenerator $urlGenerator)
     {
+    }
+
+    public function __invoke(SitemapEvent $event): void
+    {
+        /** @psalm-suppress ArgumentTypeCoercion */
+        foreach ($this->collectPages($event->getRootPageIds()) as $url) {
+            $event->addUrlToDefaultUrlSet($url);
+        }
     }
 
     /**
-     * Get page child records.
+     * Collect all page urls for the given root ids.
      *
-     * @param int|string $pid The parent page id.
+     * @param list<int> $rootIds The root page ids
      *
-     * @return array<int|string>
+     * @return Generator<string>
      */
-    protected function getPageChildRecords(int|string $pid): array
-    {
-        if ($pid > 0) {
-            return $this->database->getChildRecords($pid, 'tl_page');
-        }
-
-        return [];
-    }
+    abstract protected function collectPages(array $rootIds): Generator;
 
     /**
      * Check if a page is published.
@@ -53,14 +55,9 @@ abstract class AbstractContentSearchableUrlsListener extends AbstractSearchableU
      * Check if a page should be added to the sitemap. If not being in sitemap mode, always true is returned.
      *
      * @param PageModel $pageModel Page model.
-     * @param bool      $isSitemap Sitemap mode.
      */
-    protected function shouldPageBeAddedToSitemap(PageModel $pageModel, bool $isSitemap): bool
+    protected function shouldPageBeAddedToSitemap(PageModel $pageModel): bool
     {
-        if (! $isSitemap) {
-            return true;
-        }
-
         // The target page is protected (see #8416)
         if ($pageModel->protected) {
             return false;

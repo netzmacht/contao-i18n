@@ -8,6 +8,7 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Routing\Content\ContentUrlResolverInterface;
 use Contao\CoreBundle\Routing\Content\ContentUrlResult;
 use Contao\PageModel;
+use Netzmacht\Contao\I18n\Context\ContextStack;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 use Override;
 
@@ -16,6 +17,7 @@ abstract class I18nResolver implements ContentUrlResolverInterface
     public function __construct(
         protected readonly I18nPageRepository $i18nPageRepository,
         protected readonly ContaoFramework $framework,
+        private readonly ContextStack $contextStack,
         private readonly ContentUrlResolverInterface $originalResolver,
     ) {
     }
@@ -26,7 +28,10 @@ abstract class I18nResolver implements ContentUrlResolverInterface
         /** @psalm-suppress UndefinedPropertyFetch */
         $redirectPage = $pageAdapter->findPublishedById($redirectId);
         if ($redirectPage !== null) {
-            $translatedPage = $this->i18nPageRepository->getTranslatedPage($redirectPage);
+            $translatedPage = $this->i18nPageRepository->getTranslatedPage(
+                $redirectPage,
+                $this->contextStack->locale(),
+            );
 
             return ContentUrlResult::resolve($translatedPage);
         }
@@ -41,7 +46,10 @@ abstract class I18nResolver implements ContentUrlResolverInterface
         $redirectPage = $pageAdapter->findPublishedById($redirectId);
 
         if ($redirectPage !== null) {
-            $translatedPage = $this->i18nPageRepository->getTranslatedPage($redirectPage);
+            $translatedPage = $this->i18nPageRepository->getTranslatedPage(
+                $redirectPage,
+                $this->contextStack->locale(),
+            );
 
             return ContentUrlResult::redirect($translatedPage ?? $redirectPage);
         }
@@ -53,7 +61,7 @@ abstract class I18nResolver implements ContentUrlResolverInterface
     #[Override]
     public function getParametersForContent(object $content, PageModel $pageModel): array
     {
-        $translatedPage = $this->i18nPageRepository->getTranslatedPage($pageModel);
+        $translatedPage = $this->i18nPageRepository->getTranslatedPage($pageModel, $this->contextStack->locale());
 
         return $this->originalResolver->getParametersForContent($content, $translatedPage ?? $pageModel);
     }

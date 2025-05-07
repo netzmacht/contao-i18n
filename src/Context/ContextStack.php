@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\Context;
 
+use function array_pop;
 use function array_slice;
 use function count;
+use function current;
 
 final class ContextStack
 {
@@ -16,12 +18,21 @@ final class ContextStack
      */
     private array $contexts = [];
 
+    /** @var list<string> */
+    private array $locales = [];
+
     /**
      * Enter a new context.
      */
     public function enterContext(Context $context): void
     {
         $this->contexts[] = $context;
+
+        if (! $context instanceof LocaleContext) {
+            return;
+        }
+
+        $this->locales[] = $context->locale;
     }
 
     /**
@@ -58,5 +69,20 @@ final class ContextStack
             $this->contexts = array_slice($this->contexts, 0, $index);
             break;
         }
+
+        if (! $context instanceof LocaleContext) {
+            return;
+        }
+
+        array_pop($this->locales);
+    }
+
+    public function locale(): string|null
+    {
+        if ($this->locales !== []) {
+            return current($this->locales);
+        }
+
+        return $GLOBALS['TL_LANGUAGE'] ?? null;
     }
 }

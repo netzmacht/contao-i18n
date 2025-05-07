@@ -33,7 +33,7 @@ final class I18nPageResolver implements ContentUrlResolverInterface
             return null;
         }
 
-        $translatedPage = $this->i18nPageRepository->getTranslatedPage($content);
+        $translatedPage = $this->i18nPageRepository->getTranslatedPage($content, $this->contextStack->locale());
         if ($translatedPage && $translatedPage->id !== $content->id) {
             return ContentUrlResult::resolve($translatedPage);
         }

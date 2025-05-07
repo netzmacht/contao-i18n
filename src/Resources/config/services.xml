@@ -68,44 +68,25 @@
             <tag name="contao.hook" hook="getFrontendModule"/>
         </service>
 
-        <service
-                id="netzmacht.contao_i18n.listeners.searchable_i18n_regular_pages"
-                class="Netzmacht\Contao\I18n\EventListener\SearchableI18nRegularPageUrlsListener">
-            <argument type="service" id="database_connection"/>
-            <argument type="service" id="netzmacht.contao_i18n.contao.model_registry"/>
-            <argument type="service" id="netzmacht.contao_toolkit.contao.config_adapter"/>
-            <tag name="contao.hook" hook="getSearchablePages"/>
-        </service>
-
-        <service
-                id="netzmacht.contao_i18n.listeners.searchable_news"
-                class="Netzmacht\Contao\I18n\EventListener\SearchableI18nNewsUrlsListener">
+        <service id="Netzmacht\Contao\I18n\EventListener\I18nEventSitemapListener" autoconfigure="true">
             <argument type="service" id="netzmacht.contao_toolkit.repository_manager"/>
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
-            <argument type="service" id="netzmacht.contao_i18n.translated_article_finder" />
-            <argument type="service" id="netzmacht.contao_i18n.contao.database_connection"/>
-            <argument type="service" id="netzmacht.contao_toolkit.contao.config_adapter"/>
-            <tag name="contao.hook" hook="getSearchablePages"/>
+            <argument type="service" id="netzmacht.contao_i18n.context_stack"/>
+            <argument type="service" id="contao.routing.content_url_generator"/>
         </service>
 
-        <service
-                id="netzmacht.contao_i18n.listeners.searchable_events"
-                class="Netzmacht\Contao\I18n\EventListener\SearchableI18nEventUrlsListener">
+        <service id="Netzmacht\Contao\I18n\EventListener\I18nNewsSitemapListener" autoconfigure="true">
             <argument type="service" id="netzmacht.contao_toolkit.repository_manager"/>
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
-            <argument type="service" id="netzmacht.contao_i18n.contao.database_connection"/>
-            <argument type="service" id="netzmacht.contao_toolkit.contao.config_adapter"/>
-            <tag name="contao.hook" hook="getSearchablePages"/>
+            <argument type="service" id="netzmacht.contao_i18n.context_stack"/>
+            <argument type="service" id="contao.routing.content_url_generator"/>
         </service>
 
-        <service
-                id="netzmacht.contao_i18n.listeners.searchable_faqs"
-                class="Netzmacht\Contao\I18n\EventListener\SearchableI18nFaqUrlsListener">
+        <service id="Netzmacht\Contao\I18n\EventListener\I18nFaqSitemapListener" autoconfigure="true">
             <argument type="service" id="netzmacht.contao_toolkit.repository_manager"/>
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
-            <argument type="service" id="netzmacht.contao_i18n.contao.database_connection"/>
-            <argument type="service" id="netzmacht.contao_toolkit.contao.config_adapter"/>
-            <tag name="contao.hook" hook="getSearchablePages"/>
+            <argument type="service" id="netzmacht.contao_i18n.context_stack"/>
+            <argument type="service" id="contao.routing.content_url_generator"/>
         </service>
 
         <service id="netzmacht.contao_i18n.listeners.dca.page"
@@ -130,6 +111,7 @@
         <service id="Netzmacht\Contao\I18n\Routing\Content\I18nCalendarEventsResolver">
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
             <argument type="service" id="contao.framework"/>
+            <argument type="service" id="netzmacht.contao_i18n.context_stack"/>
             <argument type="service" id="contao_calendar.routing.calendar_events_resolver"/>
             <tag name="contao.content_url_resolver" priority="100"/>
         </service>
@@ -137,6 +119,7 @@
         <service id="Netzmacht\Contao\I18n\Routing\Content\I18nFaqResolver">
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
             <argument type="service" id="contao.framework"/>
+            <argument type="service" id="netzmacht.contao_i18n.context_stack"/>
             <argument type="service" id="contao_faq.routing.faq_resolver"/>
             <tag name="contao.content_url_resolver" priority="100"/>
         </service>
@@ -144,6 +127,7 @@
         <service id="Netzmacht\Contao\I18n\Routing\Content\I18nNewsResolver">
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
             <argument type="service" id="contao.framework"/>
+            <argument type="service" id="netzmacht.contao_i18n.context_stack"/>
             <argument type="service" id="contao_news.routing.news_resolver"/>
             <tag name="contao.content_url_resolver" priority="100"/>
         </service>
