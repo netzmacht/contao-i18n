@@ -12,6 +12,7 @@ use Contao\PageModel;
 use Doctrine\DBAL\Connection;
 use Netzmacht\Contao\I18n\Model\Article\PageArticlesWithTeasersQuery;
 use Netzmacht\Contao\I18n\Model\Page\PublishedI18nRegularPagesQuery;
+use Override;
 use RuntimeException;
 
 use function array_merge;
@@ -46,6 +47,7 @@ final class SearchableI18nRegularPageUrlsListener extends AbstractSearchableUrls
      *
      * @return list<string>
      */
+    #[Override]
     protected function collectPages(int $pid = 0, string $domain = '', bool $isSitemap = false): array
     {
         $time   = Date::floorToMinute();

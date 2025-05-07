@@ -8,17 +8,20 @@ use Contao\BackendTemplate;
 use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\Environment;
 use Contao\FrontendTemplate;
+use Contao\FrontendUser;
 use Contao\Model\Collection;
 use Contao\Module;
+use Contao\PageError401;
+use Contao\PageError403;
 use Contao\PageError404;
 use Contao\PageModel;
 use Contao\PageRegular;
 use Contao\StringUtil;
 use Contao\System;
+use Contao\Template;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 use Netzmacht\Contao\I18n\PageProvider\PageProvider;
-use PageError401;
-use PageError403;
+use Override;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 use function array_filter;
@@ -28,14 +31,16 @@ use function array_map;
 use function array_values;
 use function assert;
 use function count;
-use function defined;
 use function in_array;
 use function is_array;
 use function str_replace;
 use function strncmp;
 use function trim;
 
-/** @psalm-suppress PropertyNotSetInConstructor */
+/**
+ * @psalm-suppress PropertyNotSetInConstructor
+ * @property Template $Template
+ */
 final class I18nCustomNavigation extends Module
 {
     /**
@@ -51,6 +56,7 @@ final class I18nCustomNavigation extends Module
      *
      * @SuppressWarnings(PHPMD.Superglobals)
      */
+    #[Override]
     public function generate(): string
     {
         $requestStack = System::getContainer()->get('request_stack');
@@ -90,13 +96,14 @@ final class I18nCustomNavigation extends Module
      *
      * @SuppressWarnings(PHPMD.Superglobals)
      */
+    #[Override]
     protected function compile(): void
     {
         $items  = [];
         $groups = $this->getUserGroups();
 
         // Get all active pages
-        $objPages = PageModel::findPublishedRegularWithoutGuestsByIds($this->pages);
+        $objPages = PageModel::findPublishedRegularByIds($this->pages);
 
         // Return if there are no pages
         if (! $objPages instanceof Collection) {
@@ -151,11 +158,11 @@ final class I18nCustomNavigation extends Module
     protected function getUserGroups(): array
     {
         $groups = [];
+        $user   = FrontendUser::getInstance();
 
-        // Get all groups of the current front end user
-        if (defined('FE_USER_LOGGED_IN') && FE_USER_LOGGED_IN) {
-            $this->import('FrontendUser', 'User');
-            $groups = array_filter((array) $this->User->groups);
+        // Get all groups of the current frontend user
+        if ($user instanceof FrontendUser) {
+            $groups = array_filter((array) $user->groups);
         }
 
         return $groups;

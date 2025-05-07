@@ -9,12 +9,14 @@ use Contao\ManagerPlugin\Bundle\BundlePluginInterface;
 use Contao\ManagerPlugin\Bundle\Config\BundleConfig;
 use Contao\ManagerPlugin\Bundle\Parser\ParserInterface;
 use Netzmacht\Contao\I18n\NetzmachtContaoI18nBundle;
+use Override;
 
 final class Plugin implements BundlePluginInterface
 {
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
+    #[Override]
     public function getBundles(ParserInterface $parser): array
     {
         return [

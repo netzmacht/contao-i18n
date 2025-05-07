@@ -15,6 +15,7 @@ use Contao\PageModel;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\ContaoRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
+use Override;
 
 use function assert;
 use function in_array;
@@ -39,8 +40,9 @@ final class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsL
     }
 
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
+    #[Override]
     protected function collectPages($pid = 0, string $domain = '', bool $isSitemap = false): array
     {
         $pages     = [];
@@ -127,6 +129,7 @@ final class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsL
         // Get the items
         $faqRepository = $this->repositoryManager->getRepository(FaqModel::class);
         assert($faqRepository instanceof ContaoRepository);
+        /** @psalm-suppress UndefinedMagicMethod */
         $items = $faqRepository->findPublishedByPid($category->id);
         $url   = $processed[$category->jumpTo][$translation->id];
 
@@ -135,7 +138,7 @@ final class SearchableI18nFaqUrlsListener extends AbstractContentSearchableUrlsL
                 assert($faq instanceof FaqModel);
 
                 $pages[] = sprintf(
-                    preg_replace('/%(?!s)/', '%%', $url),
+                    (string) preg_replace('/%(?!s)/', '%%', $url),
                     ($faq->alias ?: $faq->id),
                 );
             }

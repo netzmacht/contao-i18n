@@ -18,7 +18,8 @@
     <issueHandlers>
         <DeprecatedMethod>
             <errorLevel type="suppress">
-                <referencedMethod name="Contao\PageModel::findPublishedRegularWithoutGuestsByIds"/>
+                <referencedMethod name="Contao\PageModel::getFrontendUrl"/>
+                <referencedMethod name="Contao\PageModel::getAbsoluteUrl"/>
             </errorLevel>
         </DeprecatedMethod>
         <InternalMethod>
@@ -32,6 +33,7 @@
     </issueHandlers>
 
     <universalObjectCrates>
+        <class name="Contao\Template"/>
         <class name="Contao\FrontendTemplate"/>
         <class name="Contao\BackendTemplate"/>
         <class name="Contao\Model"/>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\DependencyInjection;
 
+use Override;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -26,7 +27,8 @@ final class NetzmachtContaoI18nExtension extends Extension
         'ContaoNewsBundle'     => 'netzmacht.contao_i18n.listeners.searchable_news',
     ];
 
-    /** {@inheritdoc} */
+    /** {@inheritDoc} */
+    #[Override]
     public function load(array $configs, ContainerBuilder $container): void
     {
         $loader = new XmlFileLoader(

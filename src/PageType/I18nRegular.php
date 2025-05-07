@@ -19,6 +19,7 @@ use Contao\System;
 use Netzmacht\Contao\I18n\Model\Article\TranslatedArticleFinder;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 use Netzmacht\Contao\I18n\PageProvider\PageProvider;
+use Override;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
@@ -44,6 +45,7 @@ final class I18nRegular extends PageRegular
     /**
      * {@inheritDoc}
      */
+    #[Override]
     public static function getFrontendModule($intId, $strColumn = 'main')
     {
         if (! is_object($intId) && ! strlen((string) $intId)) {
@@ -94,8 +96,9 @@ final class I18nRegular extends PageRegular
     private static function getArticles(PageModel $currentPage, PageModel $basePage, string $column = 'main'): string
     {
         // Show a particular article only
-        if ($basePage->type === 'regular' && Input::get('articles')) {
-            [$section, $article] = array_pad(explode(':', Input::get('articles')), 2, null);
+        /** @psalm-suppress PossiblyInvalidCast */
+        if ($basePage->type === 'regular' && (bool) Input::get('articles')) {
+            [$section, $article] = array_pad(explode(':', (string) Input::get('articles')), 2, null);
             assert(is_string($section));
 
             if ($article === null) {
@@ -246,8 +249,6 @@ final class I18nRegular extends PageRegular
         $last      = $articles->count() - 1;
 
         foreach ($articles as $articleModel) {
-            assert($articleModel instanceof ArticleModel);
-
             // Article should be overridden. So replace it.
             if (isset($overrides[$articleModel->id])) {
                 $articleModel = $overrides[$articleModel->id];
@@ -272,7 +273,7 @@ final class I18nRegular extends PageRegular
                 $articleModel->classes = $arrCss;
             }
 
-            $return .= static::getArticle($articleModel, $multiMode, false, $column);
+            $return .= (string) self::getArticle($articleModel, $multiMode, false, $column);
             ++$count;
         }
 

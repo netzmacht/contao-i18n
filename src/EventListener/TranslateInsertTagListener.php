@@ -8,6 +8,7 @@ use Contao\PageModel;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 use Netzmacht\Contao\I18n\PageProvider\PageProvider;
 use Netzmacht\Contao\Toolkit\InsertTag\AbstractInsertTagParser;
+use Override;
 use Symfony\Contracts\Translation\TranslatorInterface as Translator;
 
 use function array_pad;
@@ -24,14 +25,16 @@ final class TranslateInsertTagListener extends AbstractInsertTagParser
     }
 
     /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
+    #[Override]
     protected function supports(string $tag, bool $cache): bool
     {
         return in_array($tag, ['t', 'translate']);
     }
 
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
+    #[Override]
     protected function parseArguments(string $query): array
     {
         if ($query === '') {
@@ -46,7 +49,7 @@ final class TranslateInsertTagListener extends AbstractInsertTagParser
         if ($key === null) {
             $pageAlias = $this->getPageAlias();
             $key       = $domain;
-            $domain    = $pageAlias ? 'contao_page_' . $pageAlias : 'contao_website';
+            $domain    = $pageAlias !== null ? 'contao_page_' . $pageAlias : 'contao_website';
         }
 
         return [
@@ -56,9 +59,10 @@ final class TranslateInsertTagListener extends AbstractInsertTagParser
     }
 
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
-    protected function parseTag(array $arguments, string $tag, string $raw)
+    #[Override]
+    protected function parseTag(array $arguments, string $tag, string $raw): bool|string
     {
         $translated = $this->translator->trans($arguments['key'], [], $arguments['domain']);
 

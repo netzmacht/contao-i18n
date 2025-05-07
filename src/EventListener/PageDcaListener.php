@@ -6,9 +6,9 @@ namespace Netzmacht\Contao\I18n\EventListener;
 
 use Contao\ArticleModel;
 use Contao\Backend;
-use Contao\BackendUser;
 use Contao\ContentModel;
 use Contao\CoreBundle\DataContainer\PaletteManipulator;
+use Contao\CoreBundle\Security\ContaoCorePermissions;
 use Contao\DataContainer;
 use Contao\Image;
 use Contao\Input;
@@ -22,6 +22,8 @@ use Netzmacht\Contao\Toolkit\Data\Model\ContaoRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 use Netzmacht\Contao\Toolkit\Dca\Listener\AbstractListener;
 use Netzmacht\Contao\Toolkit\Dca\Manager;
+use Override;
+use Symfony\Bundle\SecurityBundle\Security;
 
 use function array_filter;
 use function array_keys;
@@ -33,33 +35,23 @@ use function time;
 
 final class PageDcaListener extends AbstractListener
 {
-    /**
-     * Data container name.
-     *
-     * @var string
-     */
-    // phpcs:ignore SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint
-    protected static $name = 'tl_page';
-
-    /**
-     * @param Manager                 $dcaManager        Data container definition manager.
-     * @param RepositoryManager       $repositoryManager Repository manager.
-     * @param BackendUser             $user              Backend user.
-     * @param TranslatedArticleFinder $articleFinder     Article finder.
-     * @param I18nPageArticleCleaner  $articleCleaner    Article cleaner.
-     * @param Invoker                 $callbackInvoker   Callback invoker.
-     * @param bool                    $articleCleanup    If true all unrelated articles get removed.
-     */
+    /** @param bool $articleCleanup If true, all unrelated articles get removed. */
     public function __construct(
         Manager $dcaManager,
         private readonly RepositoryManager $repositoryManager,
-        private readonly BackendUser $user,
+        private readonly Security $security,
         private readonly TranslatedArticleFinder $articleFinder,
         private readonly I18nPageArticleCleaner $articleCleaner,
         private readonly Invoker $callbackInvoker,
         private readonly bool $articleCleanup,
     ) {
         parent::__construct($dcaManager);
+    }
+
+    #[Override]
+    public static function getName(): string
+    {
+        return 'tl_page';
     }
 
     /**
@@ -137,7 +129,7 @@ final class PageDcaListener extends AbstractListener
             return $options;
         }
 
-        if ($rootPage->fallback === '1' && $rootPage->languageRoot === '0') {
+        if ($rootPage->fallback && (int) $rootPage->languageRoot === 0) {
             $options = array_filter($options, static fn (string $value): bool => $value !== 'i18n_regular');
         }
 
@@ -146,7 +138,7 @@ final class PageDcaListener extends AbstractListener
     }
 
     /**
-     * Get all articles of the base page as options array.
+     * Get all articles of the base page as an option array.
      *
      * @return array<string|int,string>
      */
@@ -157,13 +149,15 @@ final class PageDcaListener extends AbstractListener
         }
 
         $pageRepository = $this->repositoryManager->getRepository(PageModel::class);
-        $pageModel      = $pageRepository->find((int) Input::get('id'));
+        /** @psalm-suppress RiskyCast */
+        $pageModel = $pageRepository->find((int) Input::get('id'));
         if (! $pageModel instanceof PageModel) {
             return [];
         }
 
         $repository = $this->repositoryManager->getRepository(ArticleModel::class);
         assert($repository instanceof ContaoRepository);
+        /** @psalm-suppress UndefinedMagicMethod */
         $collection = $repository->findByPid($pageModel->languageMain);
         if (! $collection) {
             return [];
@@ -191,17 +185,15 @@ final class PageDcaListener extends AbstractListener
      */
     public function createI18nArticles(DataContainer|null $dataContainer = null): void
     {
-        if (
-            ! $dataContainer
-            || ! $dataContainer->activeRecord
-            || $dataContainer->activeRecord->type !== 'i18n_regular'
-        ) {
+        $currentRecord = $dataContainer?->getCurrentRecord();
+        if (! $dataContainer || $currentRecord === null || $currentRecord['type'] !== 'i18n_regular') {
             return;
         }
 
-        $modes     = $this->articleFinder->getArticleModes($dataContainer->activeRecord, 'override');
-        $overrides = $this->articleFinder->getOverrides($dataContainer->activeRecord);
-        $deletes   = $overrides;
+        $currentRecord = (object) $currentRecord;
+        $modes         = $this->articleFinder->getArticleModes($currentRecord, 'override');
+        $overrides     = $this->articleFinder->getOverrides($currentRecord);
+        $deletes       = $overrides;
 
         foreach (array_keys($modes) as $articleId) {
             unset($deletes[$articleId]);
@@ -213,7 +205,7 @@ final class PageDcaListener extends AbstractListener
             $this->copyArticle($dataContainer->id, $articleId);
         }
 
-        // Remove connection between the languages. Do not delete the article.
+        // Remove the connection between the languages. Do not delete the article.
         $articleRepository = $this->repositoryManager->getRepository(ArticleModel::class);
 
         foreach ($deletes as $article) {
@@ -240,7 +232,7 @@ final class PageDcaListener extends AbstractListener
     /**
      * Load the i18n articles value.
      *
-     * It combines all hard defined definitions with the latest changes.
+     * It combines all hard-defined definitions with the latest changes.
      *
      * @param mixed         $raw          Raw value.
      * @param DataContainer $datContainer Data container driver.
@@ -310,12 +302,12 @@ final class PageDcaListener extends AbstractListener
         string $icon,
         string $attributes,
     ): string {
-        if (! $this->user->hasAccess('article', 'modules')) {
+        if (! $this->security->isGranted(ContaoCorePermissions::USER_CAN_ACCESS_MODULE, 'article')) {
             return '';
         }
 
         if (! in_array($row['type'], ['regular', 'error_403', 'error_404', 'i18n_regular'])) {
-            return Image::getHtml(preg_replace('/\.svg$/i', '_.svg', $icon));
+            return Image::getHtml((string) preg_replace('/\.svg$/i', '_.svg', $icon));
         }
 
         return sprintf(
@@ -328,7 +320,7 @@ final class PageDcaListener extends AbstractListener
     }
 
     /**
-     * Copy an article as translated version.
+     * Copy an article as the translated version.
      *
      * @param int|string $pageId    Page id of the target page.
      * @param int|string $articleId Article id of the source article.

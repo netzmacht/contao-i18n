@@ -38,7 +38,7 @@ final class ContextListener
         // The isVisibleElement hook is not triggered for the module if it's included using a content element.
         // So we have to track it manually.
         if ($model instanceof ContentModel && $model->type === 'module') {
-            $module = $this->repositoryManager->getRepository(ModuleModel::class)->find((int) $model->module);
+            $module = $this->repositoryManager->getRepository(ModuleModel::class)->find($model->module);
             if ($module) {
                 $this->contextStack->enterContext(FrontendModuleContext::fromModel($module));
             }

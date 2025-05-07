@@ -32,7 +32,7 @@ final class TranslatedArticleFinder
                 continue;
             }
 
-            if ($filter && $config['mode'] !== $filter) {
+            if ($filter !== null && $config['mode'] !== $filter) {
                 continue;
             }
 

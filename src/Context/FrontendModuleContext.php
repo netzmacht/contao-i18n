@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Netzmacht\Contao\I18n\Context;
 
 use Contao\ModuleModel;
+use Override;
 
 /** @psalm-immutable */
 final class FrontendModuleContext implements Context
@@ -30,6 +31,7 @@ final class FrontendModuleContext implements Context
         return new self($moduleType, 0);
     }
 
+    #[Override]
     public function match(Context $context): bool
     {
         if (! $context instanceof self) {
@@ -54,7 +56,7 @@ final class FrontendModuleContext implements Context
      */
     public static function fromModel(ModuleModel $module): self
     {
-        return new self($module->type, (int) $module->id);
+        return new self($module->type, $module->id);
     }
 
     /**

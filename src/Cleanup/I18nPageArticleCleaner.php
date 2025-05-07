@@ -14,6 +14,7 @@ use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 use Netzmacht\Contao\Toolkit\Dca\DcaManager;
 use Netzmacht\Contao\Toolkit\Dca\Definition;
 
+use function assert;
 use function is_array;
 use function serialize;
 use function strlen;
@@ -48,6 +49,7 @@ final class I18nPageArticleCleaner
         $collection        = $articleRepository->findBy(['.pid=?', '.languageMain=0'], [$dataContainer->id]);
 
         foreach ($collection ?? [] as $articleModel) {
+            assert($articleModel instanceof ArticleModel);
             $this->deleteArticle($articleModel, $dataContainer);
         }
     }

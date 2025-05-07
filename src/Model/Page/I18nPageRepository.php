@@ -140,9 +140,11 @@ final class I18nPageRepository
         $pages[$language] = $mainPage;
         $repository       = $this->repositoryManager->getRepository(PageModel::class);
 
-        foreach ($repository->findBy(['.languageMain = ?'], [$mainPage->id]) ?: [] as $translatedPage) {
+        foreach ($repository->findBy(['.languageMain = ?'], [$mainPage->id]) ?? [] as $translatedPage) {
+            assert($translatedPage instanceof PageModel);
+
             $language = $this->getPageLanguage($translatedPage);
-            if (! $language) {
+            if ($language === null) {
                 continue;
             }
 
@@ -191,8 +193,8 @@ final class I18nPageRepository
      */
     public function getTranslatedPage(PageModel|int|string $page, string|null $language = null): PageModel|null
     {
-        $language = $language ?: $this->getCurrentLanguage();
-        $page     = $this->loadTranslatedPage($page, $language);
+        $language ??= $this->getCurrentLanguage();
+        $page       = $this->loadTranslatedPage($page, $language);
 
         // No page found, return.
         if (! $page) {

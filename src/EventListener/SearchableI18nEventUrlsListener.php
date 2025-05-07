@@ -15,6 +15,7 @@ use Contao\PageModel;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\ContaoRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
+use Override;
 
 use function assert;
 use function in_array;
@@ -39,8 +40,9 @@ final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrl
     }
 
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
+    #[Override]
     protected function collectPages($pid = 0, string $domain = '', bool $isSitemap = false): array
     {
         $root      = $this->getPageChildRecords($pid);
@@ -51,6 +53,7 @@ final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrl
         // Get all calendars
         $calendarRepository = $this->repositoryManager->getRepository(CalendarModel::class);
         assert($calendarRepository instanceof ContaoRepository);
+        /** @psalm-suppress UndefinedMagicMethod */
         $collection = $calendarRepository->findByProtected('');
 
         // Walk through each calendar
@@ -130,12 +133,13 @@ final class SearchableI18nEventUrlsListener extends AbstractContentSearchableUrl
         // Get the items
         $eventsRepository = $this->repositoryManager->getRepository(CalendarEventsModel::class);
         assert($eventsRepository instanceof ContaoRepository);
+        /** @psalm-suppress UndefinedMagicMethod */
         $objEvents = $eventsRepository->findPublishedDefaultByPid($calendar->id);
 
         if ($objEvents !== null) {
             while ($objEvents->next()) {
                 $pages[] = sprintf(
-                    preg_replace('/%(?!s)/', '%%', $strUrl),
+                    (string) preg_replace('/%(?!s)/', '%%', $strUrl),
                     ($objEvents->alias ?: $objEvents->id),
                 );
             }

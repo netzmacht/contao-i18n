@@ -8,6 +8,7 @@ use Contao\ModuleNavigation;
 use Contao\PageModel;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 use Netzmacht\Contao\I18n\PageProvider\PageProvider;
+use Override;
 
 use function assert;
 
@@ -30,6 +31,7 @@ final class I18nNavigation extends ModuleNavigation
      */
     private PageModel|null $currentPage = null;
 
+    #[Override]
     protected function compile(): void
     {
         $i18n = static::getContainer()->get('netzmacht.contao_i18n.page_repository');
@@ -53,6 +55,7 @@ final class I18nNavigation extends ModuleNavigation
     /**
      * {@inheritDoc}
      */
+    #[Override]
     protected function renderNavigation($pid, $level = 1, $host = null, $language = null): string
     {
         // We have to reset the host here.

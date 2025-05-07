@@ -18,6 +18,7 @@ use Netzmacht\Contao\I18n\Model\Article\TranslatedArticleFinder;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\ContaoRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
+use Override;
 
 use function assert;
 use function in_array;
@@ -44,8 +45,9 @@ final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrls
     }
 
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
+    #[Override]
     protected function collectPages($pid = 0, string $domain = '', bool $isSitemap = false): array
     {
         $root      = $this->getPageChildRecords($pid);
@@ -56,6 +58,7 @@ final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrls
         // Get all news archives
         $archiveRepository = $this->repositoryManager->getRepository(NewsArchiveModel::class);
         assert($archiveRepository instanceof ContaoRepository);
+        /** @psalm-suppress UndefinedMagicMethod */
         $collection = $archiveRepository->findByProtected('');
 
         // Walk through each archive
@@ -134,6 +137,7 @@ final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrls
         // Get the items
         $newsRepository = $this->repositoryManager->getRepository(NewsModel::class);
         assert($newsRepository instanceof ContaoRepository);
+        /** @psalm-suppress UndefinedMagicMethod */
         $collection = $newsRepository->findPublishedDefaultByPid($newsArchiveModel->id);
 
         if ($collection instanceof Collection) {
@@ -164,7 +168,8 @@ final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrls
 
             // Link to an article
             case 'article':
-                $repository   = $this->repositoryManager->getRepository(ArticleModel::class);
+                $repository = $this->repositoryManager->getRepository(ArticleModel::class);
+                /** @psalm-suppress RedundantCastGivenDocblockType */
                 $articleModel = $repository->find((int) $newsModel->articleId);
 
                 if ($articleModel === null) {
@@ -187,7 +192,7 @@ final class SearchableI18nNewsUrlsListener extends AbstractContentSearchableUrls
         }
 
         // Link to the default page
-        return sprintf(preg_replace('/%(?!s)/', '%%', $url), ($newsModel->alias ?: $newsModel->id));
+        return sprintf((string) preg_replace('/%(?!s)/', '%%', $url), ($newsModel->alias ?: $newsModel->id));
     }
 
     /**
