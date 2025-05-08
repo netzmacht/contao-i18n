@@ -68,6 +68,11 @@
             <tag name="contao.hook" hook="getFrontendModule"/>
         </service>
 
+        <service id="Netzmacht\Contao\I18n\EventListener\I18nEventNavigationListener" autoconfigure="true">
+            <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
+            <argument type="service" id="netzmacht.contao_i18n.page_provider"/>
+        </service>
+
         <service id="Netzmacht\Contao\I18n\EventListener\I18nEventSitemapListener" autoconfigure="true">
             <argument type="service" id="netzmacht.contao_toolkit.repository_manager"/>
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
@@ -75,11 +80,21 @@
             <argument type="service" id="contao.routing.content_url_generator"/>
         </service>
 
+        <service id="Netzmacht\Contao\I18n\EventListener\I18nNewsNavigationListener" autoconfigure="true">
+            <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
+            <argument type="service" id="netzmacht.contao_i18n.page_provider"/>
+        </service>
+
         <service id="Netzmacht\Contao\I18n\EventListener\I18nNewsSitemapListener" autoconfigure="true">
             <argument type="service" id="netzmacht.contao_toolkit.repository_manager"/>
             <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
             <argument type="service" id="netzmacht.contao_i18n.context_stack"/>
             <argument type="service" id="contao.routing.content_url_generator"/>
+        </service>
+
+        <service id="Netzmacht\Contao\I18n\EventListener\I18nFaqNavigationListener" autoconfigure="true">
+            <argument type="service" id="netzmacht.contao_i18n.page_repository"/>
+            <argument type="service" id="netzmacht.contao_i18n.page_provider"/>
         </service>
 
         <service id="Netzmacht\Contao\I18n\EventListener\I18nFaqSitemapListener" autoconfigure="true">
