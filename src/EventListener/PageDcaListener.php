@@ -68,7 +68,7 @@ final class PageDcaListener extends AbstractListener
         PaletteManipulator::create()
             ->addLegend('articles_legend', ['meta_legend', 'language_legend', 'title_legend'])
             ->addField('i18n_articles', 'articles_legend', PaletteManipulator::POSITION_APPEND)
-            ->applyToPalette('i18n_regular', static::getName());
+            ->applyToPalette('i18n_regular', self::getName());
 
         if (Input::get('act') !== 'edit') {
             return;
@@ -83,7 +83,7 @@ final class PageDcaListener extends AbstractListener
 
         PaletteManipulator::create()
             ->addField('i18n_disable', 'expert_legend', PaletteManipulator::POSITION_APPEND)
-            ->applyToPalette('regular', static::getName());
+            ->applyToPalette('regular', self::getName());
     }
 
     /**
