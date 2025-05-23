@@ -27,6 +27,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 
 use function array_filter;
 use function array_keys;
+use function array_values;
 use function assert;
 use function in_array;
 use function preg_replace;
@@ -130,7 +131,9 @@ final class PageDcaListener extends AbstractListener
         }
 
         if ($rootPage->fallback && (int) $rootPage->languageRoot === 0) {
-            $options = array_filter($options, static fn (string $value): bool => $value !== 'i18n_regular');
+            $options = array_values(
+                array_filter($options, static fn (string $value): bool => $value !== 'i18n_regular'),
+            );
         }
 
         /** @psalm-suppress LessSpecificReturnStatement */
