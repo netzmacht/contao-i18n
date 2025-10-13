@@ -8,7 +8,6 @@ use Contao\PageModel;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
 
 use function array_key_exists;
-use function assert;
 use function in_array;
 
 final class I18nPageRepository
@@ -141,8 +140,6 @@ final class I18nPageRepository
         $repository       = $this->repositoryManager->getRepository(PageModel::class);
 
         foreach ($repository->findBy(['.languageMain = ?'], [$mainPage->id]) ?? [] as $translatedPage) {
-            assert($translatedPage instanceof PageModel);
-
             $language = $this->getPageLanguage($translatedPage);
             if ($language === null) {
                 continue;
@@ -226,9 +223,7 @@ final class I18nPageRepository
         $collection    = $repository->findBySpecification($specification, ['limit' => 1]);
 
         if ($collection) {
-            $pageModel = $collection->current();
-            assert($pageModel instanceof PageModel);
-            $this->translatedPages[$language][$page->id] = $pageModel;
+            $this->translatedPages[$language][$page->id] = $collection->current();
         } else {
             $this->translatedPages[$language][$page->id] = null;
         }

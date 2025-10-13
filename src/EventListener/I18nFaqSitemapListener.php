@@ -52,8 +52,6 @@ final class I18nFaqSitemapListener extends ContentSitemapListener
         }
 
         foreach ($collection as $faqCategory) {
-            assert($faqCategory instanceof FaqCategoryModel);
-
             // Skip FAQs without a target page
             if (! $faqCategory->jumpTo) {
                 continue;
