@@ -22,14 +22,6 @@
                 <referencedMethod name="Contao\PageModel::getAbsoluteUrl"/>
             </errorLevel>
         </DeprecatedMethod>
-        <InternalMethod>
-            <errorLevel type="suppress">
-                <referencedMethod name="Contao\CoreBundle\Framework\ContaoFramework::getAdapter"/>
-                <referencedMethod name="Contao\CoreBundle\Framework\ContaoFramework::isInitialized"/>
-                <referencedMethod name="Contao\CoreBundle\Framework\ContaoFramework::initialize"/>
-                <referencedMethod name="Contao\CoreBundle\Framework\ContaoFramework::createInstance"/>
-            </errorLevel>
-        </InternalMethod>
     </issueHandlers>
 
     <universalObjectCrates>
