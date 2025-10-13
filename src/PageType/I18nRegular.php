@@ -36,9 +36,10 @@ use function sprintf;
 use function strlen;
 
 /**
- * Regular i18n page load the content of the base page.
+ * Regular i18n-page loads the content of the base page.
  *
  * @psalm-suppress PropertyNotSetInConstructor
+ * @SuppressWarnings(PHPMD.LongVariable)
  */
 final class I18nRegular extends PageRegular
 {
@@ -46,7 +47,7 @@ final class I18nRegular extends PageRegular
      * {@inheritDoc}
      */
     #[Override]
-    public static function getFrontendModule($intId, $strColumn = 'main')
+    public static function getFrontendModule($intId, $strColumn = 'main', array $arrPreloadedContentElements = [])
     {
         if (! is_object($intId) && ! strlen((string) $intId)) {
             return '';
@@ -78,7 +79,7 @@ final class I18nRegular extends PageRegular
 
         if ($intId === 0) {
             // Articles
-            return self::getArticles($currentPage, $basePage, $strColumn);
+            return self::getArticles($currentPage, $basePage, $strColumn, $arrPreloadedContentElements);
         }
 
         return self::generateFrontendModule($intId, $strColumn);
@@ -87,14 +88,19 @@ final class I18nRegular extends PageRegular
     /**
      * Get the articles of a page.
      *
-     * @param PageModel $currentPage I18n page.
-     * @param PageModel $basePage    Base page.
-     * @param string    $column      Article column.
+     * @param PageModel          $currentPage              I18n page.
+     * @param PageModel          $basePage                 Base page.
+     * @param string             $column                   Article column.
+     * @param array<int, string> $preloadedContentElements Preloaded content elements.
      *
      * @SuppressWarnings(PHPMD.Superglobals)
      */
-    private static function getArticles(PageModel $currentPage, PageModel $basePage, string $column = 'main'): string
-    {
+    private static function getArticles(
+        PageModel $currentPage,
+        PageModel $basePage,
+        string $column = 'main',
+        array $preloadedContentElements = [],
+    ): string {
         // Show a particular article only
         /** @psalm-suppress PossiblyInvalidCast */
         if ($basePage->type === 'regular' && (bool) Input::get('articles')) {
@@ -107,7 +113,7 @@ final class I18nRegular extends PageRegular
             }
 
             if ($section === $column) {
-                return self::generateSectionArticle($basePage, $article);
+                return self::generateSectionArticle($basePage, $article, $column, $preloadedContentElements);
             }
         }
 
@@ -122,7 +128,7 @@ final class I18nRegular extends PageRegular
             }
         }
 
-        return self::generateArticleList($currentPage, $basePage, $column);
+        return self::generateArticleList($currentPage, $basePage, $column, $preloadedContentElements);
     }
 
     /**
@@ -189,16 +195,21 @@ final class I18nRegular extends PageRegular
     }
 
     /**
-     * Generate the articles in a section when get param articles is given.
+     * Generate the articles in a section when get param "articles" is given.
      *
-     * @param PageModel  $basePage Base page.
-     * @param int|string $article  Article alias or id.
+     * @param PageModel          $basePage                 Base page.
+     * @param int|string         $article                  Article alias or id.
+     * @param array<int, string> $preloadedContentElements Preloaded content elements.
      *
-     * @throws PageNotFoundException If page does not exist.
-     * @throws AccessDeniedException If article is not visible.
+     * @throws PageNotFoundException If the page does not exist.
+     * @throws AccessDeniedException If the article is not visible.
      */
-    private static function generateSectionArticle(PageModel $basePage, int|string $article): string
-    {
+    private static function generateSectionArticle(
+        PageModel $basePage,
+        int|string $article,
+        string $column,
+        array $preloadedContentElements,
+    ): string {
         $articleModel = ArticleModel::findByIdOrAliasAndPid($article, $basePage->id);
 
         // Send a 404 header if the article does not exist
@@ -214,7 +225,7 @@ final class I18nRegular extends PageRegular
         // Add the "first" and "last" classes (see #2583)
         $articleModel->classes = ['first', 'last'];
 
-        $article = self::getArticle($articleModel);
+        $article = self::getArticle($articleModel, false, false, $column, $preloadedContentElements);
         if (is_string($article)) {
             return $article;
         }
@@ -225,12 +236,17 @@ final class I18nRegular extends PageRegular
     /**
      * Generate the article list.
      *
-     * @param PageModel $currentPage I18n page model.
-     * @param PageModel $basePage    Page model.
-     * @param string    $column      Section column.
+     * @param PageModel          $currentPage              I18n page model.
+     * @param PageModel          $basePage                 Page model.
+     * @param string             $column                   Section column.
+     * @param array<int, string> $preloadedContentElements Preloaded content elements.
      */
-    private static function generateArticleList(PageModel $currentPage, PageModel $basePage, string $column): string
-    {
+    private static function generateArticleList(
+        PageModel $currentPage,
+        PageModel $basePage,
+        string $column,
+        array $preloadedContentElements = [],
+    ): string {
         // Show all articles (no else block here, see #4740)
         $articles = ArticleModel::findPublishedByPidAndColumn($basePage->id, $column);
 
@@ -273,7 +289,7 @@ final class I18nRegular extends PageRegular
                 $articleModel->classes = $arrCss;
             }
 
-            $return .= (string) self::getArticle($articleModel, $multiMode, false, $column);
+            $return .= (string) self::getArticle($articleModel, $multiMode, false, $column, $preloadedContentElements);
             ++$count;
         }
 
