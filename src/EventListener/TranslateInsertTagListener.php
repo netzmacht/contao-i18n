@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\EventListener;
 
+use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use Contao\PageModel;
 use Netzmacht\Contao\I18n\Model\Page\I18nPageRepository;
 use Netzmacht\Contao\I18n\PageProvider\PageProvider;
@@ -15,6 +16,7 @@ use function array_pad;
 use function explode;
 use function in_array;
 
+#[AsHook('replaceInsertTags', method: 'replace')]
 final class TranslateInsertTagListener extends AbstractInsertTagParser
 {
     public function __construct(

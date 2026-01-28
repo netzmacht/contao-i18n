@@ -1,0 +1,151 @@
+parameters:
+    netzmacht.contao_i18n.pages:
+        - i18n_regular
+
+services:
+    _defaults:
+        public: true
+        autoconfigure: true
+
+    netzmacht.contao_i18n.context_stack:
+        class: Netzmacht\Contao\I18n\Context\ContextStack
+
+    netzmacht.contao_i18n.page_repository:
+        class: Netzmacht\Contao\I18n\Model\Page\I18nPageRepository
+        arguments:
+            - '%netzmacht.contao_i18n.pages%'
+            - '@netzmacht.contao_toolkit.repository_manager'
+
+    netzmacht.contao_i18n.service_factory:
+        class: Netzmacht\Contao\I18n\DependencyInjection\ServiceFactory
+        arguments:
+            - '@contao.framework'
+
+    netzmacht.contao_i18n.contao.model_registry:
+        class: Contao\Model\Registry
+        factory: ['@netzmacht.contao_i18n.service_factory', createModelRegistry]
+
+    netzmacht.contao_i18n.contao.database_connection:
+        class: Contao\Database
+        factory: ['@netzmacht.contao_i18n.service_factory', createDatabaseConnection]
+
+    netzmacht.contao_i18n.page_provider:
+        class: Netzmacht\Contao\I18n\PageProvider\PageProvider
+
+    netzmacht.contao_i18n.translated_article_finder:
+        class: Netzmacht\Contao\I18n\Model\Article\TranslatedArticleFinder
+        arguments:
+            - '@netzmacht.contao_toolkit.repository_manager'
+
+    netzmacht.contao_i18m.listeners.current_page:
+        class: Netzmacht\Contao\I18n\EventListener\CurrentPageListener
+        arguments:
+            - '@netzmacht.contao_i18n.page_provider'
+
+    netzmacht.contao_18n.listeners.translate_insert_tag:
+        class: Netzmacht\Contao\I18n\EventListener\TranslateInsertTagListener
+        arguments:
+            - '@netzmacht.contao_i18n.page_repository'
+            - '@netzmacht.contao_i18n.page_provider'
+            - '@translator'
+
+    netzmacht.contao_i18n.listeners.page_status_icon:
+        class: Netzmacht\Contao\I18n\EventListener\PageStatusIconListener
+        arguments:
+            - '@assets.packages'
+
+    netzmacht.contao_i18n.listeners.context:
+        class: Netzmacht\Contao\I18n\EventListener\ContextListener
+        arguments:
+            - '@netzmacht.contao_i18n.context_stack'
+            - '@netzmacht.contao_toolkit.repository_manager'
+
+    Netzmacht\Contao\I18n\EventListener\I18nEventNavigationListener:
+        arguments:
+            - '@netzmacht.contao_i18n.page_repository'
+            - '@netzmacht.contao_i18n.page_provider'
+
+    Netzmacht\Contao\I18n\EventListener\I18nEventSitemapListener:
+        arguments:
+            - '@netzmacht.contao_toolkit.repository_manager'
+            - '@netzmacht.contao_i18n.page_repository'
+            - '@netzmacht.contao_i18n.context_stack'
+            - '@contao.routing.content_url_generator'
+
+    Netzmacht\Contao\I18n\EventListener\I18nNewsNavigationListener:
+        arguments:
+            - '@netzmacht.contao_i18n.page_repository'
+            - '@netzmacht.contao_i18n.page_provider'
+
+    Netzmacht\Contao\I18n\EventListener\I18nNewsSitemapListener:
+        arguments:
+            - '@netzmacht.contao_toolkit.repository_manager'
+            - '@netzmacht.contao_i18n.page_repository'
+            - '@netzmacht.contao_i18n.context_stack'
+            - '@contao.routing.content_url_generator'
+
+    Netzmacht\Contao\I18n\EventListener\I18nFaqNavigationListener:
+        arguments:
+            - '@netzmacht.contao_i18n.page_repository'
+            - '@netzmacht.contao_i18n.page_provider'
+
+    Netzmacht\Contao\I18n\EventListener\I18nFaqSitemapListener:
+        arguments:
+            - '@netzmacht.contao_toolkit.repository_manager'
+            - '@netzmacht.contao_i18n.page_repository'
+            - '@netzmacht.contao_i18n.context_stack'
+            - '@contao.routing.content_url_generator'
+
+    netzmacht.contao_i18n.listeners.dca.page:
+        class: Netzmacht\Contao\I18n\EventListener\PageDcaListener
+        arguments:
+            - '@netzmacht.contao_toolkit.dca.manager'
+            - '@netzmacht.contao_toolkit.repository_manager'
+            - '@security.helper'
+            - '@netzmacht.contao_i18n.translated_article_finder'
+            - '@netzmacht.contao_i18n.article_cleaner'
+            - '@netzmacht.contao_toolkit.callback_invoker'
+            - '%netzmacht.contao_i18n.article_cleanup%'
+
+    netzmacht.contao_i18n.article_cleaner:
+        class: Netzmacht\Contao\I18n\Cleanup\I18nPageArticleCleaner
+        arguments:
+            - '@netzmacht.contao_toolkit.repository_manager'
+            - '@netzmacht.contao_toolkit.dca.manager'
+            - '@netzmacht.contao_toolkit.contao.backend_user'
+            - '@netzmacht.contao_toolkit.callback_invoker'
+
+    Netzmacht\Contao\I18n\Routing\Content\I18nCalendarEventsResolver:
+        arguments:
+            - '@netzmacht.contao_i18n.page_repository'
+            - '@contao.framework'
+            - '@netzmacht.contao_i18n.context_stack'
+            - '@contao_calendar.routing.calendar_events_resolver'
+        tags:
+            - { name: contao.content_url_resolver, priority: 100 }
+
+    Netzmacht\Contao\I18n\Routing\Content\I18nFaqResolver:
+        arguments:
+            - '@netzmacht.contao_i18n.page_repository'
+            - '@contao.framework'
+            - '@netzmacht.contao_i18n.context_stack'
+            - '@contao_faq.routing.faq_resolver'
+        tags:
+            - { name: contao.content_url_resolver, priority: 100 }
+
+    Netzmacht\Contao\I18n\Routing\Content\I18nNewsResolver:
+        arguments:
+            - '@netzmacht.contao_i18n.page_repository'
+            - '@contao.framework'
+            - '@netzmacht.contao_i18n.context_stack'
+            - '@contao_news.routing.news_resolver'
+        tags:
+            - { name: contao.content_url_resolver, priority: 100 }
+
+    Netzmacht\Contao\I18n\Routing\Content\I18nPageResolver:
+        arguments:
+            - '@netzmacht.contao_i18n.context_stack'
+            - '@netzmacht.contao_i18n.page_repository'
+            - '@contao.routing.content.page_resolver'
+        tags:
+            - { name: contao.content_url_resolver, priority: 100 }

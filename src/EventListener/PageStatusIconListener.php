@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Netzmacht\Contao\I18n\EventListener;
 
+use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use Symfony\Component\Asset\Packages;
 
 final class PageStatusIconListener
@@ -18,6 +19,7 @@ final class PageStatusIconListener
      * @param object $pageModel Page model.
      * @param string $icon      The icon.
      */
+    #[AsHook('getPageStatusIcon')]
     public function onGetPageStatusIcon(object $pageModel, string $icon): string
     {
         if ($pageModel->type === 'i18n_regular') {

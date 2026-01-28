@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Netzmacht\Contao\I18n\EventListener;
 
 use Contao\ContentModel;
+use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use Contao\Model;
 use Contao\ModuleModel;
 use Netzmacht\Contao\I18n\Context\ContextStack;
@@ -25,6 +26,7 @@ final class ContextListener
      * @param Model $model   The element model.
      * @param bool  $visible Visible state.
      */
+    #[AsHook('isVisibleElement')]
     public function onIsVisibleElement(Model $model, bool $visible): bool
     {
         if (! $visible) {
@@ -53,6 +55,7 @@ final class ContextListener
      * @param ModuleModel $model  The frontend module model.
      * @param string      $buffer The generated module.
      */
+    #[AsHook('getFrontendModule')]
     public function onGetFrontendModule(ModuleModel $model, string $buffer): string
     {
         $this->contextStack->leaveContext(FrontendModuleContext::fromModel($model));
