@@ -20,8 +20,8 @@ use Netzmacht\Contao\I18n\Model\Article\TranslatedArticleFinder;
 use Netzmacht\Contao\Toolkit\Callback\Invoker;
 use Netzmacht\Contao\Toolkit\Data\Model\ContaoRepository;
 use Netzmacht\Contao\Toolkit\Data\Model\RepositoryManager;
+use Netzmacht\Contao\Toolkit\Dca\DcaManager;
 use Netzmacht\Contao\Toolkit\Dca\Listener\AbstractListener;
-use Netzmacht\Contao\Toolkit\Dca\Manager;
 use Override;
 use Symfony\Bundle\SecurityBundle\Security;
 
@@ -38,7 +38,7 @@ final class PageDcaListener extends AbstractListener
 {
     /** @param bool $articleCleanup If true, all unrelated articles get removed. */
     public function __construct(
-        Manager $dcaManager,
+        DcaManager $dcaManager,
         private readonly RepositoryManager $repositoryManager,
         private readonly Security $security,
         private readonly TranslatedArticleFinder $articleFinder,
