@@ -26,6 +26,7 @@
 /postgres/postgresql.conf
 /providers/acquia.yaml
 /providers/lagoon.yaml
+/providers/pantheon.yaml
 /providers/platform.yaml
 /providers/upsun.yaml
 /sequelpro.spf
